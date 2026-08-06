@@ -1,0 +1,82 @@
+<!-- admin/assignments.ejs -->
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">Assignments</h1>
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-primary"><%= total || 0 %> assignments</span>
+            <a href="/assignments/new" class="btn btn-primary btn-sm">
+                <i class="bi bi-plus-lg"></i> Add Assignment
+            </a>
+        </div>
+    </div>
+
+    <% if (typeof assignments !== 'undefined' && assignments.length > 0) { %>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Course</th>
+                    <th>Title</th>
+                    <th>Due Date</th>
+                    <th>Status</th>
+                    <th>Created</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% assignments.forEach(function(a) { %>
+                <tr>
+                    <td>
+                        <span class="fw-semibold"><%= a.courseCode %></span>
+                        <small class="d-block text-muted"><%= a.courseName %></small>
+                    </td>
+                    <td><%= a.title %></td>
+                    <td class="text-muted small"><%= a.dueDate ? new Date(a.dueDate).toLocaleDateString() : '-' %></td>
+                    <td>
+                        <span class="badge bg-<%= a.status === 'publish' ? 'success' : (a.status === 'draft' ? 'secondary' : 'warning') %>">
+                            <%= a.status %>
+                        </span>
+                    </td>
+                    <td class="text-muted small"><%= a.createdAt ? new Date(a.createdAt).toLocaleDateString() : '-' %></td>
+                    <td class="text-end">
+                        <a href="/assignments/<%= a.id %>/edit" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <form action="/assignments/<%= a.id %>/delete" method="POST" class="d-inline" onsubmit="return confirm('Delete this assignment?')">
+                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                <% }); %>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <% if (typeof pagination !== 'undefined' && pagination.pages > 1) { %>
+    <nav>
+        <ul class="pagination justify-content-center">
+            <li class="page-item <%= pagination.page <= 1 ? 'disabled' : '' %>">
+                <a class="page-link" href="?page=<%= pagination.page - 1 %>">Previous</a>
+            </li>
+            <li class="page-item disabled">
+                <span class="page-link">Page <%= pagination.page %> of <%= pagination.pages %></span>
+            </li>
+            <li class="page-item <%= pagination.page >= pagination.pages ? 'disabled' : '' %>">
+                <a class="page-link" href="?page=<%= pagination.page + 1 %>">Next</a>
+            </li>
+        </ul>
+    </nav>
+    <% } %>
+    <% } else { %>
+    <div class="text-center py-5">
+        <i class="bi bi-pencil-square display-1 text-muted mb-3"></i>
+        <h5 class="text-muted">No assignments found</h5>
+        <a href="/assignments/new" class="btn btn-primary mt-2">
+            <i class="bi bi-plus-lg"></i> Add your first assignment
+        </a>
+    </div>
+    <% } %>
+</div>

@@ -1,0 +1,377 @@
+.demo-box {
+    max-width: 600px;
+    margin-bottom: 30px;
+}
+
+/* ============================= */
+/* 1. Classic Shimmer */
+/* ============================= */
+.placeholder {
+    position: relative;
+    overflow: hidden;
+    background: #e9ecef;
+    border-radius: 8px;
+    height: 30px;
+    width: 100%;
+}
+
+.placeholder::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg,
+            transparent,
+            rgba(255, 255, 255, 0.5),
+            transparent);
+    transform: translateX(-100%);
+    animation: shimmer 1.2s infinite;
+}
+
+@keyframes shimmer {
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+/* ============================= */
+/* 2. Pulse */
+/* ============================= */
+.placeholder-pulse {
+    height: 30px;
+    border-radius: 8px;
+    background: #e9ecef;
+    animation: pulse 1.2s infinite ease-in-out;
+    width: 100%;
+}
+
+@keyframes pulse {
+    0% {
+        opacity: 0.5;
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0.5;
+    }
+}
+
+/* ============================= */
+/* 3. Wave */
+/* ============================= */
+.placeholder-wave {
+    position: relative;
+    overflow: hidden;
+    height: 30px;
+    border-radius: 8px;
+    background: #e9ecef;
+    width: 100%;
+}
+
+.placeholder-wave::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(110deg,
+            transparent 25%,
+            rgba(255, 255, 255, 0.5) 37%,
+            transparent 63%);
+    animation: wave 1.4s infinite;
+}
+
+@keyframes wave {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(100%); }
+}
+
+/* ============================= */
+/* 4. Stripes */
+/* ============================= */
+.placeholder-stripes {
+    height: 30px;
+    border-radius: 8px;
+    background: repeating-linear-gradient(45deg,
+            #e9ecef, #e9ecef 10px, #dee2e6 10px, #dee2e6 20px);
+    animation: stripes 1s linear infinite;
+    width: 100%;
+}
+
+@keyframes stripes {
+    from { background-position: 0 0; }
+    to { background-position: 40px 40px; }
+}
+
+/* ============================= */
+/* 5. Skeleton Text */
+/* ============================= */
+.skeleton-line {
+    height: 14px;
+    border-radius: 6px;
+    background: #e9ecef;
+    margin-bottom: 10px;
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+}
+
+.skeleton-wrapper {
+    display: grid;
+    gap: 12px;
+    padding: 16px;
+    width: 100%;
+}
+
+.skeleton-line::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg,
+            transparent, rgba(255, 255, 255, 0.6), transparent);
+    animation: shimmer 1.3s infinite;
+}
+
+/* ============================= */
+/* 6. Card Skeleton */
+/* ============================= */
+.skeleton-card {
+    width: 100%;
+}
+
+.skeleton-img {
+    height: 150px;
+    border-radius: 12px;
+    background: #e9ecef;
+    margin-bottom: 12px;
+    animation: pulse 1.2s infinite;
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+.skeleton-img::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg,
+            transparent, rgba(255, 255, 255, 0.5), transparent);
+    animation: shimmer 1.3s infinite;
+}
+
+.skeleton-text {
+    height: 14px;
+    border-radius: 6px;
+    background: #e9ecef;
+    margin-bottom: 8px;
+    animation: pulse 1.2s infinite;
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+.skeleton-text::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg,
+            transparent, rgba(255, 255, 255, 0.5), transparent);
+    animation: shimmer 1.3s infinite;
+}
+
+/* ============================= */
+/* 7. Soft Gradient Blink */
+/* ============================= */
+.placeholder-soft {
+    height: 30px;
+    border-radius: 8px;
+    background: linear-gradient(-90deg,
+            #e9ecef 0%, #dee2e6 50%, #e9ecef 100%);
+    background-size: 400% 400%;
+    animation: softBlink 1.5s infinite ease;
+    width: 100%;
+}
+
+@keyframes softBlink {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 100% 50%; }
+}
+
+/* ============================= */
+/* 8. Skeleton Avatar */
+/* ============================= */
+.skeleton-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #e9ecef;
+    flex-shrink: 0;
+    animation: pulse 1.2s infinite;
+    position: relative;
+    overflow: hidden;
+}
+
+.skeleton-avatar::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg,
+            transparent, rgba(255, 255, 255, 0.5), transparent);
+    animation: shimmer 1.3s infinite;
+}
+
+/* ============================= */
+/* 9. Post Card Grid Skeleton */
+/* ============================= */
+.skeleton-post-card-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    width: 100%;
+}
+
+.skeleton-post-card-grid > .col-md-4 {
+    flex: 0 0 auto;
+    width: 100%;
+}
+
+@media (max-width: 768px) {
+    .skeleton-post-card-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (min-width: 769px) and (max-width: 992px) {
+    .skeleton-post-card-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* ============================= */
+/* 10. Pulse Card Wrapper */
+/* ============================= */
+.skeleton-pulse-card {
+    animation: pulseCard 1.5s infinite ease-in-out;
+}
+
+@keyframes pulseCard {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+/* ============================= */
+/* 11. Skeleton Search Items */
+/* ============================= */
+.skeleton-search-item {
+    padding: 10px 16px;
+    border-bottom: 1px solid #eee;
+}
+
+.skeleton-search-item:last-child {
+    border-bottom: none;
+}
+
+/* ============================= */
+/* 12. Skeleton Active State */
+/* ============================= */
+.ph-skeleton-active {
+    min-height: 100px;
+}
+
+/* ============================= */
+/* 13. Page-Level Skeleton System */
+/* ============================= */
+.page-skeleton {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    background: inherit;
+    opacity: 0;
+    transition: opacity 300ms ease-in-out;
+    pointer-events: none;
+    min-height: 200px;
+}
+
+.page-skeleton--active {
+    display: block;
+}
+
+.page-skeleton--visible {
+    opacity: 1;
+}
+
+/* Content reveal animation */
+.page-content--hidden {
+    opacity: 0;
+    transition: opacity 350ms ease-in-out;
+}
+
+.page-content--visible {
+    opacity: 1;
+}
+
+/* Ensure skeleton doesn't cause layout shift */
+.page-skeleton .container,
+.page-skeleton .container-fluid {
+    padding: 20px 0;
+}
+
+.page-skeleton .card {
+    border: 1px solid #e9ecef;
+}
+
+/* ============================= */
+/* 14. Dark Mode Support */
+/* ============================= */
+[data-bs-theme="dark"] .placeholder,
+[data-bs-theme="dark"] .skeleton-line,
+[data-bs-theme="dark"] .skeleton-img,
+[data-bs-theme="dark"] .skeleton-text,
+[data-bs-theme="dark"] .skeleton-avatar,
+[data-bs-theme="dark"] .placeholder-pulse {
+    background: #2b2b2b;
+}
+
+[data-bs-theme="dark"] .placeholder::after,
+[data-bs-theme="dark"] .skeleton-line::after,
+[data-bs-theme="dark"] .skeleton-img::after,
+[data-bs-theme="dark"] .skeleton-text::after,
+[data-bs-theme="dark"] .skeleton-avatar::after {
+    background: linear-gradient(90deg,
+            transparent, rgba(255, 255, 255, 0.25), transparent);
+}
+
+[data-bs-theme="dark"] .placeholder-wave {
+    background: #2f2f2f;
+}
+
+[data-bs-theme="dark"] .placeholder-wave::after {
+    background: linear-gradient(110deg,
+            transparent 25%, rgba(255, 255, 255, 0.35) 37%, transparent 63%);
+}
+
+[data-bs-theme="dark"] .placeholder-stripes {
+    background: repeating-linear-gradient(45deg,
+            #2b2b2b, #2b2b2b 10px, #3a3a3a 10px, #3a3a3a 20px);
+}
+
+[data-bs-theme="dark"] .placeholder-soft {
+    background: linear-gradient(-90deg,
+            #2a2a2a 0%, #3a3a3a 50%, #2a2a2a 100%);
+    background-size: 400% 400%;
+}
+
+[data-bs-theme="dark"] .page-skeleton {
+    background: #1a1a2e;
+}
+
+@media (prefers-color-scheme: dark) {
+    :not([data-bs-theme="light"]) .placeholder,
+    :not([data-bs-theme="light"]) .skeleton-line,
+    :not([data-bs-theme="light"]) .skeleton-img,
+    :not([data-bs-theme="light"]) .skeleton-text,
+    :not([data-bs-theme="light"]) .skeleton-avatar,
+    :not([data-bs-theme="light"]) .placeholder-pulse {
+        background: #2b2b2b;
+    }
+}

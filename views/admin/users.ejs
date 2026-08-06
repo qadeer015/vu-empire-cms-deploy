@@ -1,0 +1,65 @@
+<!-- admin/users.ejs -->
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">All Users</h1>
+        <span class="badge bg-primary"><%= (typeof total !== 'undefined' && total) ? total : '' %> users</span>
+    </div>
+
+    <% if (typeof users !== 'undefined' && users.length > 0) { %>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>#</th>
+                    <th>Student ID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Joined</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% users.forEach(function(u, i) { %>
+                <tr onclick="window.location='/<%= u.studentId %>'" style="cursor:pointer" class="user-row">
+                    <td class="text-muted"><%= i + 1 %></td>
+                    <td><a href="/<%= u.studentId %>"><code><%= u.studentId %></code></a></td>
+                    <td>
+                        <a href="/<%= u.studentId %>" class="text-decoration-none text-reset">
+                            <div class="d-flex align-items-center gap-2">
+                                <% if (u.avatar && u.avatar !== '/avatars/default.png') { %>
+                                    <img src="<%= u.avatar %>" class="rounded-circle" style="width:32px;height:32px;object-fit:cover;" />
+                                <% } else { %>
+                                    <span class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center text-primary fw-medium"
+                                          style="width:32px;height:32px;font-size:12px;flex-shrink:0">
+                                        <%= u.studentName ? u.studentName[0].toUpperCase() : '?' %>
+                                    </span>
+                                <% } %>
+                                <span><%= u.studentName %></span>
+                            </div>
+                        </a>
+                    </td>
+                    <td><a href="/<%= u.studentId %>" class="text-decoration-none text-muted"><%= u.vuEmail %></a></td>
+                    <td><a href="/<%= u.studentId %>" class="text-decoration-none text-reset">
+                        <span class="badge bg-<%= u.role === 'admin' ? 'danger' : 'secondary' %>">
+                            <%= u.role %>
+                        </span>
+                    </a></td>
+                    <td><a href="/<%= u.studentId %>" class="text-decoration-none text-reset">
+                        <span class="badge bg-<%= u.status === 'active' ? 'success' : (u.status === 'deleted' ? 'danger' : 'warning') %>">
+                            <%= u.status || 'active' %>
+                        </span>
+                    </a></td>
+                    <td><a href="/<%= u.studentId %>" class="text-decoration-none text-muted small"><%= u.createdAt ? new Date(u.createdAt).toLocaleString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true, month: 'short', day: 'numeric', year: 'numeric' }) : '-' %></a></td>
+                </tr>
+                <% }); %>
+            </tbody>
+        </table>
+    </div>
+    <% } else { %>
+    <div class="text-center py-5">
+        <i class="bi bi-people display-1 text-muted mb-3"></i>
+        <h5 class="text-muted">No users found</h5>
+    </div>
+    <% } %>
+</div>

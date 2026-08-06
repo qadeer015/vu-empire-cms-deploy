@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /auth/
+Disallow: /settings
+Disallow: /api/
+
+Sitemap: https://vuempire.online/sitemap.xml

@@ -1,0 +1,159 @@
+:root {
+    /* ── Brand color tokens ── */
+    --brand-darkest: #0f3457;
+    /* darkest navy, use for text on light bg */
+    --brand-dark: #1e4e7b;
+    /* logo base, navbar bg */
+    --brand-mid: #1f68ad;
+    /* primary buttons, links */
+    --brand-light: #529be0;
+    /* hover states, secondary elements */
+    --brand-pale: #a8cdf0;
+    /* backgrounds, badges, borders */
+
+    --brand-secondary: #C9A84C;
+    /* gold / amber, second logo color */
+    --brand-secondary-dark: #a88a2f;
+    /* darker variant for hover / active */
+    --brand-secondary-light: #e0c86e;
+    /* lighter variant for backgrounds */
+
+    --accent-teal: #26afd9;
+    /* info, highlights */
+    --accent-cyan: #26d9d6;
+    /* decorative pops */
+    --accent-pink: #d92682;
+    /* warnings, alerts, CTAs needing contrast */
+    --accent-green: #82d926;
+    /* success states */
+
+    /* ── Override Bootstrap semantic tokens ── */
+    --bs-primary: var(--brand-mid);
+    --bs-primary-rgb: 31, 104, 173;
+
+    --bs-secondary: var(--brand-secondary);
+    --bs-secondary-rgb: 201, 168, 76;
+
+    --bs-link-color: var(--brand-mid);
+    --bs-link-color-rgb: 31, 104, 173;
+    --bs-link-hover-color: var(--brand-dark);
+
+    --bs-success: #5aa820;
+    /* toned-down version of accent-green */
+    --bs-info: var(--accent-teal);
+    --bs-danger: var(--accent-pink);
+
+    --border: rgba(27, 58, 107, 0.12);
+    --border-gold: rgba(201, 168, 76, 0.4);
+    --nav-bg: rgba(244, 246, 251, 0.95);
+    --section-alt: #EEF2FA;
+    --input-bg: #F0F3FA;
+    --shadow-card: 0 4px 20px rgba(27, 58, 107, 0.10);
+    --hero-glow1: rgba(27, 58, 107, 0.08);
+    --hero-glow2: rgba(201, 168, 76, 0.07);
+
+    --font-display: 'Space Grotesk', sans-serif;
+    --font-body: 'Inter', sans-serif;
+
+    --bg-base: #F4F6FB;
+    --bg-raised: #FFFFFF;
+    --bg-card: #FFFFFF;
+    --bg-card-h: #F0F4FF;
+    --text-primary: #2C3447;
+    --text-muted: #6B7590;
+    --text-heading: #0F1B35;
+}
+
+/* ── Primary button ── */
+.btn-primary {
+    --bs-btn-bg: var(--brand-mid);
+    --bs-btn-border-color: var(--brand-mid);
+    --bs-btn-hover-bg: var(--brand-dark);
+    --bs-btn-hover-border-color: var(--brand-dark);
+    --bs-btn-active-bg: var(--brand-darkest);
+}
+
+/* ── Outline primary button ── */
+.btn-outline-primary {
+    --bs-btn-color: var(--brand-mid);
+    --bs-btn-border-color: var(--brand-mid);
+    --bs-btn-hover-bg: var(--brand-mid);
+    --bs-btn-hover-border-color: var(--brand-mid);
+}
+
+/* ── Secondary button (brand gold) ── */
+.btn-secondary {
+    --bs-btn-bg: var(--brand-secondary);
+    --bs-btn-border-color: var(--brand-secondary);
+    --bs-btn-hover-bg: var(--brand-secondary-dark);
+    --bs-btn-hover-border-color: var(--brand-secondary-dark);
+    --bs-btn-active-bg: var(--brand-secondary-dark);
+    --bs-btn-color: var(--brand-darkest);
+    --bs-btn-hover-color: var(--brand-darkest);
+    --bs-btn-active-color: var(--brand-darkest);
+}
+
+/* ── Outline secondary button ── */
+.btn-outline-secondary {
+    --bs-btn-color: var(--brand-secondary);
+    --bs-btn-border-color: var(--brand-secondary);
+    --bs-btn-hover-bg: var(--brand-secondary);
+    --bs-btn-hover-border-color: var(--brand-secondary);
+    --bs-btn-hover-color: var(--brand-darkest);
+}
+
+.brand-text {
+    color: var(--brand-darkest);
+    font-weight: bold;
+    font-size: 2.5rem;
+    span {
+        color: var(--brand-secondary);
+    }
+}
+
+/* ── Navbar with brand dark ── */
+.navbar-brand-vu {
+    background-color: var(--brand-dark);
+}
+
+/* ── Custom badge for brand pale ── */
+.badge-brand {
+    background-color: var(--brand-pale);
+    color: var(--brand-darkest);
+}
+
+/* ── Card accent border ── */
+.card-brand {
+    border-top: 3px solid var(--brand-mid);
+}
+
+/* ── Card accent border (gold) ── */
+.card-brand-secondary {
+    border-top: 3px solid var(--brand-secondary);
+}
+
+/* ── Brand secondary text utility ── */
+.text-brand-secondary {
+    color: var(--brand-secondary) !important;
+}
+
+/* ── Brand secondary background utility ── */
+.bg-brand-secondary {
+    background-color: var(--brand-secondary) !important;
+    color: var(--brand-darkest) !important;
+}
+
+/* ── Focus ring ── */
+:focus-visible {
+    outline: 2px solid var(--brand-light);
+    outline-offset: 2px;
+}
+
+/* ── Link colors in body text ── */
+a {
+    color: var(--brand-mid);
+}
+
+a:hover {
+    color: var(--brand-dark);
+}

@@ -1,0 +1,118 @@
+<!-- admin/quiz_form.ejs -->
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0"><%= mode === 'new' ? 'Add Quiz' : 'Edit Quiz' %></h1>
+        <a href="/quizzes" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left"></i> Back to Quizzes
+        </a>
+    </div>
+
+    <div class="row g-4">
+        <!-- Quiz Metadata -->
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent border-bottom">
+                    <h5 class="mb-0">Quiz Details</h5>
+                </div>
+                <div class="card-body">
+                    <% if (mode === 'edit' && quiz) { %>
+                        <form action="/quizzes/<%= quiz.quizId %>" method="POST">
+                    <% } else { %>
+                        <form action="/quizzes" method="POST">
+                    <% } %>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Course <span class="text-danger">*</span></label>
+                            <select name="courseId" class="form-select" required>
+                                <option value="">Select Course</option>
+                                <% courses.forEach(function(c) { %>
+                                <option value="<%= c.courseId %>" <%= quiz && quiz.courseId == c.courseId ? 'selected' : '' %>>
+                                    <%= c.courseCode %> - <%= c.courseName %>
+                                </option>
+                                <% }); %>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Quiz Title <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="title" 
+                                   value="<%= quiz ? quiz.title : '' %>" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Type</label>
+                            <select name="type" class="form-select">
+                                <option value="quiz" <%= quiz && quiz.type === 'quiz' ? 'selected' : '' %>>Quiz</option>
+                                <option value="midterm" <%= quiz && quiz.type === 'midterm' ? 'selected' : '' %>>Midterm</option>
+                                <option value="finalterm" <%= quiz && quiz.type === 'finalterm' ? 'selected' : '' %>>Final Term</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-check-lg"></i> <%= mode === 'new' ? 'Create Quiz' : 'Update Quiz' %>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Questions Management -->
+        <% if (mode === 'edit' && quiz) { %>
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Questions (<%= questions ? questions.length : 0 %>)</h5>
+                    <a href="/quizzes/<%= quiz.quizId %>/questions/new" class="btn btn-primary btn-sm">
+                        <i class="bi bi-plus-lg"></i> Add Question
+                    </a>
+                </div>
+                <div class="card-body p-0">
+                    <% if (questions && questions.length > 0) { %>
+                    <div class="list-group list-group-flush">
+                        <% questions.forEach(function(q, i) { %>
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1 me-3">
+                                    <div class="d-flex align-items-start">
+                                        <span class="badge bg-primary me-2 mt-1"><%= i + 1 %></span>
+                                        <div>
+                                            <p class="mb-1 fw-medium"><%= q.questionText %></p>
+                                            <% if (q.explanation) { %>
+                                            <small class="text-muted d-block mb-2">Explanation: <%= q.explanation %></small>
+                                            <% } %>
+                                            <div class="d-flex flex-wrap gap-1">
+                                                <% (q.options || []).forEach(function(opt) { %>
+                                                <span class="badge bg-<%= opt.isCorrect ? 'success' : 'light text-dark' %> border">
+                                                    <%= opt.letter %>. <%= opt.optionText %>
+                                                </span>
+                                                <% }); %>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="d-flex gap-1 flex-shrink-0">
+                                    <a href="/questions/<%= q.questionId %>/edit" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <form action="/questions/<%= q.questionId %>/delete" method="POST" class="d-inline" onsubmit="return confirm('Delete this question?')">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        <% }); %>
+                    </div>
+                    <% } else { %>
+                    <div class="text-center py-5">
+                        <i class="bi bi-question-circle display-4 text-muted"></i>
+                        <h5 class="text-muted mt-2">No questions yet</h5>
+                        <a href="/quizzes/<%= quiz.quizId %>/questions/new" class="btn btn-primary mt-2">
+                            <i class="bi bi-plus-lg"></i> Add first question
+                        </a>
+                    </div>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+        <% } %>
+    </div>
+</div>

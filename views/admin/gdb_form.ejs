@@ -1,0 +1,58 @@
+<!-- admin/gdb_form.ejs -->
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0"><%= mode === 'new' ? 'Add GDB Solution' : 'Edit GDB Solution' %></h1>
+        <a href="/gdb-solutions" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left"></i> Back to GDB Solutions
+        </a>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            <% if (mode === 'edit' && solution) { %>
+                <form action="/gdb-solutions/<%= solution.id %>" method="POST">
+            <% } else { %>
+                <form action="/gdb-solutions" method="POST">
+            <% } %>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Course Code <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="courseCode" list="courseCodes"
+                               value="<%= solution ? solution.courseCode : '' %>"
+                               placeholder="e.g. CS201" required>
+                        <datalist id="courseCodes">
+                            <% courses.forEach(function(c) { %>
+                            <option value="<%= c.courseCode %>"><%= c.courseName %></option>
+                            <% }); %>
+                        </datalist>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Course Name</label>
+                        <input type="text" class="form-control" name="courseName"
+                               value="<%= solution ? solution.courseName : '' %>"
+                               placeholder="Auto-filled from course code">
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-bold">GDB Topic <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="gdbTitle"
+                               value="<%= solution ? solution.gdbTitle : '' %>"
+                               placeholder="e.g. Discuss the impact of AI on education" required>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-bold">Solution <span class="text-danger">*</span></label>
+                        <textarea class="form-control" name="solution" rows="8"
+                                  placeholder="Write the GDB solution here..." required><%= solution ? solution.solution : '' %></textarea>
+                    </div>
+                </div>
+
+                <div class="mt-4 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-lg"></i> <%= mode === 'new' ? 'Create GDB Solution' : 'Update GDB Solution' %>
+                    </button>
+                    <a href="/gdb-solutions" class="btn btn-outline-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

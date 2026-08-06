@@ -1,0 +1,215 @@
+.loader-wrapper {
+    position: relative;
+    display: inline-block;
+    margin: 20px;
+}
+
+.loader-wrapper .loader {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Spinner */
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #333;
+    border-top: 4px solid #fff;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Dots */
+.dots {
+    display: flex;
+    gap: 6px;
+}
+
+.dots span {
+    width: 10px;
+    height: 10px;
+    background: #fff;
+    border-radius: 50%;
+    animation: bounce 1.2s infinite ease-in-out;
+}
+
+.dots span:nth-child(2) {
+    animation-delay: 0.15s;
+}
+
+.dots span:nth-child(3) {
+    animation-delay: 0.3s;
+}
+
+@keyframes bounce {
+
+    0%,
+    80%,
+    100% {
+        transform: scale(0);
+    }
+
+    40% {
+        transform: scale(1);
+    }
+}
+
+/* Wave Dots */
+
+.wave {
+    display: flex;
+    gap: 6px;
+}
+
+.wave span {
+    width: 8px;
+    height: 8px;
+    background: #fff;
+    border-radius: 50%;
+    animation: wave 1.2s infinite;
+}
+
+.wave span:nth-child(2) {
+    animation-delay: 0.1s;
+}
+
+.wave span:nth-child(3) {
+    animation-delay: 0.2s;
+}
+
+.wave span:nth-child(4) {
+    animation-delay: 0.3s;
+}
+
+@keyframes wave {
+    0% {
+        transform: translateY(0);
+        opacity: 0.4;
+    }
+
+    50% {
+        transform: translateY(-10px);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateY(0);
+        opacity: 0.4;
+    }
+}
+
+/* Bars */
+.bars {
+    display: flex;
+    gap: 6px;
+}
+
+.bars span {
+    width: 8px;
+    height: 30px;
+    background: #fff;
+    animation: barAnim 1s infinite ease-in-out;
+}
+
+.bars span:nth-child(2) {
+    animation-delay: 0.1s;
+}
+
+.bars span:nth-child(3) {
+    animation-delay: 0.2s;
+}
+
+.bars span:nth-child(4) {
+    animation-delay: 0.3s;
+}
+
+@keyframes barAnim {
+
+    0%,
+    100% {
+        transform: scaleY(0.4);
+    }
+
+    50% {
+        transform: scaleY(1);
+    }
+}
+
+/* Percentage */
+.percentage-wrapper {
+    width: 100px;
+    text-align: center;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 6px;
+    background: #333;
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 5px;
+}
+
+.progress-fill {
+    height: 100%;
+    width: 0%;
+    background: #fff;
+    transition: width 0.2s linear;
+}
+
+.percentage-text {
+    font-size: 14px;
+}
+
+/* Glow */
+.glow {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 0 0 rgba(255, 255, 255, 0.7);
+    animation: glow 1.5s infinite;
+}
+
+@keyframes glow {
+    0% {
+        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
+    }
+
+    70% {
+        box-shadow: 0 0 0 20px rgba(255, 255, 255, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+    }
+}
+
+/* Dual Ring */
+.dual-ring {
+    width: 40px;
+    height: 40px;
+}
+
+.dual-ring::after {
+    content: "";
+    width: 40px;
+    height: 40px;
+    display: block;
+    border-radius: 50%;
+    border: 4px solid #fff;
+    border-color: #fff transparent #fff transparent;
+    animation: spin 1.2s linear infinite;
+}

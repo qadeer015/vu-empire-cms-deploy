@@ -1,0 +1,264 @@
+<!-- index.ejs -->
+<!-- ══════════ HERO ══════════ -->
+<section class="hero-section">
+    <div class="hero-bg"></div>
+    <div class="hero-grid"></div>
+    <div class="container hero-content">
+        <div class="row justify-content-center">
+            <div class="col-lg-10 text-center">
+                <h1 class="hero-title anim-fade-up delay-1">
+                    The Complete <br> Success <span class="gold">Platform</span> for Virtual University Students
+                    <br>
+                    <span class="outline">Study Faster. Score Better. Save Hours Every Semeter.</span>
+                </h1>
+                <p class="hero-sub anim-fade-up delay-2 lead mx-auto fs-4">
+                    VU Empire combines course resources, exam preparation materials, and the powerful VU Empire Genie extension into a
+                    single productivity platform designed specifically for Virtual University students.
+                </p>
+                <div class="d-flex flex-wrap gap-3 justify-content-center anim-fade-up delay-3">
+                    <a href="/genie" class="btn-pe"><i class="bi bi-book-fill"></i> Explore Genie Features</a>
+                    <a href="https://chromewebstore.google.com/detail/vu-empire-genie/lbggoklpkmhagnaidhppehgocmgieijk?utm_source=item-share-cb" class="btn-oe"><i class="bi bi-puzzle-fill"></i> Try Extension Free</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<script>
+    // ══════════ THEME ══════════
+    const html = document.documentElement;
+    const themeIcon = document.getElementById('themeIcon');
+
+    function applyTheme(t) {
+        html.setAttribute('data-theme', t);
+        if (themeIcon) themeIcon.className = t === 'light' ? 'bi bi-moon-fill' : 'bi bi-sun-fill';
+        const db = document.getElementById('ocDarkBtn');
+        const lb = document.getElementById('ocLightBtn');
+        if (db) db.classList.toggle('selected', t === 'dark');
+        if (lb) lb.classList.toggle('selected', t === 'light');
+        localStorage.setItem('vu-theme', t);
+    }
+    function toggleTheme() { applyTheme(html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'); }
+    function setTheme(t) { applyTheme(t); }
+    applyTheme(localStorage.getItem('vu-theme') || 'dark');
+
+    // ══════════ OFFCANVAS ══════════
+    function openOffcanvas() {
+        document.getElementById('offcanvasMenu').classList.add('open');
+        document.getElementById('ocBackdrop').classList.add('open');
+        document.getElementById('hamburgerBtn').classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+    function closeOffcanvas() {
+        document.getElementById('offcanvasMenu').classList.remove('open');
+        document.getElementById('ocBackdrop').classList.remove('open');
+        document.getElementById('hamburgerBtn').classList.remove('open');
+        document.body.style.overflow = '';
+    }
+
+    // ══════════ SEARCH ══════════
+    function toggleSearch() {
+        const ov = document.getElementById('searchOverlay');
+        ov.classList.toggle('open');
+        if (ov.classList.contains('open')) document.getElementById('searchInput').focus();
+    }
+    function closeSearch(e) { if (e.target === document.getElementById('searchOverlay')) toggleSearch(); }
+    function filterSearch(val) {
+        const items = document.querySelectorAll('.search-result-item');
+        items.forEach(i => {
+            const txt = i.querySelector('.sri-title').textContent.toLowerCase();
+            i.style.display = txt.includes(val.toLowerCase()) ? '' : 'none';
+        });
+    }
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') { document.getElementById('searchOverlay').classList.remove('open'); document.getElementById('loginModal').classList.remove('open'); } });
+
+    // ══════════ LOGIN ══════════
+    function toggleLogin() { document.getElementById('loginModal').classList.toggle('open'); }
+    function closeLogin(e) { if (e.target === document.getElementById('loginModal')) document.getElementById('loginModal').classList.remove('open'); }
+
+    // ══════════ SUBJECT TABS ══════════
+    document.querySelectorAll('.stab').forEach(t => t.addEventListener('click', () => { document.querySelectorAll('.stab').forEach(x => x.classList.remove('active')); t.classList.add('active'); }));
+
+    // ══════════ ADVANCED SCROLL ANIMATIONS ══════════
+    const animClasses = ['anim-fade-up', 'anim-fade-left', 'anim-fade-right', 'anim-scale', 'anim-flip-y'];
+
+    // Stagger children in same parent row
+    function applyStagger(el) {
+        const parent = el.closest('.row, .d-flex');
+        if (!parent) return;
+        const siblings = parent.querySelectorAll('[class*="anim-"]');
+        siblings.forEach((s, i) => {
+            // Skip elements that already have an explicit delay class like delay-1, delay-2, etc.
+            if (s.className.match(/\bdelay-\d+\b/)) return;
+            if (!s.dataset.staggerSet) {
+                s.dataset.staggerSet = true;
+                s.style.transitionDelay = (i * 0.08) + 's';
+            }
+        });
+    }
+
+    const scrollObserver = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+            if (e.isIntersecting) {
+                e.target.classList.add('anim-visible');
+                scrollObserver.unobserve(e.target);
+            }
+        });
+    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+
+    document.querySelectorAll(animClasses.map(c => '.' + c).join(',')).forEach(el => {
+        applyStagger(el);
+        scrollObserver.observe(el);
+    });
+
+    // Trigger hero animations immediately
+    document.querySelectorAll('.hero-content [class*="anim-"]').forEach((el, i) => {
+        setTimeout(() => el.classList.add('anim-visible'), 120 + i * 90);
+    });
+
+    // ══════════ COUNT-UP ══════════
+    const countObserver = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+            if (!e.isIntersecting) return;
+            const el = e.target;
+            const target = parseInt(el.dataset.target);
+            const suffix = el.dataset.suffix || '';
+            const dur = 1800;
+            const start = performance.now();
+            function update(now) {
+                const p = Math.min((now - start) / dur, 1);
+                const eased = 1 - Math.pow(1 - p, 3);
+                const val = Math.floor(eased * target);
+                // Format
+                let display;
+                if (target >= 10000) display = (val / 1000).toFixed(0) + 'K' + suffix.replace('K+', '+');
+                else display = val + suffix;
+                el.textContent = display;
+                if (p < 1) requestAnimationFrame(update);
+            }
+            requestAnimationFrame(update);
+            countObserver.unobserve(el);
+        });
+    }, { threshold: 0.5 });
+
+    document.querySelectorAll('.count-up').forEach(el => countObserver.observe(el));
+
+    // ══════════ PARALLAX HERO GRID ══════════
+    window.addEventListener('scroll', () => {
+        const y = window.scrollY;
+        const grid = document.querySelector('.hero-grid');
+        if (grid) grid.style.transform = `translateY(${y * 0.15}px)`;
+    }, { passive: true });
+
+    // ══════════ TESTIMONIALS SLIDER ══════════
+    (function () {
+        const track = document.getElementById('tsTrack');
+        const viewport = document.getElementById('tsViewport');
+        const prevBtn = document.getElementById('tsPrev');
+        const nextBtn = document.getElementById('tsNext');
+        const dotsWrap = document.getElementById('tsDots');
+        if (!track) return;
+
+        const slides = Array.from(track.querySelectorAll('.ts-slide'));
+        let current = 0;
+        let autoTimer;
+
+        // How many slides visible at once (responsive)
+        function perView() {
+            if (window.innerWidth >= 992) return 3;
+            if (window.innerWidth >= 576) return 2;
+            return 1;
+        }
+
+        // Total number of "steps" (positions)
+        function totalSteps() { return Math.max(1, slides.length - perView() + 1); }
+
+        // Build dots
+        function buildDots() {
+            dotsWrap.innerHTML = '';
+            const n = totalSteps();
+            for (let i = 0; i < n; i++) {
+                const d = document.createElement('button');
+                d.className = 'ts-dot' + (i === current ? ' active' : '');
+                d.setAttribute('aria-label', 'Go to slide ' + (i + 1));
+                d.addEventListener('click', () => goTo(i));
+                dotsWrap.appendChild(d);
+            }
+        }
+
+        function updateDots() {
+            dotsWrap.querySelectorAll('.ts-dot').forEach((d, i) =>
+                d.classList.toggle('active', i === current));
+        }
+
+        function updateArrows() {
+            prevBtn.disabled = current === 0;
+            nextBtn.disabled = current >= totalSteps() - 1;
+        }
+
+        function goTo(idx) {
+            current = Math.max(0, Math.min(idx, totalSteps() - 1));
+            // Calculate slide width including gap
+            const gap = window.innerWidth <= 575 ? 16 : 24;
+            const slideW = slides[0].offsetWidth;
+            track.style.transform = `translateX(-${current * (slideW + gap)}px)`;
+            updateDots();
+            updateArrows();
+        }
+
+        prevBtn.addEventListener('click', () => { goTo(current - 1); resetAuto(); });
+        nextBtn.addEventListener('click', () => { goTo(current + 1); resetAuto(); });
+
+        // Auto-play
+        function startAuto() {
+            autoTimer = setInterval(() => {
+                goTo(current >= totalSteps() - 1 ? 0 : current + 1);
+            }, 4500);
+        }
+        function resetAuto() { clearInterval(autoTimer); startAuto(); }
+
+        // Pause on hover
+        viewport.addEventListener('mouseenter', () => clearInterval(autoTimer));
+        viewport.addEventListener('mouseleave', () => startAuto());
+
+        // Touch / drag
+        let dragStart = null, dragging = false;
+        viewport.addEventListener('pointerdown', e => {
+            dragStart = e.clientX; dragging = true;
+            track.style.transition = 'none';
+        });
+        window.addEventListener('pointermove', e => {
+            if (!dragging || dragStart === null) return;
+            const gap = window.innerWidth <= 575 ? 16 : 24;
+            const slideW = slides[0].offsetWidth;
+            const base = current * (slideW + gap);
+            track.style.transform = `translateX(-${base - (e.clientX - dragStart)}px)`;
+        });
+        window.addEventListener('pointerup', e => {
+            if (!dragging) return;
+            dragging = false;
+            track.style.transition = '';
+            const diff = dragStart - e.clientX;
+            if (Math.abs(diff) > 60) {
+                goTo(diff > 0 ? current + 1 : current - 1);
+            } else {
+                goTo(current); // snap back
+            }
+            resetAuto();
+            dragStart = null;
+        });
+
+        // Init + resize
+        function init() {
+            current = Math.min(current, totalSteps() - 1);
+            buildDots();
+            goTo(current);
+        }
+
+        window.addEventListener('resize', () => { clearTimeout(window._tsResizeTimer); window._tsResizeTimer = setTimeout(init, 120); });
+
+        init();
+        startAuto();
+    })();
+</script>

@@ -1,0 +1,94 @@
+<!-- admin/past-papers.ejs -->
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">Past Papers</h1>
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-primary"><%= total || 0 %> papers</span>
+            <a href="/pastpapers/new" class="btn btn-primary btn-sm">
+                <i class="bi bi-plus-lg"></i> Add Past Paper
+            </a>
+        </div>
+    </div>
+
+    <% if (typeof papers !== 'undefined' && papers.length > 0) { %>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Course</th>
+                    <th>Year</th>
+                    <th>Type</th>
+                    <th>Semester</th>
+                    <th>Status</th>
+                    <th>File</th>
+                    <th>Created</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% papers.forEach(function(p) { %>
+                <tr>
+                    <td>
+                        <span class="fw-semibold"><%= p.courseCode %></span>
+                        <small class="d-block text-muted"><%= p.courseName %></small>
+                    </td>
+                    <td><%= p.year || '-' %></td>
+                    <td><%= p.type || '-' %></td>
+                    <td><%= p.semester || '-' %></td>
+                    <td>
+                        <span class="badge bg-<%= p.status === 'publish' ? 'success' : (p.status === 'draft' ? 'secondary' : 'warning') %>">
+                            <%= p.status %>
+                        </span>
+                    </td>
+                    <td>
+                        <% if (p.filePath) { %>
+                            <a href="<%= p.filePath %>" target="_blank" class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-file-earmark-pdf"></i>
+                            </a>
+                        <% } else { %>
+                            <span class="text-muted">-</span>
+                        <% } %>
+                    </td>
+                    <td class="text-muted small"><%= p.createdAt ? new Date(p.createdAt).toLocaleDateString() : '-' %></td>
+                    <td class="text-end">
+                        <a href="/pastpapers/<%= p.id %>/edit" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <form action="/pastpapers/<%= p.id %>/delete" method="POST" class="d-inline" onsubmit="return confirm('Delete this past paper?')">
+                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                <% }); %>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <% if (typeof pagination !== 'undefined' && pagination.pages > 1) { %>
+    <nav>
+        <ul class="pagination justify-content-center">
+            <li class="page-item <%= pagination.page <= 1 ? 'disabled' : '' %>">
+                <a class="page-link" href="?page=<%= pagination.page - 1 %>">Previous</a>
+            </li>
+            <li class="page-item disabled">
+                <span class="page-link">Page <%= pagination.page %> of <%= pagination.pages %></span>
+            </li>
+            <li class="page-item <%= pagination.page >= pagination.pages ? 'disabled' : '' %>">
+                <a class="page-link" href="?page=<%= pagination.page + 1 %>">Next</a>
+            </li>
+        </ul>
+    </nav>
+    <% } %>
+    <% } else { %>
+    <div class="text-center py-5">
+        <i class="bi bi-file-earmark-pdf display-1 text-muted mb-3"></i>
+        <h5 class="text-muted">No past papers found</h5>
+        <a href="/pastpapers/new" class="btn btn-primary mt-2">
+            <i class="bi bi-plus-lg"></i> Add your first past paper
+        </a>
+    </div>
+    <% } %>
+</div>

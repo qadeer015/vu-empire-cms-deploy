@@ -1,0 +1,37 @@
+<nav class="navbar navbar-expand-lg position-sticky top-0 z-3 bg-light shadow-sm">
+    <div class="container">
+        <a class="navbar-brand d-flex align-items-center gap-1" href="/" aria-label="VU Empire CMS" title="VU Empire CMS">
+            <img src="/assets/brand/logo.png" width="40px" class="me-2" alt="VU Empire CMS Logo">
+            <div class="text-body-emphasis">
+                <span class="brand-text">VU <span>Empire CMS</span></span>
+            </div>
+        </a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto align-items-center">
+                <% if (user) { %>
+                    <li class="nav-item me-2">
+                        <span class="badge bg-danger text-white me-2">Admin</span>
+                        <span class="text-muted small me-2"><%= user.name || user.studentName || '' %></span>
+                    </li>
+                    <li class="nav-item">
+                        <form action="/api/auth/logout?_method=DELETE" method="POST" class="d-inline">
+                            <button type="submit" class="btn btn-outline-danger rounded-pill btn-sm">
+                                <i class="bi bi-box-arrow-right"></i> Logout
+                            </button>
+                        </form>
+                    </li>
+                <% } else { %>
+                    <li class="nav-item">
+                        <a class="btn btn-outline-primary rounded-pill" href="/auth/login">
+                            Sign in
+                        </a>
+                    </li>
+                <% } %>
+            </ul>
+        </div>
+    </div>
+</nav>

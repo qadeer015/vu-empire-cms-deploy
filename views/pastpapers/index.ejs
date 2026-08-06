@@ -1,0 +1,133 @@
+<!-- pastpapers/index.ejs -->
+<div class="container py-4" data-controller="pastpaper" data-action="index">
+    <input type="hidden" data-target="pastpaper.page" value="1">
+    <input type="hidden" data-target="pastpaper.limit" value="20">
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 fw-bold mb-1">Past Papers</h1>
+            <p class="text-muted small mb-0">Browse and download past exam papers</p>
+        </div>
+        <a href="/pastpapers/new" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-1"></i> Upload Paper
+        </a>
+    </div>
+
+    <!-- Filters -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <div class="row g-2 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label small text-muted">Search</label>
+                    <input type="text" class="form-control" data-pastpaper-filter="search" placeholder="Course code or name">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small text-muted">Year</label>
+                    <input type="number" class="form-control" data-pastpaper-filter="year" placeholder="e.g. 2024">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small text-muted">Semester</label>
+                    <select class="form-select" data-pastpaper-filter="semester">
+                        <option value="">All</option>
+                        <option value="spring">Spring</option>
+                        <option value="fall">Fall</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small text-muted">Type</label>
+                    <select class="form-select" data-pastpaper-filter="type">
+                        <option value="">All</option>
+                        <option value="midterm">Mid Term</option>
+                        <option value="finalterm">Final Term</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <div class="form-check form-switch mt-4">
+                        <input class="form-check-input" type="checkbox" data-pastpaper-filter="grouped" id="groupedToggle">
+                        <label class="form-check-label small" for="groupedToggle">Group by course</label>
+                    </div>
+                </div>
+                <div class="col-12 d-flex gap-2 mt-2">
+                    <button type="button" class="btn btn-primary btn-sm" data-action="click->pastpaper#applyFilters">Apply Filters</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-action="click->pastpaper#resetFilters">Reset</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading skeleton -->
+    <div data-target="pastpaper.loading" style="display: block;">
+        <% for (let i = 0; i < 5; i++) { %>
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div class="flex-grow-1">
+                            <div class="skeleton-line mb-2" style="width: 35%; height: 24px;"></div>
+                            <div class="skeleton-line mb-2" style="width: 60%; height: 18px;"></div>
+                            <div class="skeleton-line" style="width: 25%; height: 16px;"></div>
+                        </div>
+                        <div class="skeleton-line ms-3" style="width: 100px; height: 36px;"></div>
+                    </div>
+                </div>
+            </div>
+        <% } %>
+    </div>
+
+    <!-- Content area -->
+    <div data-target="pastpaper.content" style="display: none;">
+        <div data-target="pastpaper.list"></div>
+
+        <!-- Admin Actions Panel -->
+        <div class="card border-0 shadow-sm mt-4" id="adminActions" style="display: none;">
+            <div class="card-body">
+                <h5 class="card-title mb-3">Admin Actions</h5>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-success btn-sm" data-action="click->pastpaper#publishSelected">
+                        <i class="bi bi-check-lg me-1"></i> Publish Selected
+                    </button>
+                    <button class="btn btn-warning btn-sm" data-action="click->pastpaper#rejectSelected">
+                        <i class="bi bi-x-lg me-1"></i> Reject Selected
+                    </button>
+                    <button class="btn btn-danger btn-sm" data-action="click->pastpaper#deleteSelected">
+                        <i class="bi bi-trash me-1"></i> Delete Selected
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Pagination -->
+        <nav data-target="pastpaper.pagination" class="mt-4" style="display: none;">
+            <ul class="pagination justify-content-center">
+                <li class="page-item" data-target="pastpaper.prevPage">
+                    <button class="page-link" data-action="click->pastpaper#prevPage">Previous</button>
+                </li>
+                <li class="page-item disabled">
+                    <span class="page-link" data-target="pastpaper.pageInfo">Page 1</span>
+                </li>
+                <li class="page-item" data-target="pastpaper.nextPage">
+                    <button class="page-link" data-action="click->pastpaper#nextPage">Next</button>
+                </li>
+            </ul>
+        </nav>
+    </div>
+
+    <!-- Empty state -->
+    <div data-target="pastpaper.empty" class="text-center py-5" style="display: none;">
+        <i class="bi bi-archive display-4 text-muted mb-3 d-block"></i>
+        <h5 class="text-muted">No past papers yet</h5>
+        <p class="text-muted small mb-3">Be the first to upload a past paper for your course.</p>
+        <a href="/pastpapers/new" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-1"></i> Upload Paper
+        </a>
+    </div>
+
+    <!-- Error state -->
+    <div data-target="pastpaper.error" class="text-center py-5" style="display: none;">
+        <i class="bi bi-exclamation-triangle display-4 text-warning mb-3 d-block"></i>
+        <h5 class="text-muted">Failed to load past papers</h5>
+        <p class="text-muted small mb-3" data-target="pastpaper.errorMessage"></p>
+        <button class="btn btn-outline-primary" data-action="click->pastpaper#index">
+            <i class="bi bi-arrow-clockwise me-1"></i> Retry
+        </button>
+    </div>
+</div>

@@ -1,0 +1,52 @@
+<!doctype html>
+<html>
+
+<body style="margin:0;padding:0;background:#f4f6f8;font-family:Arial,Helvetica,sans-serif;">
+    <table width="100%" cellspacing="0" cellpadding="0" style="padding:20px 0;background:#f4f6f8;">
+        <tr>
+            <td align="center">
+                <table width="600" cellpadding="0" cellspacing="0"
+                    style="background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 15px rgba(0,0,0,0.08);">
+                    <tr>
+                        <td style="padding:30px;text-align:center;">
+                            <img src="https://www.vuempire.online/assets/brand/logo.png" width="150"
+                                style="margin-bottom:10px;">
+                            <h2 style="color:#0f172a;margin-bottom:10px;">Your Post Has Been {{status_label}}</h2>
+                            <p style="color:#64748b;font-size:14px;">Hi {{author_name}}, your post
+                                <strong>"{{post_title}}"</strong> has been {{status_verb}} by an admin.
+                            </p>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td style="padding:0 30px 20px 30px;">
+                            <div style="background:#f8fafc;padding:20px;border-radius:8px;border:1px solid #e2e8f0;">
+                                <p style="color:#64748b;font-size:13px;margin:5px 0;"><strong>Status:</strong> <span
+                                        style="color:{{status_color}};font-weight:bold;">{{status_label}}</span></p>
+                                <p style="color:#64748b;font-size:13px;margin:5px 0;"><strong>Reviewed at:</strong>
+                                    {{reviewed_at}}</p>
+                                {{reject_reason_block}}
+                            </div>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td style="padding:0 30px 30px 30px;text-align:center;">
+                            <a href="{{post_link}}"
+                                style="display:inline-block;padding:12px 22px;background:#06b6d4;border-radius:8px;color:#fff;text-decoration:none;font-weight:bold;">View
+                                Post</a>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td style="background:#f8fafc;padding:15px;text-align:center;font-size:12px;color:#94a3b8;">
+                            © {{year}} {{app_name}}
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+
+</html>

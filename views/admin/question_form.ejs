@@ -1,0 +1,120 @@
+<!-- admin/question_form.ejs -->
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0"><%= mode === 'new' ? 'Add Question' : 'Edit Question' %></h1>
+        <a href="/quizzes/<%= quiz ? quiz.quizId : '' %>/edit" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left"></i> Back to Quiz
+        </a>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            <% if (mode === 'edit' && question) { %>
+                <form action="/questions/<%= question.questionId %>" method="POST">
+            <% } else { %>
+                <form action="/quizzes/<%= quiz.quizId %>/questions" method="POST">
+            <% } %>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Course</label>
+                        <select name="courseId" class="form-select">
+                            <% courses.forEach(function(c) { %>
+                            <option value="<%= c.courseId %>" <%= question && question.courseId == c.courseId ? 'selected' : (quiz && quiz.courseId == c.courseId ? 'selected' : '') %>>
+                                <%= c.courseCode %> - <%= c.courseName %>
+                            </option>
+                            <% }); %>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Quiz</label>
+                        <input type="text" class="form-control" value="<%= quiz ? quiz.title : '' %>" disabled>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Question Text <span class="text-danger">*</span></label>
+                    <textarea class="form-control" name="questionText" rows="3" required
+                              placeholder="Enter the question text..."><%= question ? question.questionText : '' %></textarea>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Explanation (optional)</label>
+                    <textarea class="form-control" name="explanation" rows="2"
+                              placeholder="Explanation for the correct answer..."><%= question ? question.explanation : '' %></textarea>
+                </div>
+
+                <h5 class="mb-3">Options</h5>
+                <div id="optionsContainer">
+                    <% const existingOptions = question && question.options ? (Array.isArray(question.options) ? question.options : []) : []; %>
+                    <%
+                    const optionCount = Math.max(existingOptions.length, 4);
+                    for (let i = 0; i < optionCount; i++) { 
+                        const opt = existingOptions[i] || null;
+                        const letter = opt ? opt.letter : String.fromCharCode(65 + i);
+                        const isCorrect = opt ? opt.isCorrect === 1 || opt.isCorrect === true : false;
+                    %>
+                    <div class="row g-2 mb-2 option-row">
+                        <div class="col-auto d-flex align-items-center">
+                            <span class="badge bg-secondary option-letter"><%= letter %></span>
+                        </div>
+                        <div class="col">
+                            <input type="text" class="form-control" name="options[<%= i %>][text]" 
+                                   value="<%= opt ? opt.optionText : '' %>" placeholder="Option <%= letter %> text">
+                            <input type="hidden" name="options[<%= i %>][letter]" value="<%= letter %>">
+                        </div>
+                        <div class="col-auto d-flex align-items-center">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="options[<%= i %>][isCorrect]" 
+                                       value="on" id="correct<%= i %>" <%= isCorrect ? 'checked' : '' %>>
+                                <label class="form-check-label small" for="correct<%= i %>">Correct</label>
+                            </div>
+                        </div>
+                    </div>
+                    <% } %>
+                </div>
+
+                <div class="mt-3 mb-4">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="addOptionRow()">
+                        <i class="bi bi-plus-lg"></i> Add Option
+                    </button>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-lg"></i> <%= mode === 'new' ? 'Create Question' : 'Update Question' %>
+                    </button>
+                    <a href="/quizzes/<%= quiz ? quiz.quizId : '' %>/edit" class="btn btn-outline-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+let optionRowCount = <%= Math.max(existingOptions ? existingOptions.length : 0, 4) %>;
+
+function addOptionRow() {
+    const container = document.getElementById('optionsContainer');
+    const letter = String.fromCharCode(65 + optionRowCount);
+    const row = document.createElement('div');
+    row.className = 'row g-2 mb-2 option-row';
+    row.innerHTML = `
+        <div class="col-auto d-flex align-items-center">
+            <span class="badge bg-secondary option-letter">${letter}</span>
+        </div>
+        <div class="col">
+            <input type="text" class="form-control" name="options[${optionRowCount}][text]" placeholder="Option ${letter} text">
+            <input type="hidden" name="options[${optionRowCount}][letter]" value="${letter}">
+        </div>
+        <div class="col-auto d-flex align-items-center">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="options[${optionRowCount}][isCorrect]" value="on" id="correct${optionRowCount}">
+                <label class="form-check-label small" for="correct${optionRowCount}">Correct</label>
+            </div>
+        </div>
+    `;
+    container.appendChild(row);
+    optionRowCount++;
+}
+</script>

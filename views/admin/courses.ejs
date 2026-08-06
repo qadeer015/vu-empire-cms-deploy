@@ -1,0 +1,81 @@
+<!-- admin/courses.ejs -->
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">Courses</h1>
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-primary"><%= total || 0 %> courses</span>
+            <a href="/courses/new" class="btn btn-primary btn-sm">
+                <i class="bi bi-plus-lg"></i> Add Course
+            </a>
+        </div>
+    </div>
+
+    <% if (typeof courses !== 'undefined' && courses.length > 0) { %>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Course Code</th>
+                    <th>Course Name</th>
+                    <th class="text-center">Downloads</th>
+                    <th>Handout</th>
+                    <th>Created</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% courses.forEach(function(c) { %>
+                <tr>
+                    <td><span class="fw-semibold"><%= c.courseCode %></span></td>
+                    <td><%= c.courseName %></td>
+                    <td class="text-center"><%= c.downloadCount || 0 %></td>
+                    <td>
+                        <% if (c.handoutOriginalFilename) { %>
+                            <span class="text-muted small"><%= c.handoutOriginalFilename %></span>
+                        <% } else { %>
+                            <span class="text-muted">-</span>
+                        <% } %>
+                    </td>
+                    <td class="text-muted small"><%= c.createdAt ? new Date(c.createdAt).toLocaleDateString() : '-' %></td>
+                    <td class="text-end">
+                        <a href="/courses/<%= c.courseId %>/edit" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <form action="/courses/<%= c.courseId %>/delete" method="POST" class="d-inline" onsubmit="return confirm('Delete <%= c.courseCode %>? This will also delete related quizzes, questions, and content.')">
+                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                <% }); %>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <% if (typeof pagination !== 'undefined' && pagination.pages > 1) { %>
+    <nav>
+        <ul class="pagination justify-content-center">
+            <li class="page-item <%= pagination.page <= 1 ? 'disabled' : '' %>">
+                <a class="page-link" href="?page=<%= pagination.page - 1 %>">Previous</a>
+            </li>
+            <li class="page-item disabled">
+                <span class="page-link">Page <%= pagination.page %> of <%= pagination.pages %></span>
+            </li>
+            <li class="page-item <%= pagination.page >= pagination.pages ? 'disabled' : '' %>">
+                <a class="page-link" href="?page=<%= pagination.page + 1 %>">Next</a>
+            </li>
+        </ul>
+    </nav>
+    <% } %>
+    <% } else { %>
+    <div class="text-center py-5">
+        <i class="bi bi-journal-bookmark display-1 text-muted mb-3"></i>
+        <h5 class="text-muted">No courses found</h5>
+        <a href="/courses/new" class="btn btn-primary mt-2">
+            <i class="bi bi-plus-lg"></i> Add your first course
+        </a>
+    </div>
+    <% } %>
+</div>

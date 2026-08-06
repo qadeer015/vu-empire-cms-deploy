@@ -1,0 +1,54 @@
+<!-- admin/course_form.ejs -->
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0"><%= mode === 'new' ? 'Add Course' : 'Edit Course' %></h1>
+        <a href="/courses" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left"></i> Back to Courses
+        </a>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            <% if (mode === 'edit' && course) { %>
+                <form action="/courses/<%= course.courseId %>" method="POST">
+            <% } else { %>
+                <form action="/courses" method="POST">
+            <% } %>
+
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Course Code <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="courseCode" 
+                               value="<%= course ? course.courseCode : '' %>" 
+                               placeholder="e.g. CS201" required>
+                    </div>
+                    <div class="col-md-8">
+                        <label class="form-label fw-bold">Course Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="courseName" 
+                               value="<%= course ? course.courseName : '' %>" 
+                               placeholder="e.g. Programming Fundamentals" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Handout PDF URL / File ID</label>
+                        <input type="text" class="form-control" name="handoutPdf" 
+                               value="<%= course && course.handoutPdf ? course.handoutPdf : '' %>" 
+                               placeholder="Google Drive file ID or URL">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Handout Filename</label>
+                        <input type="text" class="form-control" name="handoutOriginalFilename" 
+                               value="<%= course && course.handoutOriginalFilename ? course.handoutOriginalFilename : '' %>" 
+                               placeholder="e.g. CS201-Handout.pdf">
+                    </div>
+                </div>
+
+                <div class="mt-4 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-lg"></i> <%= mode === 'new' ? 'Create Course' : 'Update Course' %>
+                    </button>
+                    <a href="/courses" class="btn btn-outline-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

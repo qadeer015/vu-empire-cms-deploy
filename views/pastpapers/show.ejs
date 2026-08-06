@@ -1,0 +1,114 @@
+<!-- pastpapers/show.ejs -->
+<div class="container py-4" data-controller="pastpaper" data-action="show">
+    <input type="hidden" data-target="pastpaper.paperId" value="<%= id %>">
+
+    <!-- Loading skeleton -->
+    <div data-target="pastpaper.loading" style="display: block;">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="skeleton-line mb-3" style="width: 50px; height: 36px;"></div>
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="skeleton-line mb-3" style="width: 60%; height: 28px;"></div>
+                        <div class="skeleton-line mb-2" style="width: 40%; height: 18px;"></div>
+                        <div class="skeleton-line mb-2" style="width: 30%; height: 18px;"></div>
+                        <div class="skeleton-line mb-4" style="width: 50%; height: 18px;"></div>
+                        <div class="skeleton-line" style="width: 100%; height: 48px;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content -->
+    <div data-target="pastpaper.content" style="display: none;">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <!-- Back button -->
+                <a href="javascript:history.back()" class="btn btn-light btn-sm rounded-circle p-2 lh-1 mb-3">
+                    <i class="bi bi-arrow-left"></i>
+                </a>
+
+                <!-- Paper card -->
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <h1 class="h3 fw-bold mb-1" data-target="pastpaper.title"></h1>
+                                <p class="text-muted small mb-0">
+                                    <span data-target="pastpaper.courseCode"></span>
+                                    &mdash;
+                                    <span data-target="pastpaper.courseName"></span>
+                                </p>
+                            </div>
+                            <div>
+                                <span class="badge bg-primary bg-opacity-10 text-primary" data-target="pastpaper.type"></span>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-4">
+                                <p class="small text-muted mb-0">Year</p>
+                                <p class="fw-medium mb-0" data-target="pastpaper.year"></p>
+                            </div>
+                            <div class="col-md-4">
+                                <p class="small text-muted mb-0">Semester</p>
+                                <p class="fw-medium mb-0" data-target="pastpaper.semester"></p>
+                            </div>
+                            <div class="col-md-4">
+                                <p class="small text-muted mb-0">Uploaded by</p>
+                                <p class="fw-medium mb-0" data-target="pastpaper.authorName"></p>
+                            </div>
+                        </div>
+
+                        <!-- View / Download buttons -->
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-primary" data-action="click->pastpaper#viewPaper">
+                                <i class="bi bi-eye me-1"></i> View Paper
+                                <a href="#" class="btn btn-primary" data-target="pastpaper.viewLink" style="display: none;" target="_blank">
+                                    <!-- <i class="bi bi-eye me-1"></i> View Paper -->
+                                </a>
+                            </button>
+                            <a href="#" class="btn btn-outline-primary" data-target="pastpaper.downloadLink">
+                                <i class="bi bi-download me-1"></i> Download
+                            </a>
+                        </div>
+
+                        <!-- PDF Viewer (hidden by default) -->
+                        <div id="pdfViewer" style="display: none; margin-top: 1rem;">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-body p-0">
+                                    <iframe id="pdfFrame" style="width: 100%; height: 600px; border: none;"></iframe>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Edit / Delete (shown for author/admin) -->
+                <div data-target="pastpaper.actions" style="display: none;">
+                    <div class="d-flex gap-2 mt-3">
+                        <a href="#" class="btn btn-outline-secondary btn-sm" data-target="pastpaper.editLink">
+                            <i class="bi bi-pencil me-1"></i> Edit
+                        </a>
+                        <button class="btn btn-outline-danger btn-sm" data-action="click->pastpaper#delete">
+                            <i class="bi bi-trash me-1"></i> Delete
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Error state -->
+    <div data-target="pastpaper.error" class="text-center py-5" style="display: none;">
+        <i class="bi bi-exclamation-triangle display-4 text-warning mb-3 d-block"></i>
+        <h5 class="text-muted">Failed to load past paper</h5>
+        <p class="text-muted small mb-3" data-target="pastpaper.errorMessage"></p>
+        <a href="/pastpapers" class="btn btn-outline-primary">
+            <i class="bi bi-arrow-left me-1"></i> Back to Past Papers
+        </a>
+    </div>
+</div>
