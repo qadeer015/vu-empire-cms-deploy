@@ -7,6 +7,53 @@
         </a>
     </div>
 
+    <% if (quiz && quiz.title === 'Main') { %>
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <h5 class="mb-3">Bulk Upload Questions (JSON)</h5>
+            <form action="/quizzes/<%= quiz.quizId %>/questions/bulk" method="POST" enctype="multipart/form-data" id="bulkUploadForm">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-8">
+                        <label class="form-label fw-bold">Upload JSON File</label>
+                        <input type="file" name="questionsFile" accept=".json" class="form-control" required id="questionsFileInput">
+                        <div class="form-text">
+                            Expected format: { "courseCode": "ACC311", "questions": [ { "questionText": "...", "options": ["A", "B", "C", "D"] } ] }
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-success w-100" id="uploadBtn">
+                            <i class="bi bi-upload"></i> Upload & Create Questions
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Preview Section -->
+            <div id="previewSection" class="mt-4" style="display: none;">
+                <hr>
+                <h6 class="fw-bold">File Preview</h6>
+                <div class="alert alert-info">
+                    <div id="previewStats"></div>
+                </div>
+                <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                    <table class="table table-sm table-bordered">
+                        <thead class="table-light sticky-top">
+                            <tr>
+                                <th style="width: 50px;">#</th>
+                                <th>Question Text</th>
+                                <th style="width: 100px;">Options</th>
+                                <th style="width: 100px;">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="previewTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <hr>
+    <% } %>
+
     <div class="card border-0 shadow-sm">
         <div class="card-body">
             <% if (mode === 'edit' && question) { %>
@@ -116,5 +163,93 @@ function addOptionRow() {
     `;
     container.appendChild(row);
     optionRowCount++;
+}
+
+// Bulk upload preview
+const questionsFileInput = document.getElementById('questionsFileInput');
+if (questionsFileInput) {
+    questionsFileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        const previewSection = document.getElementById('previewSection');
+        const previewStats = document.getElementById('previewStats');
+        const previewTableBody = document.getElementById('previewTableBody');
+        
+        if (!file) {
+            previewSection.style.display = 'none';
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            try {
+                const payload = JSON.parse(event.target.result);
+                
+                if (!payload.questions || !Array.isArray(payload.questions)) {
+                    previewStats.innerHTML = '<strong>Error:</strong> JSON must contain a "questions" array.';
+                    previewSection.style.display = 'block';
+                    return;
+                }
+
+                const totalQuestions = payload.questions.length;
+                const validQuestions = payload.questions.filter(q => 
+                    q.questionText && q.options && Array.isArray(q.options) && q.options.length >= 2
+                ).length;
+                const invalidQuestions = totalQuestions - validQuestions;
+
+                let statsHtml = `<strong>Total questions in file:</strong> ${totalQuestions}<br>`;
+                statsHtml += `<strong>Valid questions:</strong> ${validQuestions}<br>`;
+                if (invalidQuestions > 0) {
+                    statsHtml += `<strong class="text-warning">Invalid questions (missing text/options):</strong> ${invalidQuestions}<br>`;
+                }
+                statsHtml += `<small class="text-muted">Note: Duplicates will be automatically skipped during upload.</small>`;
+                
+                previewStats.innerHTML = statsHtml;
+
+                // Build preview table (show first 50 questions)
+                const previewLimit = 50;
+                const questionsToShow = payload.questions.slice(0, previewLimit);
+                
+                let tableHtml = '';
+                questionsToShow.forEach((q, index) => {
+                    const isValid = q.questionText && q.options && Array.isArray(q.options) && q.options.length >= 2;
+                    const statusBadge = isValid 
+                        ? '<span class="badge bg-success">Valid</span>' 
+                        : '<span class="badge bg-danger">Invalid</span>';
+                    
+                    const questionText = q.questionText ? q.questionText.substring(0, 80) + (q.questionText.length > 80 ? '...' : '') : 'N/A';
+                    const optionsCount = q.options && Array.isArray(q.options) ? q.options.length : 0;
+                    
+                    tableHtml += `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td>${questionText}</td>
+                            <td>${optionsCount} options</td>
+                            <td>${statusBadge}</td>
+                        </tr>
+                    `;
+                });
+
+                if (totalQuestions > previewLimit) {
+                    tableHtml += `
+                        <tr>
+                            <td colspan="4" class="text-center text-muted">
+                                ... and ${totalQuestions - previewLimit} more questions (scroll down in file to see all)
+                            </td>
+                        </tr>
+                    `;
+                }
+
+                previewTableBody.innerHTML = tableHtml;
+                previewSection.style.display = 'block';
+
+            } catch (err) {
+                previewStats.innerHTML = `<strong>Error parsing JSON:</strong> ${err.message}`;
+                previewSection.style.display = 'block';
+                previewTableBody.innerHTML = '';
+            }
+        };
+
+        reader.readAsText(file);
+    });
 }
 </script>

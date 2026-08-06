@@ -4,6 +4,20 @@ const router = express.Router();
 const AppController = require('../../controllers/app.controller');
 const { authenticate } = require('../../middlewares/authenticate');
 const { authorize } = require('../../middlewares/authorize');
+const multer = require('multer');
+
+// Multer memory storage for JSON file uploads
+const jsonUpload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+    fileFilter: (req, file, cb) => {
+        if (file.mimetype === 'application/json' || file.originalname.endsWith('.json')) {
+            cb(null, true);
+        } else {
+            cb(new Error('Only JSON files are allowed'), false);
+        }
+    }
+});
 
 // ── Authentication-protected admin CMS routes ──────────────────────
 // All routes require an authenticated admin user.
@@ -31,6 +45,7 @@ router.post('/quizzes/:id/delete', authenticate, authorize('admin'), AppControll
 // ── Quiz Questions CRUD ────────────────────────────────────────────
 router.get('/quizzes/:quizId/questions/new', authenticate, authorize('admin'), AppController.adminQuestionNew);
 router.post('/quizzes/:quizId/questions', authenticate, authorize('admin'), AppController.adminQuestionCreate);
+router.post('/quizzes/:quizId/questions/bulk', authenticate, authorize('admin'), jsonUpload.single('questionsFile'), AppController.adminQuestionBulkCreate);
 router.get('/questions/:questionId/edit', authenticate, authorize('admin'), AppController.adminQuestionEdit);
 router.post('/questions/:questionId', authenticate, authorize('admin'), AppController.adminQuestionUpdate);
 router.post('/questions/:questionId/delete', authenticate, authorize('admin'), AppController.adminQuestionDelete);
