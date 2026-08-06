@@ -15,6 +15,7 @@ router.get('/', authenticate, authorize('admin'), AppController.dashboard);
 router.get('/courses', authenticate, authorize('admin'), AppController.adminCourses);
 router.get('/courses/new', authenticate, authorize('admin'), AppController.adminCourseNew);
 router.post('/courses', authenticate, authorize('admin'), AppController.adminCourseCreate);
+router.get('/courses/:id', authenticate, authorize('admin'), AppController.adminCourseShow);
 router.get('/courses/:id/edit', authenticate, authorize('admin'), AppController.adminCourseEdit);
 router.post('/courses/:id', authenticate, authorize('admin'), AppController.adminCourseUpdate);
 router.post('/courses/:id/delete', authenticate, authorize('admin'), AppController.adminCourseDelete);

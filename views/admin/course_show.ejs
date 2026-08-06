@@ -1,0 +1,229 @@
+<!-- admin/course_show.ejs -->
+<div class="container-fluid">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <a href="/courses" class="btn btn-outline-secondary btn-sm mb-3">
+        <i class="bi bi-arrow-left"></i> Back to Courses
+      </a>
+      <h1 class="h3 mb-1"><%= course.courseCode %></h1>
+      <p class="text-muted mb-0"><%= course.courseName %></p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="/courses/<%= course.courseId %>/edit" class="btn btn-outline-primary btn-sm">
+        <i class="bi bi-pencil"></i> Edit
+      </a>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+            <div>
+              <h5 class="mb-2"><i class="bi bi-journal-bookmark me-2"></i>Course Details</h5>
+              <p class="mb-1"><strong>Code:</strong> <%= course.courseCode %></p>
+              <p class="mb-1"><strong>Name:</strong> <%= course.courseName %></p>
+              <p class="mb-0"><strong>Downloads:</strong> <%= course.downloadCount || 0 %></p>
+            </div>
+            <% if (course.handoutPdf) { %>
+            <a href="/api/courses/<%= course.courseCode %>/pdf" class="btn btn-primary" target="_blank">
+              <i class="bi bi-file-earmark-pdf me-2"></i> Download Handout PDF
+            </a>
+            <% } else { %>
+            <span class="badge bg-secondary">No handout uploaded</span>
+            <% } %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center">
+          <h5 class="mb-0"><i class="bi bi-clipboard-check me-2"></i>Quizzes</h5>
+          <a href="/quizzes/new?courseCode=<%= course.courseCode %>" class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-plus-lg"></i> New
+          </a>
+        </div>
+        <div class="card-body p-0">
+          <% if (quizzes && quizzes.length > 0) { %>
+          <div class="list-group list-group-flush">
+            <% quizzes.forEach(function(q) { %>
+            <div class="list-group-item">
+              <div class="d-flex justify-content-between align-items-start gap-3">
+                <div>
+                  <h6 class="mb-1"><%= q.title %></h6>
+                  <p class="mb-1 small text-muted"><strong>Type:</strong> <%= q.type || 'quiz' %></p>
+                </div>
+                <div class="d-flex align-items-center gap-1">
+                  <span class="badge bg-primary-subtle text-primary">
+                    <%= q.createdAt ? new Date(q.createdAt).toLocaleDateString() : '-' %>
+                  </span>
+                  <a href="/quizzes/<%= q.quizId %>/edit" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-pencil"></i>
+                  </a>
+                  <form action="/quizzes/<%= q.quizId %>/delete" method="POST" class="d-inline" onsubmit="return confirm('Delete this quiz?')">
+                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </form>
+                </div>
+              </div>
+            </div>
+            <% }); %>
+          </div>
+          <% } else { %>
+          <div class="text-center py-4 text-muted">
+            <div>No quizzes found for this course.</div>
+            <a href="/quizzes/new?courseCode=<%= course.courseCode %>" class="btn btn-primary btn-sm mt-3">
+              <i class="bi bi-plus-lg"></i> Add Quiz
+            </a>
+          </div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center">
+          <h5 class="mb-0"><i class="bi bi-file-earmark-pdf me-2"></i>Past Papers</h5>
+          <a href="/pastpapers/new?courseCode=<%= course.courseCode %>" class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-plus-lg"></i> New
+          </a>
+        </div>
+        <div class="card-body p-0">
+          <% if (pastPapers && pastPapers.length > 0) { %>
+          <div class="list-group list-group-flush">
+            <% pastPapers.forEach(function(p) { %>
+            <div class="list-group-item">
+              <div class="d-flex justify-content-between align-items-start gap-3">
+                <div>
+                  <h6 class="mb-1"><%= p.type || 'Past Paper' %> - <%= p.year || '-' %></h6>
+                  <p class="mb-0 small text-muted">Semester: <%= p.semester || '-' %> • Status: <%= p.status || '-' %></p>
+                </div>
+                <div class="d-flex align-items-center gap-1">
+                  <span class="badge bg-info-subtle text-info">
+                    <%= p.createdAt ? new Date(p.createdAt).toLocaleDateString() : '-' %>
+                  </span>
+                  <a href="/pastpapers/<%= p.id %>/edit" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-pencil"></i>
+                  </a>
+                  <form action="/pastpapers/<%= p.id %>/delete" method="POST" class="d-inline" onsubmit="return confirm('Delete this past paper?')">
+                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </form>
+                </div>
+              </div>
+            </div>
+            <% }); %>
+          </div>
+          <% } else { %>
+          <div class="text-center py-4 text-muted">
+            <div>No past papers found for this course.</div>
+            <a href="/pastpapers/new?courseCode=<%= course.courseCode %>" class="btn btn-primary btn-sm mt-3">
+              <i class="bi bi-plus-lg"></i> Add Past Paper
+            </a>
+          </div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center">
+          <h5 class="mb-0"><i class="bi bi-pencil-square me-2"></i>Assignments</h5>
+          <a href="/assignments/new?courseCode=<%= course.courseCode %>" class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-plus-lg"></i> New
+          </a>
+        </div>
+        <div class="card-body p-0">
+          <% if (assignments && assignments.length > 0) { %>
+          <div class="list-group list-group-flush">
+            <% assignments.forEach(function(a) { %>
+            <div class="list-group-item">
+              <div class="d-flex justify-content-between align-items-start gap-3">
+                <div>
+                  <h6 class="mb-1"><%= a.title %></h6>
+                  <p class="mb-0 small text-muted">Status: <%= a.status || '-' %></p>
+                </div>
+                <div class="d-flex align-items-center gap-1">
+                  <span class="badge bg-warning-subtle text-warning">
+                    <%= a.createdAt ? new Date(a.createdAt).toLocaleDateString() : '-' %>
+                  </span>
+                  <a href="/assignments/<%= a.id %>/edit" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-pencil"></i>
+                  </a>
+                  <form action="/assignments/<%= a.id %>/delete" method="POST" class="d-inline" onsubmit="return confirm('Delete this assignment?')">
+                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </form>
+                </div>
+              </div>
+            </div>
+            <% }); %>
+          </div>
+          <% } else { %>
+          <div class="text-center py-4 text-muted">
+            <div>No assignments found for this course.</div>
+            <a href="/assignments/new?courseCode=<%= course.courseCode %>" class="btn btn-primary btn-sm mt-3">
+              <i class="bi bi-plus-lg"></i> Add Assignment
+            </a>
+          </div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center">
+          <h5 class="mb-0"><i class="bi bi-chat-dots me-2"></i>GDB Solutions</h5>
+          <a href="/gdb-solutions/new?courseCode=<%= course.courseCode %>" class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-plus-lg"></i> New
+          </a>
+        </div>
+        <div class="card-body p-0">
+          <% if (gdbSolutions && gdbSolutions.length > 0) { %>
+          <div class="list-group list-group-flush">
+            <% gdbSolutions.forEach(function(g) { %>
+            <div class="list-group-item">
+              <div class="d-flex justify-content-between align-items-start gap-3">
+                <div>
+                  <h6 class="mb-1"><%= g.gdbTitle %></h6>
+                  <p class="mb-0 small text-muted">Course Code: <%= g.courseCode %></p>
+                </div>
+                <div class="d-flex align-items-center gap-1">
+                  <span class="badge bg-success-subtle text-success">
+                    <%= g.createdAt ? new Date(g.createdAt).toLocaleDateString() : '-' %>
+                  </span>
+                  <a href="/gdb-solutions/<%= g.id %>/edit" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-pencil"></i>
+                  </a>
+                  <form action="/gdb-solutions/<%= g.id %>/delete" method="POST" class="d-inline" onsubmit="return confirm('Delete this GDB solution?')">
+                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </form>
+                </div>
+              </div>
+            </div>
+            <% }); %>
+          </div>
+          <% } else { %>
+          <div class="text-center py-4 text-muted">
+            <div>No GDB solutions found for this course.</div>
+            <a href="/gdb-solutions/new?courseCode=<%= course.courseCode %>" class="btn btn-primary btn-sm mt-3">
+              <i class="bi bi-plus-lg"></i> Add GDB Solution
+            </a>
+          </div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

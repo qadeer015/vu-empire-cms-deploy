@@ -1,88 +1,81 @@
 <!-- admin/pastpaper_form.ejs -->
 <div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0"><%= mode === 'new' ? 'Add Past Paper' : 'Edit Past Paper' %></h1>
-        <a href="/pastpapers" class="btn btn-outline-secondary btn-sm">
-            <i class="bi bi-arrow-left"></i> Back to Past Papers
-        </a>
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0"><%= mode === 'new' ? 'Add Past Paper' : 'Edit Past Paper' %></h1>
+    <a href="/pastpapers" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-arrow-left"></i> Back to Past Papers
+    </a>
+  </div>
+
+  <div class="card border-0 shadow-sm">
+    <div class="card-body">
+      <% if (mode === 'edit' && paper) { %>
+      <form action="/pastpapers/<%= paper.id %>" method="POST">
+        <% } else { %>
+        <form action="/pastpapers" method="POST">
+          <% } %>
+
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Course <span class="text-danger">*</span></label>
+              <select name="courseId" class="form-select" required>
+                <option value="">Select Course</option>
+                <% courses.forEach(function(c) { %>
+                <option value="<%= c.courseId %>" <%= (paper && paper.courseId == c.courseId) || (!paper && selectedCourseId && selectedCourseId == c.courseId) ? 'selected' : '' %>>
+                  <%= c.courseCode %> - <%= c.courseName %>
+                </option>
+                <% }); %>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Year</label>
+              <input type="number" class="form-control" name="year" min="2000" max="<%= new Date().getFullYear() + 5 %>" value="<%= paper && paper.year ? paper.year : new Date().getFullYear() %>">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-bold">Type</label>
+              <select name="type" class="form-select">
+                <option value="">-</option>
+                <option value="midterm" <%= paper && paper.type === 'midterm' ? 'selected' : '' %>>Mid Term</option>
+                <option value="finalterm" <%= paper && paper.type === 'finalterm' ? 'selected' : '' %>>Final Term</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-bold">Semester</label>
+              <select name="semester" class="form-select">
+                <option value="">-</option>
+                <option value="spring" <%= paper && paper.semester === 'spring' ? 'selected' : '' %>>Spring</option>
+                <option value="fall" <%= paper && paper.semester === 'fall' ? 'selected' : '' %>>Fall</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-bold">Status</label>
+              <select name="status" class="form-select">
+                <option value="draft" <%= paper && paper.status === 'draft' ? 'selected' : '' %>>Draft</option>
+                <option value="publish" <%= paper && paper.status === 'publish' ? 'selected' : '' %>>Published</option>
+                <option value="pending" <%= paper && paper.status === 'pending' ? 'selected' : '' %>>Pending</option>
+              </select>
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-bold">File Path / URL</label>
+              <input type="text" class="form-control" name="filePath" value="<%= paper && paper.filePath ? paper.filePath : '' %>" placeholder="Google Drive URL or file URL">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Original Filename</label>
+              <input type="text" class="form-control" name="originalFilename" value="<%= paper && paper.originalFilename ? paper.originalFilename : '' %>" placeholder="e.g. CS201-Finalterm-2024.pdf">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-bold">File Size (bytes)</label>
+              <input type="number" class="form-control" name="fileSize" value="<%= paper && paper.fileSize ? paper.fileSize : '' %>">
+            </div>
+          </div>
+
+          <div class="mt-4 d-flex gap-2">
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-check-lg"></i> <%= mode === 'new' ? 'Create Past Paper' : 'Update Past Paper' %>
+            </button>
+            <a href="/pastpapers" class="btn btn-outline-secondary">Cancel</a>
+          </div>
+        </form>
     </div>
-
-    <div class="card border-0 shadow-sm">
-        <div class="card-body">
-            <% if (mode === 'edit' && paper) { %>
-                <form action="/pastpapers/<%= paper.id %>" method="POST">
-            <% } else { %>
-                <form action="/pastpapers" method="POST">
-            <% } %>
-
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <label class="form-label fw-bold">Course <span class="text-danger">*</span></label>
-                        <select name="courseId" class="form-select" required>
-                            <option value="">Select Course</option>
-                            <% courses.forEach(function(c) { %>
-                            <option value="<%= c.courseId %>" <%= paper && paper.courseId == c.courseId ? 'selected' : '' %>>
-                                <%= c.courseCode %> - <%= c.courseName %>
-                            </option>
-                            <% }); %>
-                        </select>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label fw-bold">Year</label>
-                        <input type="number" class="form-control" name="year" min="2000" 
-                               max="<%= new Date().getFullYear() + 5 %>"
-                               value="<%= paper && paper.year ? paper.year : new Date().getFullYear() %>">
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label fw-bold">Type</label>
-                        <select name="type" class="form-select">
-                            <option value="">-</option>
-                            <option value="midterm" <%= paper && paper.type === 'midterm' ? 'selected' : '' %>>Mid Term</option>
-                            <option value="finalterm" <%= paper && paper.type === 'finalterm' ? 'selected' : '' %>>Final Term</option>
-                        </select>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label fw-bold">Semester</label>
-                        <select name="semester" class="form-select">
-                            <option value="">-</option>
-                            <option value="spring" <%= paper && paper.semester === 'spring' ? 'selected' : '' %>>Spring</option>
-                            <option value="fall" <%= paper && paper.semester === 'fall' ? 'selected' : '' %>>Fall</option>
-                        </select>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label fw-bold">Status</label>
-                        <select name="status" class="form-select">
-                            <option value="draft" <%= paper && paper.status === 'draft' ? 'selected' : '' %>>Draft</option>
-                            <option value="publish" <%= paper && paper.status === 'publish' ? 'selected' : '' %>>Published</option>
-                            <option value="pending" <%= paper && paper.status === 'pending' ? 'selected' : '' %>>Pending</option>
-                        </select>
-                    </div>
-                    <div class="col-12">
-                        <label class="form-label fw-bold">File Path / URL</label>
-                        <input type="text" class="form-control" name="filePath"
-                               value="<%= paper && paper.filePath ? paper.filePath : '' %>"
-                               placeholder="Google Drive URL or file URL">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label fw-bold">Original Filename</label>
-                        <input type="text" class="form-control" name="originalFilename"
-                               value="<%= paper && paper.originalFilename ? paper.originalFilename : '' %>"
-                               placeholder="e.g. CS201-Finalterm-2024.pdf">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label fw-bold">File Size (bytes)</label>
-                        <input type="number" class="form-control" name="fileSize"
-                               value="<%= paper && paper.fileSize ? paper.fileSize : '' %>">
-                    </div>
-                </div>
-
-                <div class="mt-4 d-flex gap-2">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-check-lg"></i> <%= mode === 'new' ? 'Create Past Paper' : 'Update Past Paper' %>
-                    </button>
-                    <a href="/pastpapers" class="btn btn-outline-secondary">Cancel</a>
-                </div>
-            </form>
-        </div>
-    </div>
+  </div>
 </div>

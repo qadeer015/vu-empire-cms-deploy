@@ -79,6 +79,31 @@ class AppController {
         }
     }
 
+    static async adminCourseShow(req, res) {
+        try {
+            const course = await Course.findById(req.params.id);
+            if (!course) return res.redirect('/courses');
+
+            const [quizzes, pastPapers, assignments, gdbSolutions] = await Promise.all([
+                Quiz.findByCourse(course.courseId),
+                PastPaper.getByCourse(course.courseId),
+                Assignment.getByCourse(course.courseCode),
+                GdbSolution.getByCourse(course.courseCode)
+            ]);
+
+            renderAdmin(res, 'admin/course_show', {
+                page: 'courses',
+                course,
+                quizzes: quizzes || [],
+                pastPapers: pastPapers || [],
+                assignments: assignments || [],
+                gdbSolutions: gdbSolutions || []
+            });
+        } catch (err) {
+            res.status(500).render('error', { title: 'Server Error', message: err.message, error: null, redirect_url: '/courses', header: false, footer: false });
+        }
+    }
+
     static async adminCourseEdit(req, res) {
         try {
             const course = await Course.findById(req.params.id);
@@ -133,7 +158,16 @@ class AppController {
     static async adminQuizNew(req, res) {
         try {
             const courses = await Course.findAll({ limit: 500 });
-            renderAdmin(res, 'admin/quiz_form', { page: 'quizzes', mode: 'new', courses, quiz: '' });
+            const selectedCourseCode = req.query.courseCode ? String(req.query.courseCode).trim() : '';
+            const selectedCourse = selectedCourseCode ? await Course.findByCode(selectedCourseCode) : null;
+            renderAdmin(res, 'admin/quiz_form', {
+                page: 'quizzes',
+                mode: 'new',
+                courses,
+                quiz: '',
+                selectedCourseId: selectedCourse ? selectedCourse.courseId : null,
+                selectedCourseCode
+            });
         } catch (err) {
             res.status(500).render('error', { title: 'Server Error', message: err.message, error: null, redirect_url: '/quizzes', header: false, footer: false });
         }
@@ -337,7 +371,16 @@ class AppController {
     static async adminAssignmentNew(req, res) {
         try {
             const courses = await Course.findAll({ limit: 500 });
-            renderAdmin(res, 'admin/assignment_form', { page: 'assignments', mode: 'new', courses, assignment:'' });
+            const selectedCourseCode = req.query.courseCode ? String(req.query.courseCode).trim() : '';
+            const selectedCourse = selectedCourseCode ? await Course.findByCode(selectedCourseCode) : null;
+            renderAdmin(res, 'admin/assignment_form', {
+                page: 'assignments',
+                mode: 'new',
+                courses,
+                assignment: '',
+                selectedCourseCode: selectedCourse ? selectedCourse.courseCode : selectedCourseCode,
+                selectedCourseName: selectedCourse ? selectedCourse.courseName : ''
+            });
         } catch (err) {
             res.status(500).render('error', { title: 'Server Error', message: err.message, error: null, redirect_url: '/assignments', header: false, footer: false });
         }
@@ -424,7 +467,16 @@ class AppController {
     static async adminGdbSolutionNew(req, res) {
         try {
             const courses = await Course.findAll({ limit: 500 });
-            renderAdmin(res, 'admin/gdb_form', { page: 'gdb-solutions', mode: 'new', courses, solution:'' });
+            const selectedCourseCode = req.query.courseCode ? String(req.query.courseCode).trim() : '';
+            const selectedCourse = selectedCourseCode ? await Course.findByCode(selectedCourseCode) : null;
+            renderAdmin(res, 'admin/gdb_form', {
+                page: 'gdb-solutions',
+                mode: 'new',
+                courses,
+                solution: '',
+                selectedCourseCode: selectedCourse ? selectedCourse.courseCode : selectedCourseCode,
+                selectedCourseName: selectedCourse ? selectedCourse.courseName : ''
+            });
         } catch (err) {
             res.status(500).render('error', { title: 'Server Error', message: err.message, error: null, redirect_url: '/gdb-solutions', header: false, footer: false });
         }
@@ -507,7 +559,16 @@ class AppController {
     static async adminPastPaperNew(req, res) {
         try {
             const courses = await Course.findAll({ limit: 500 });
-            renderAdmin(res, 'admin/pastpaper_form', { page: 'past-papers', mode: 'new', courses, paper: '' });
+            const selectedCourseCode = req.query.courseCode ? String(req.query.courseCode).trim() : '';
+            const selectedCourse = selectedCourseCode ? await Course.findByCode(selectedCourseCode) : null;
+            renderAdmin(res, 'admin/pastpaper_form', {
+                page: 'past-papers',
+                mode: 'new',
+                courses,
+                paper: '',
+                selectedCourseId: selectedCourse ? selectedCourse.courseId : null,
+                selectedCourseCode
+            });
         } catch (err) {
             res.status(500).render('error', { title: 'Server Error', message: err.message, error: null, redirect_url: '/pastpapers', header: false, footer: false });
         }
