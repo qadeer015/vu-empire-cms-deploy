@@ -12,7 +12,6 @@ class AppService {
         return cache.remember(cacheKey, TTL.DASHBOARD, async () => {
             const overallStats = await App.overallStats();
             const dailyStats = await Question.dailyStats();
-            const recentQuestions = await Question.recentQuestions();
             const courseStats = await Course.courseStats();
             const adminStats = await App.adminDashboardStats();
 
@@ -22,7 +21,6 @@ class AppService {
                 currentYear: new Date().getFullYear(),
                 overallStats: overallStats || {},
                 dailyStats: dailyStats || [],
-                recentQuestions: recentQuestions || [],
                 courseStats: courseStats || [],
                 adminStats: adminStats || {}
             };
