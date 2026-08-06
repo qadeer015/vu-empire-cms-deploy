@@ -62,7 +62,7 @@ class AppController {
     }
 
     static async adminCourseNew(req, res) {
-        renderAdmin(res, 'admin/course_form', { page: 'courses', mode: 'new' });
+        renderAdmin(res, 'admin/course_form', { page: 'courses', mode: 'new', course: '' });
     }
 
     static async adminCourseCreate(req, res) {
@@ -272,6 +272,138 @@ class AppController {
             res.redirect('/quizzes/' + quizId + '/edit');
         } catch (err) {
             res.status(400).render('error', { title: 'Error', message: err.message, error: null, redirect_url: '/quizzes', header: false, footer: false });
+        }
+    }
+
+    static async adminQuestionBulkCreate(req, res) {
+        try {
+            const { quizId } = req.params;
+            const quiz = await Quiz.findById(quizId);
+            if (!quiz) return res.redirect('/quizzes');
+
+            // Only allow bulk creation for quizzes with title "Main"
+            if (quiz.title !== 'Main') {
+                return res.status(403).render('error', {
+                    title: 'Forbidden',
+                    message: 'Bulk question upload is only allowed for quizzes with title "Main".',
+                    error: null,
+                    redirect_url: '/quizzes/' + quizId + '/edit',
+                    header: false,
+                    footer: false
+                });
+            }
+
+            if (!req.file) {
+                return res.status(400).render('error', {
+                    title: 'Error',
+                    message: 'No JSON file uploaded.',
+                    error: null,
+                    redirect_url: '/quizzes/' + quizId + '/edit',
+                    header: false,
+                    footer: false
+                });
+            }
+
+            let payload;
+            try {
+                payload = JSON.parse(req.file.buffer.toString('utf-8'));
+            } catch (parseErr) {
+                return res.status(400).render('error', {
+                    title: 'Error',
+                    message: 'Invalid JSON file: ' + parseErr.message,
+                    error: null,
+                    redirect_url: '/quizzes/' + quizId + '/edit',
+                    header: false,
+                    footer: false
+                });
+            }
+
+            if (!payload.questions || !Array.isArray(payload.questions)) {
+                return res.status(400).render('error', {
+                    title: 'Error',
+                    message: 'JSON must contain a "questions" array.',
+                    error: null,
+                    redirect_url: '/quizzes/' + quizId + '/edit',
+                    header: false,
+                    footer: false
+                });
+            }
+
+            const letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+            const courseId = quiz.courseId;
+
+            // Build set of existing question texts for this course to avoid duplicates
+            const existingQuestions = await Question.findByCourse(courseId);
+            const existingTexts = new Set(
+                existingQuestions.map(q => q.questionText.trim().toLowerCase())
+            );
+
+            const normalizedInputTexts = new Set();
+            let createdCount = 0;
+            let skippedDuplicates = 0;
+
+            for (const q of payload.questions) {
+                if (!q.questionText || !q.options || !Array.isArray(q.options) || q.options.length < 2) {
+                    continue;
+                }
+
+                const normalizedText = q.questionText.trim().toLowerCase();
+
+                // Skip if duplicate within the uploaded file
+                if (normalizedInputTexts.has(normalizedText)) {
+                    skippedDuplicates++;
+                    continue;
+                }
+
+                // Skip if already exists in database
+                if (existingTexts.has(normalizedText)) {
+                    skippedDuplicates++;
+                    continue;
+                }
+
+                normalizedInputTexts.add(normalizedText);
+
+                const question = await Question.create({
+                    courseId,
+                    quizId,
+                    questionText: q.questionText.trim(),
+                    explanation: q.explanation ? q.explanation.trim() : '',
+                    timestamp: new Date()
+                }, true);
+
+                const optionData = q.options.map((optText, idx) => ({
+                    questionId: question.questionId,
+                    letter: letters[idx] || String.fromCharCode(65 + idx),
+                    optionText: optText.trim(),
+                    optionIndex: idx + 1,
+                    isCorrect: idx === 0 ? 1 : 0
+                }));
+
+                if (optionData.length > 0) {
+                    await Option.createMultiple(optionData);
+                }
+                createdCount++;
+            }
+
+            // Invalidate caches once after all inserts
+            await Question._invalidateQuestionCaches(null, courseId, quizId);
+
+            const message = skippedDuplicates > 0
+                ? `Successfully created ${createdCount} questions. Skipped ${skippedDuplicates} duplicate(s).`
+                : `Successfully created ${createdCount} questions.`;
+
+            req.flash = req.flash || ((type, msg) => { req._flash = { type, msg }; });
+            req.flash('success', message);
+            res.redirect('/quizzes/' + quizId + '/edit');
+        } catch (err) {
+            res.status(400).render('error', {
+                title: 'Error',
+                message: err.message,
+                error: null,
+                redirect_url: '/quizzes/' + req.params.quizId + '/edit',
+                header: false,
+                footer: false
+            });
         }
     }
 

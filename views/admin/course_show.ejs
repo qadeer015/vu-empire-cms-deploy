@@ -12,6 +12,11 @@
       <a href="/courses/<%= course.courseId %>/edit" class="btn btn-outline-primary btn-sm">
         <i class="bi bi-pencil"></i> Edit
       </a>
+       <form action="/courses/<%= course.courseId %>/delete" method="POST" class="d-inline" onsubmit="return confirm('Delete <%= course.courseCode %>? This will also delete related quizzes, questions, and content.')">
+         <button type="submit" class="btn btn-sm btn-outline-danger">
+           <i class="bi bi-trash"></i> Delete
+         </button>
+       </form>
     </div>
   </div>
 
