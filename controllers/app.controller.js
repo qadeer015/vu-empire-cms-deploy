@@ -133,7 +133,7 @@ class AppController {
     static async adminQuizNew(req, res) {
         try {
             const courses = await Course.findAll({ limit: 500 });
-            renderAdmin(res, 'admin/quiz_form', { page: 'quizzes', mode: 'new', courses });
+            renderAdmin(res, 'admin/quiz_form', { page: 'quizzes', mode: 'new', courses, quiz: '' });
         } catch (err) {
             res.status(500).render('error', { title: 'Server Error', message: err.message, error: null, redirect_url: '/quizzes', header: false, footer: false });
         }
