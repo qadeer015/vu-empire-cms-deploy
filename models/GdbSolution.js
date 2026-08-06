@@ -11,13 +11,13 @@ class GdbSolution {
 
     static async create(data) {
         const { courseCode, courseName, gdbTitle, solution } = data;
-        
+
         const [result] = await db.query(
             `INSERT INTO gdb_solutions (courseCode, courseName, gdbTitle, solution)
              VALUES (?, ?, ?, ?)`,
             [courseCode, courseName, gdbTitle, solution]
         );
-        
+
         await this._invalidateCaches(courseCode);
         return this.findById(result.insertId);
     }
@@ -26,7 +26,7 @@ class GdbSolution {
         const [rows] = await db.query(
             `SELECT gs.*, c.courseId
              FROM gdb_solutions gs
-             LEFT JOIN courses c ON gs.courseCode = c.courseCode
+             LEFT JOIN courses c ON CONVERT(gs.courseCode USING utf8mb4) COLLATE utf8mb4_0900_ai_ci = CONVERT(c.courseCode USING utf8mb4) COLLATE utf8mb4_0900_ai_ci
              WHERE gs.id = ?`,
             [id]
         );
@@ -39,8 +39,8 @@ class GdbSolution {
             const [rows] = await db.query(
                 `SELECT gs.*, c.courseId
                  FROM gdb_solutions gs
-                 LEFT JOIN courses c ON gs.courseCode = c.courseCode
-                 WHERE gs.courseCode = ?
+                 LEFT JOIN courses c ON CONVERT(gs.courseCode USING utf8mb4) COLLATE utf8mb4_0900_ai_ci = CONVERT(c.courseCode USING utf8mb4) COLLATE utf8mb4_0900_ai_ci
+                 WHERE CONVERT(gs.courseCode USING utf8mb4) COLLATE utf8mb4_0900_ai_ci = CONVERT(? USING utf8mb4) COLLATE utf8mb4_0900_ai_ci
                  ORDER BY gs.createdAt DESC`,
                 [courseCode]
             );
@@ -54,7 +54,7 @@ class GdbSolution {
             const [rows] = await db.query(
                 `SELECT gs.*, c.courseId
                  FROM gdb_solutions gs
-                 LEFT JOIN courses c ON gs.courseCode = c.courseCode
+                 LEFT JOIN courses c ON CONVERT(gs.courseCode USING utf8mb4) COLLATE utf8mb4_0900_ai_ci = CONVERT(c.courseCode USING utf8mb4) COLLATE utf8mb4_0900_ai_ci
                  ORDER BY gs.createdAt DESC
                  LIMIT ? OFFSET ?`,
                 [parseInt(limit), parseInt(offset)]
@@ -87,7 +87,7 @@ class GdbSolution {
 
         values.push(id);
         await db.query(`UPDATE gdb_solutions SET ${fields.join(', ')} WHERE id = ?`, values);
-        
+
         const solution = await this.findById(id);
         await this._invalidateCaches(solution.courseCode);
         return solution;
@@ -106,7 +106,7 @@ class GdbSolution {
         const [rows] = await db.query(
             `SELECT gs.*, c.courseId
              FROM gdb_solutions gs
-             LEFT JOIN courses c ON gs.courseCode = c.courseCode
+             LEFT JOIN courses c ON CONVERT(gs.courseCode USING utf8mb4) COLLATE utf8mb4_0900_ai_ci = CONVERT(c.courseCode USING utf8mb4) COLLATE utf8mb4_0900_ai_ci
              WHERE gs.gdbTitle LIKE ? OR gs.courseCode LIKE ? OR gs.solution LIKE ?
              ORDER BY gs.createdAt DESC
              LIMIT ?`,

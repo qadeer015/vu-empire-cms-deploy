@@ -192,7 +192,7 @@ class AppController {
             const quiz = await Quiz.findById(req.params.quizId);
             if (!quiz) return res.redirect('/quizzes');
             const courses = await Course.findAll({ limit: 500 });
-            renderAdmin(res, 'admin/question_form', { page: 'quizzes', mode: 'new', quiz, courses });
+            renderAdmin(res, 'admin/question_form', { page: 'quizzes', mode: 'new', quiz, courses, question: '' });
         } catch (err) {
             res.status(500).render('error', { title: 'Server Error', message: err.message, error: null, redirect_url: '/quizzes', header: false, footer: false });
         }
@@ -337,7 +337,7 @@ class AppController {
     static async adminAssignmentNew(req, res) {
         try {
             const courses = await Course.findAll({ limit: 500 });
-            renderAdmin(res, 'admin/assignment_form', { page: 'assignments', mode: 'new', courses });
+            renderAdmin(res, 'admin/assignment_form', { page: 'assignments', mode: 'new', courses, assignment:'' });
         } catch (err) {
             res.status(500).render('error', { title: 'Server Error', message: err.message, error: null, redirect_url: '/assignments', header: false, footer: false });
         }
@@ -424,7 +424,7 @@ class AppController {
     static async adminGdbSolutionNew(req, res) {
         try {
             const courses = await Course.findAll({ limit: 500 });
-            renderAdmin(res, 'admin/gdb_form', { page: 'gdb-solutions', mode: 'new', courses });
+            renderAdmin(res, 'admin/gdb_form', { page: 'gdb-solutions', mode: 'new', courses, solution:'' });
         } catch (err) {
             res.status(500).render('error', { title: 'Server Error', message: err.message, error: null, redirect_url: '/gdb-solutions', header: false, footer: false });
         }
@@ -507,7 +507,7 @@ class AppController {
     static async adminPastPaperNew(req, res) {
         try {
             const courses = await Course.findAll({ limit: 500 });
-            renderAdmin(res, 'admin/pastpaper_form', { page: 'past-papers', mode: 'new', courses });
+            renderAdmin(res, 'admin/pastpaper_form', { page: 'past-papers', mode: 'new', courses, paper: '' });
         } catch (err) {
             res.status(500).render('error', { title: 'Server Error', message: err.message, error: null, redirect_url: '/pastpapers', header: false, footer: false });
         }

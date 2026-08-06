@@ -11,13 +11,13 @@ class Assignment {
 
     static async create(data) {
         const { courseCode, courseName, title, description, dueDate, filePath, originalFilename, status = 'publish' } = data;
-        
+
         const [result] = await db.query(
             `INSERT INTO assignments (courseCode, courseName, title, description, dueDate, filePath, originalFilename, status)
              VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
             [courseCode, courseName, title, description, dueDate, filePath, originalFilename, status]
         );
-        
+
         await this._invalidateCaches(courseCode);
         return this.findById(result.insertId);
     }
@@ -26,7 +26,7 @@ class Assignment {
         const [rows] = await db.query(
             `SELECT a.*, c.courseId
              FROM assignments a
-             LEFT JOIN courses c ON a.courseCode = c.courseCode
+             LEFT JOIN courses c ON CONVERT(a.courseCode USING utf8mb4) COLLATE utf8mb4_0900_ai_ci = CONVERT(c.courseCode USING utf8mb4) COLLATE utf8mb4_0900_ai_ci
              WHERE a.id = ?`,
             [id]
         );
@@ -39,8 +39,8 @@ class Assignment {
             const [rows] = await db.query(
                 `SELECT a.*, c.courseId
                  FROM assignments a
-                 LEFT JOIN courses c ON a.courseCode = c.courseCode
-                 WHERE a.courseCode = ?
+                 LEFT JOIN courses c ON CONVERT(a.courseCode USING utf8mb4) COLLATE utf8mb4_0900_ai_ci = CONVERT(c.courseCode USING utf8mb4) COLLATE utf8mb4_0900_ai_ci
+                 WHERE CONVERT(a.courseCode USING utf8mb4) COLLATE utf8mb4_0900_ai_ci = CONVERT(? USING utf8mb4) COLLATE utf8mb4_0900_ai_ci
                  ORDER BY a.createdAt DESC`,
                 [courseCode]
             );
@@ -54,7 +54,7 @@ class Assignment {
             const [rows] = await db.query(
                 `SELECT a.*, c.courseId
                  FROM assignments a
-                 LEFT JOIN courses c ON a.courseCode = c.courseCode
+                 LEFT JOIN courses c ON CONVERT(a.courseCode USING utf8mb4) COLLATE utf8mb4_0900_ai_ci = CONVERT(c.courseCode USING utf8mb4) COLLATE utf8mb4_0900_ai_ci
                  ORDER BY a.createdAt DESC
                  LIMIT ? OFFSET ?`,
                 [parseInt(limit), parseInt(offset)]
@@ -87,7 +87,7 @@ class Assignment {
 
         values.push(id);
         await db.query(`UPDATE assignments SET ${fields.join(', ')} WHERE id = ?`, values);
-        
+
         const assignment = await this.findById(id);
         await this._invalidateCaches(assignment.courseCode);
         return assignment;
@@ -106,7 +106,7 @@ class Assignment {
         const [rows] = await db.query(
             `SELECT a.*, c.courseId
              FROM assignments a
-             LEFT JOIN courses c ON a.courseCode = c.courseCode
+             LEFT JOIN courses c ON CONVERT(a.courseCode USING utf8mb4) COLLATE utf8mb4_0900_ai_ci = CONVERT(c.courseCode USING utf8mb4) COLLATE utf8mb4_0900_ai_ci
              WHERE a.title LIKE ? OR a.courseCode LIKE ? OR a.description LIKE ?
              ORDER BY a.createdAt DESC
              LIMIT ?`,

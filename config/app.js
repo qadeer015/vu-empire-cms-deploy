@@ -15,7 +15,6 @@ const gdbSolutionRoutes = require('../routes/api/gdbSolution.route');
 
 //web routes
 const webAppRoutes = require('../routes/web/app.route');
-const webPageRoutes = require('../routes/web/page.route');
 const webAuthRoutes = require('../routes/web/auth.route');
 const path = require('path');
 
@@ -87,7 +86,6 @@ app.set('views', path.join(__dirname, '../views'));
 app.use(expressLayouts);
 
 // Web Routes
-app.use('/', webPageRoutes);
 app.use('/', webAppRoutes);
 app.use('/auth', webAuthRoutes);
 
