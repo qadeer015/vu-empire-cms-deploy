@@ -27,8 +27,12 @@
                 <% assignments.forEach(function(a) { %>
                 <tr>
                     <td>
-                        <span class="fw-semibold"><%= a.courseCode %></span>
-                        <small class="d-block text-muted"><%= a.courseName %></small>
+                        <a href="/courses/<%= a.courseId %>" class="text-decoration-none fw-medium" title="View <%= a.courseCode %> course">
+                            <span class="fw-semibold"><%= a.courseCode %></span>
+                        </a>
+                        <a href="/courses/<%= a.courseId %>" class="text-decoration-none fw-medium" title="View <%= a.courseCode %> course">
+                            <small class="d-block text-muted"><%= a.courseName %></small>
+                        </a>
                     </td>
                     <td><%= a.title %></td>
                     <td class="text-muted small"><%= a.dueDate ? new Date(a.dueDate).toLocaleDateString() : '-' %></td>

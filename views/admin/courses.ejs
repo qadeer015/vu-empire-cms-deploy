@@ -26,8 +26,16 @@
       <tbody>
         <% courses.forEach(function(c) { %>
         <tr>
-          <td><span class="fw-semibold"><%= c.courseCode %></span></td>
-          <td><%= c.courseName %></td>
+          <td>
+            <a href="/courses/<%= c.courseId %>" class="text-decoration-none fw-medium" title="View <%= c.courseCode %> course">
+              <span class="fw-semibold"><%= c.courseCode %></span>
+            </a>
+          </td>
+          <td>
+            <a href="/courses/<%= c.courseId %>" class="text-decoration-none fw-medium" title="View <%= c.courseCode %> course">
+              <%= c.courseName %>
+            </a>
+          </td>
           <td class="text-center"><%= c.downloadCount || 0 %></td>
           <td>
             <% if (c.handoutOriginalFilename) { %>
@@ -38,11 +46,8 @@
           </td>
           <td class="text-muted small"><%= c.createdAt ? new Date(c.createdAt).toLocaleDateString() : '-' %></td>
           <td class="text-end">
-            <a href="/courses/<%= c.courseId %>" class="btn btn-sm btn-outline-info" title="View course">
-              <i class="bi bi-eye"></i>
-            </a>
             <a href="/courses/<%= c.courseId %>/edit" class="btn btn-sm btn-outline-primary">
-              <i class="bi bi-pencil"></i>
+              <i class="bi bi-list-check"></i>
             </a>
             <form action="/courses/<%= c.courseId %>/delete" method="POST" class="d-inline" onsubmit="return confirm('Delete <%= c.courseCode %>? This will also delete related quizzes, questions, and content.')">
               <button type="submit" class="btn btn-sm btn-outline-danger">

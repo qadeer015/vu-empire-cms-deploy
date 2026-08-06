@@ -26,8 +26,12 @@
                 <% solutions.forEach(function(s) { %>
                 <tr>
                     <td>
-                        <span class="fw-semibold"><%= s.courseCode %></span>
-                        <small class="d-block text-muted"><%= s.courseName %></small>
+                        <a href="/courses/<%= s.courseId %>" class="text-decoration-none fw-medium" title="View <%= s.courseCode %> course">
+                            <span class="fw-semibold"><%= s.courseCode %></span>
+                        </a>
+                        <a href="/courses/<%= s.courseId %>" class="text-decoration-none fw-medium" title="View <%= s.courseCode %> course">
+                            <small class="d-block text-muted"><%= s.courseName %></small>
+                        </a>
                     </td>
                     <td class="fw-medium"><%= s.gdbTitle %></td>
                     <td class="text-muted small text-truncate" style="max-width: 300px;"><%= s.solution %></td>

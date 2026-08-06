@@ -27,8 +27,12 @@
                 <% quizzes.forEach(function(q) { %>
                 <tr>
                     <td>
-                        <span class="fw-semibold"><%= q.courseCode %></span>
-                        <small class="d-block text-muted"><%= q.courseName %></small>
+                        <a href="/courses/<%= q.courseId %>" class="text-decoration-none fw-medium" title="View <%= q.courseCode %> course">
+                            <span class="fw-semibold"><%= q.courseCode %></span>
+                        </a>
+                        <a href="/courses/<%= q.courseId %>" class="text-decoration-none fw-medium" title="View <%= q.courseCode %> course">
+                            <small class="d-block text-muted"><%= q.courseName %></small>
+                        </a>
                     </td>
                     <td>
                         <a href="/quizzes/<%= q.quizId %>/edit" class="text-decoration-none fw-medium">
