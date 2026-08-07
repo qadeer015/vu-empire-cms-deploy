@@ -161,13 +161,10 @@
             <div class="offcanvas-header border-bottom">
                 <h5 class="offcanvas-title" id="mobileSidebarLabel">
                     <a class="navbar-brand d-flex align-items-center gap-1" href="/" aria-label="VU Empire" title="VU Empire">
-                        <% if(isGenie){%>
-                            <img src="/assets/brand/genie.png" width="30px" class="me-2" alt="VU Empire Genie Logo">
-                        <%}else{%>
-                            <img src="/assets/brand/logo.png" width="20px" class="me-2" alt="VU Empire Logo">
-                        <%}%>
+                        <img src="/assets/brand/logo.png" width="20px" class="me-2" alt="VU Empire Logo">
                         <div class="text-body-emphasis">
-                            <span class="brand-text" style="font-size: 18px;">VU <span>Empire</span></span>
+                          <span class="brand-text d-md-block d-none" style="font-size: 18px;">VU <span>Empire CMS</span></span>
+                          <span class="brand-text d-md-none" style="font-size: 18px;"><span>CMS</span></span>
                         </div>
                     </a>
                 </h5>
@@ -179,11 +176,7 @@
                     <% if (user.role==='admin' ) { %>
                         <%- include('../partials/_sidebar') %>
                     <% } %>
-                    <% if(user && (user.role==='admin' || user.role==='author' )) { %>
-                    <a class="btn btn-outline-primary rounded-pill mx-auto w-75 mt-3" href="/posts/new">
-                        New Post
-                    </a>
-                    <% } %>
+                    <%- include('../partials/_profile') %>
                 </div>
             </div>
         </div>
@@ -202,6 +195,7 @@
                                     <p class="text-uppercase text-muted px-3 mb-1" style="font-size: 11px; letter-spacing: .05em;"></p>
                                     <% if (user.role==='admin') { %>
                                         <%- include('../partials/_sidebar') %>
+                                        <%- include('../partials/_profile') %>
                                     <% } %>
                                 </div>
                             </div>

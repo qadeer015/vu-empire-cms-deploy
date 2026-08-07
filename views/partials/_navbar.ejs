@@ -1,37 +1,69 @@
 <nav class="navbar navbar-expand-lg position-sticky top-0 z-3 bg-light shadow-sm">
-    <div class="container">
-        <a class="navbar-brand d-flex align-items-center gap-1" href="/" aria-label="VU Empire CMS" title="VU Empire CMS">
-            <img src="/assets/brand/logo.png" width="40px" class="me-2" alt="VU Empire CMS Logo">
-            <div class="text-body-emphasis">
-                <span class="brand-text">VU <span>Empire CMS</span></span>
-            </div>
-        </a>
+  <div class="container">
+    <a class="navbar-brand d-flex align-items-center gap-1" href="/" aria-label="VU Empire CMS" title="VU Empire CMS">
+      <img src="/assets/brand/logo.png" width="40px" class="me-2" alt="VU Empire CMS Logo">
+      <div class="text-body-emphasis">
+        <span class="brand-text d-md-block d-none">VU <span>Empire CMS</span></span>
+        <span class="brand-text d-md-none"><span>CMS</span></span>
+      </div>
+    </a>
 
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto align-items-center">
-                <% if (user) { %>
-                    <li class="nav-item me-2">
-                        <span class="badge bg-danger text-white me-2">Admin</span>
-                        <span class="text-muted small me-2"><%= user.name || user.studentName || '' %></span>
-                    </li>
-                    <li class="nav-item">
-                        <form action="/api/auth/logout?_method=DELETE" method="POST" class="d-inline">
-                            <button type="submit" class="btn btn-outline-danger rounded-pill btn-sm">
-                                <i class="bi bi-box-arrow-right"></i> Logout
-                            </button>
-                        </form>
-                    </li>
-                <% } else { %>
-                    <li class="nav-item">
-                        <a class="btn btn-outline-primary rounded-pill" href="/auth/login">
-                            Sign in
-                        </a>
-                    </li>
-                <% } %>
+    <div class="d-flex" id="navbarNav">
+      <ul class="navbar-nav ms-auto align-items-center">
+        <% if (user) { %>
+        <li class="nav-item me-2">
+          <div class="btn-group">
+            <button type="button" class="btn btn-light dropdown-toggle border border-dark-subtle" data-bs-toggle="dropdown" aria-expanded="true">
+              <i class="bi bi-plus-lg me-2 border-right border-white"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end dropdown-menu" style="min-width: 200px; position: absolute; inset: 0px 0px auto auto; margin: 0px; transform: translate(0px, 40px);" data-popper-placement="bottom-end">
+              <li>
+                <a class="dropdown-item" href="/courses/new">
+                  <i class="bi bi-journal-bookmark me-2"></i>
+                  New Course
+                </a>
+              </li>
+              <li>
+                <hr class="dropdown-divider">
+              </li>
+              <li>
+                <a class="dropdown-item" href="/quizzes/new">
+                  <i class="bi bi-clipboard-check me-2"></i>
+                  New Quiz
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item" href="/pastpapers/new">
+                  <i class="bi bi-file-earmark-pdf me-2"></i>
+                  New Past Paper
+                </a>
+              </li>
+                <li>
+                  <a class="dropdown-item" href="/assignments/new">
+                    <i class="bi bi-pencil-square me-2"></i>
+                    New Assignment
+                  </a>
+                </li>
+              <li>
+                <a class="dropdown-item" href="/gdb-solutions/new">
+                  <i class="bi bi-chat-dots me-2"></i>
+                  New GDB Solution
+                </a>
+              </li>
             </ul>
-        </div>
+          </div>
+        </li>
+      </ul>
     </div>
+    </li>
+    <% } else { %>
+    <li class="nav-item">
+      <a class="btn btn-outline-primary rounded-pill" href="/auth/login">
+        Sign in
+      </a>
+    </li>
+    <% } %>
+    </ul>
+  </div>
+  </div>
 </nav>
