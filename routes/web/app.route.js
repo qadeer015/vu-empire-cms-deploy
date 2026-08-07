@@ -54,6 +54,7 @@ router.post('/questions/:questionId/delete', authenticate, authorize('admin'), A
 router.get('/assignments', authenticate, authorize('admin'), AppController.adminAssignments);
 router.get('/assignments/new', authenticate, authorize('admin'), AppController.adminAssignmentNew);
 router.post('/assignments', authenticate, authorize('admin'), AppController.adminAssignmentCreate);
+router.get('/assignments/:id', authenticate, authorize('admin'), AppController.adminAssignmentShow);
 router.get('/assignments/:id/edit', authenticate, authorize('admin'), AppController.adminAssignmentEdit);
 router.post('/assignments/:id', authenticate, authorize('admin'), AppController.adminAssignmentUpdate);
 router.post('/assignments/:id/delete', authenticate, authorize('admin'), AppController.adminAssignmentDelete);

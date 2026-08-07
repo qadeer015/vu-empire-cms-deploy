@@ -46,7 +46,8 @@ class AssignmentController {
             }
 
             const assignment = await Assignment.create({
-                courseCode, courseName, title, description, dueDate, filePath, originalFilename, status
+                courseCode, courseName, title, description, dueDate, filePath, originalFilename, status,
+                authorId: req.user.id
             });
 
             res.status(201).json({ success: true, data: { assignment } });

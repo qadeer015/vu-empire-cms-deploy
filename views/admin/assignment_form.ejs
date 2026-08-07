@@ -64,6 +64,34 @@
             <a href="/assignments" class="btn btn-outline-secondary">Cancel</a>
           </div>
         </form>
+
+        <script>
+          (function() {
+            const courseCodeInput = document.querySelector('input[name="courseCode"]');
+            const courseNameInput = document.querySelector('input[name="courseName"]');
+            const datalist = document.getElementById('courseCodes');
+            const map = {};
+
+            if (datalist) {
+              Array.from(datalist.options).forEach(function(opt) {
+                map[opt.value] = opt.textContent || '';
+              });
+            }
+
+            function updateCourseName() {
+              if (!courseCodeInput || !courseNameInput) return;
+              const val = courseCodeInput.value.trim();
+              if (val && map[val]) {
+                courseNameInput.value = map[val];
+              }
+            }
+
+            if (courseCodeInput) {
+              courseCodeInput.addEventListener('change', updateCourseName);
+              courseCodeInput.addEventListener('input', updateCourseName);
+            }
+          })();
+        </script>
     </div>
   </div>
 </div>

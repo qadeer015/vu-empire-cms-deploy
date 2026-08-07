@@ -10,12 +10,12 @@ class Assignment {
     }
 
     static async create(data) {
-        const { courseCode, courseName, title, description, dueDate, filePath, originalFilename, status = 'publish' } = data;
+        const { courseCode, courseName, title, description, dueDate, filePath, originalFilename, status = 'publish', authorId } = data;
 
         const [result] = await db.query(
-            `INSERT INTO assignments (courseCode, courseName, title, description, dueDate, filePath, originalFilename, status)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-            [courseCode, courseName, title, description, dueDate, filePath, originalFilename, status]
+            `INSERT INTO assignments (courseCode, courseName, title, description, dueDate, filePath, originalFilename, status, authorId)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [courseCode, courseName, title, description, dueDate, filePath, originalFilename, status, authorId]
         );
 
         await this._invalidateCaches(courseCode);
@@ -72,7 +72,7 @@ class Assignment {
     }
 
     static async update(id, updates) {
-        const allowed = ['courseCode', 'courseName', 'title', 'description', 'dueDate', 'filePath', 'originalFilename', 'status'];
+        const allowed = ['courseCode', 'courseName', 'title', 'description', 'dueDate', 'filePath', 'originalFilename', 'status', 'authorId'];
         const fields = [];
         const values = [];
 

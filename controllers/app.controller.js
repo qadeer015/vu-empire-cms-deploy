@@ -56,6 +56,9 @@ function buildBreadcrumbs(data = {}) {
         } else if (mode === 'show' && data.paper) {
             crumbs.push(parentCrumb);
             crumbs.push({ label: 'Past Paper', href: '/pastpapers/' + data.paper.id });
+        } else if (mode === 'show' && data.assignment) {
+            crumbs.push(parentCrumb);
+            crumbs.push({ label: 'Assignment', href: '/assignments/' + data.assignment.id });
         } else if (page === 'courses' && data.course) {
             crumbs.push(parentCrumb);
             crumbs.push({ label: data.course.courseCode, href: '/courses/' + data.course.courseId });
@@ -584,7 +587,7 @@ class AppController {
             const course = await Course.findByCode(courseCode);
             const resolvedCourseName = courseName || (course ? course.courseName : courseCode);
 
-            await Assignment.create({
+            const assignment = await Assignment.create({
                 courseCode,
                 courseName: resolvedCourseName,
                 title: title.trim(),
@@ -592,9 +595,10 @@ class AppController {
                 dueDate: dueDate || null,
                 filePath: filePath || null,
                 originalFilename: originalFilename || null,
-                status: status || 'draft'
+                status: status || 'draft',
+                authorId: req.user.id
             });
-            res.redirect('/assignments');
+            res.redirect('/assignments/' + assignment.id);
         } catch (err) {
             res.status(400).render('error', { title: 'Error', message: err.message, error: null, redirect_url: '/assignments', header: false, footer: false });
         }
@@ -617,9 +621,21 @@ class AppController {
     static async adminAssignmentUpdate(req, res) {
         try {
             await Assignment.update(req.params.id, req.body);
-            res.redirect('/assignments/' + req.params.id + '/edit');
+            res.redirect('/assignments/' + req.params.id);
         } catch (err) {
             res.status(400).render('error', { title: 'Error', message: err.message, error: null, redirect_url: '/assignments', header: false, footer: false });
+        }
+    }
+
+    static async adminAssignmentShow(req, res) {
+        try {
+            const assignment = await Assignment.findById(req.params.id);
+            if (!assignment) return res.redirect('/assignments');
+
+            const courses = await Course.findAll({ limit: 500 });
+            renderAdmin(res, 'admin/assignment_show', { page: 'assignments', mode: 'show', assignment, courses });
+        } catch (err) {
+            res.status(500).render('error', { title: 'Server Error', message: err.message, error: null, redirect_url: '/assignments', header: false, footer: false });
         }
     }
 
