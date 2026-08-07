@@ -13,12 +13,68 @@ const TTL = require('../config/cacheTTL');
 const SITE_URL = process.env.SITE_URL || 'https://vuempire.online';
 
 // ── Shared render helper ─────────────────────────────────────────────
+function buildBreadcrumbs(data = {}) {
+    const page = data.page || '';
+    const mode = data.mode || '';
+    const breadcrumbs = data.breadcrumbs || [];
+    
+    if (breadcrumbs.length > 0) {
+        return breadcrumbs;
+    }
+    
+    const pageLabels = {
+        'dashboard': 'Dashboard',
+        'courses': 'Courses',
+        'quizzes': 'Quizzes',
+        'assignments': 'Assignments',
+        'gdb-solutions': 'GDB Solutions',
+        'past-papers': 'Past Papers'
+    };
+    
+    const pageUrls = {
+        'dashboard': '/',
+        'courses': '/courses',
+        'quizzes': '/quizzes',
+        'assignments': '/assignments',
+        'gdb-solutions': '/gdb-solutions',
+        'past-papers': '/pastpapers'
+    };
+    
+    const crumbs = [
+        { label: 'Home', href: '/' }
+    ];
+    
+    if (page && pageLabels[page]) {
+        const parentCrumb = { label: pageLabels[page], href: pageUrls[page] };
+        
+        if (mode === 'new') {
+            crumbs.push(parentCrumb);
+            crumbs.push({ label: 'Add New', href: '' });
+        } else if (mode === 'edit') {
+            crumbs.push(parentCrumb);
+            crumbs.push({ label: 'Edit', href: '' });
+        } else if (page === 'courses' && data.course) {
+            crumbs.push(parentCrumb);
+            crumbs.push({ label: data.course.courseCode, href: '/courses/' + data.course.courseId });
+        } else if (page === 'quizzes' && data.quiz) {
+            crumbs.push(parentCrumb);
+            crumbs.push({ label: data.quiz.title, href: '/quizzes/' + data.quiz.quizId + '/edit' });
+        } else {
+            crumbs.push(parentCrumb);
+        }
+    }
+    
+    return crumbs;
+}
+
 function renderAdmin(res, view, data = {}) {
+    const breadcrumbs = buildBreadcrumbs(data);
     res.render(view, {
         title: 'VU Empire CMS',
         sidebar: true,
         isGenie: true,
         currentPage: data.page || '',
+        breadcrumbs,
         ...data
     });
 }

@@ -1,0 +1,20 @@
+<!-- Breadcrumb -->
+<% if (typeof breadcrumbs !== 'undefined' && breadcrumbs && breadcrumbs.length > 0) { %>
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <% breadcrumbs.forEach(function(crumb, index) { %>
+            <% if (index < breadcrumbs.length - 1) { %>
+                <li class="breadcrumb-item">
+                    <% if (crumb.href) { %>
+                        <a href="<%= crumb.href %>"><%= crumb.label %></a>
+                    <% } else { %>
+                        <%= crumb.label %>
+                    <% } %>
+                </li>
+            <% } else { %>
+                <li class="breadcrumb-item active" aria-current="page"><%= crumb.label %></li>
+            <% } %>
+        <% }); %>
+    </ol>
+</nav>
+<% } %>

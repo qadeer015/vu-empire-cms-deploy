@@ -4,6 +4,7 @@
         <h1 class="h3 mb-0">All Users</h1>
         <span class="badge bg-primary"><%= (typeof total !== 'undefined' && total) ? total : '' %> users</span>
     </div>
+    <%- include('../partials/_breadcrumb') %>
 
     <% if (typeof users !== 'undefined' && users.length > 0) { %>
     <div class="table-responsive">

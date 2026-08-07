@@ -2,10 +2,8 @@
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3 mb-0"><%= mode === 'new' ? 'Add Question' : 'Edit Question' %></h1>
-        <a href="/quizzes/<%= quiz ? quiz.quizId : '' %>/edit" class="btn btn-outline-secondary btn-sm">
-            <i class="bi bi-arrow-left"></i> Back to Quiz
-        </a>
     </div>
+    <%- include('../partials/_breadcrumb') %>
 
     <% if (quiz && quiz.title === 'Main') { %>
     <div class="card border-0 shadow-sm mb-4">
