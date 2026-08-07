@@ -53,6 +53,9 @@ function buildBreadcrumbs(data = {}) {
         } else if (mode === 'edit') {
             crumbs.push(parentCrumb);
             crumbs.push({ label: 'Edit', href: '' });
+        } else if (mode === 'show' && data.paper) {
+            crumbs.push(parentCrumb);
+            crumbs.push({ label: 'Past Paper', href: '/pastpapers/' + data.paper.id });
         } else if (page === 'courses' && data.course) {
             crumbs.push(parentCrumb);
             crumbs.push({ label: data.course.courseCode, href: '/courses/' + data.course.courseId });
@@ -770,7 +773,7 @@ class AppController {
                 return res.redirect('/pastpapers/new');
             }
 
-            await PastPaper.create({
+            const paper = await PastPaper.create({
                 courseId,
                 year: parseInt(year) || new Date().getFullYear(),
                 type: type || null,
@@ -780,9 +783,10 @@ class AppController {
                 storageKey: null,
                 originalFilename: originalFilename || null,
                 fileSize: fileSize ? parseInt(fileSize) : null,
-                status: status || 'draft'
+                status: status || 'draft',
+                authorId: req.user.id
             });
-            res.redirect('/pastpapers');
+            res.redirect('/pastpapers/' + paper.id);
         } catch (err) {
             res.status(400).render('error', { title: 'Error', message: err.message, error: null, redirect_url: '/pastpapers', header: false, footer: false });
         }
@@ -802,10 +806,21 @@ class AppController {
         }
     }
 
+    static async adminPastPaperShow(req, res) {
+        try {
+            const paper = await PastPaper.findById(req.params.id);
+            if (!paper) return res.redirect('/pastpapers');
+
+            renderAdmin(res, 'admin/pastpaper_show', { page: 'past-papers', mode: 'show', paper });
+        } catch (err) {
+            res.status(500).render('error', { title: 'Server Error', message: err.message, error: null, redirect_url: '/pastpapers', header: false, footer: false });
+        }
+    }
+
     static async adminPastPaperUpdate(req, res) {
         try {
             await PastPaper.update(req.params.id, req.body);
-            res.redirect('/pastpapers/' + req.params.id + '/edit');
+            res.redirect('/pastpapers/' + req.params.id);
         } catch (err) {
             res.status(400).render('error', { title: 'Error', message: err.message, error: null, redirect_url: '/pastpapers', header: false, footer: false });
         }

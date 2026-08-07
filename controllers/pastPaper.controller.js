@@ -103,7 +103,8 @@ class PastPaperController {
 
             const data = {
                 ...req.body,
-                status: incomingStatus
+                status: incomingStatus,
+                authorId: req.user.id
             };
 
             const paper = await PastPaperService.create(data);
@@ -246,7 +247,8 @@ class PastPaperController {
                 storageKey,
                 originalFilename: req.file.originalname,
                 fileSize: req.file.size,
-                status: incomingStatus
+                status: incomingStatus,
+                authorId: req.user.id
             });
 
             res.status(201).json({

@@ -20,7 +20,8 @@ class PastPaper {
             storageKey = null,
             originalFilename,
             fileSize,
-            status = 'publish'
+            status = 'publish',
+            authorId
         } = data;
 
         const [result] = await db.query(
@@ -35,9 +36,10 @@ class PastPaper {
                 storageKey,
                 originalFilename,
                 fileSize,
-                status
+                status,
+                authorId
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
                 courseId,
                 year,
@@ -48,7 +50,8 @@ class PastPaper {
                 storageKey,
                 originalFilename,
                 fileSize,
-                status
+                status,
+                authorId
             ]
         );
 
@@ -150,7 +153,8 @@ class PastPaper {
             'storageKey',
             'originalFilename',
             'fileSize',
-            'status'
+            'status',
+            'authorId'
         ];
 
         const fields = [];

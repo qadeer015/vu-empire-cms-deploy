@@ -70,6 +70,7 @@ router.post('/gdb-solutions/:id/delete', authenticate, authorize('admin'), AppCo
 router.get('/pastpapers', authenticate, authorize('admin'), AppController.adminPastPapers);
 router.get('/pastpapers/new', authenticate, authorize('admin'), AppController.adminPastPaperNew);
 router.post('/pastpapers', authenticate, authorize('admin'), AppController.adminPastPaperCreate);
+router.get('/pastpapers/:id', authenticate, authorize('admin'), AppController.adminPastPaperShow);
 router.get('/pastpapers/:id/edit', authenticate, authorize('admin'), AppController.adminPastPaperEdit);
 router.post('/pastpapers/:id', authenticate, authorize('admin'), AppController.adminPastPaperUpdate);
 router.post('/pastpapers/:id/delete', authenticate, authorize('admin'), AppController.adminPastPaperDelete);
