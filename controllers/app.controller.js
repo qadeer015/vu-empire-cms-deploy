@@ -59,6 +59,9 @@ function buildBreadcrumbs(data = {}) {
         } else if (mode === 'show' && data.assignment) {
             crumbs.push(parentCrumb);
             crumbs.push({ label: 'Assignment', href: '/assignments/' + data.assignment.id });
+        } else if (mode === 'show' && data.solution) {
+            crumbs.push(parentCrumb);
+            crumbs.push({ label: 'GDB Solution', href: '/gdb-solutions/' + data.solution.id });
         } else if (page === 'courses' && data.course) {
             crumbs.push(parentCrumb);
             crumbs.push({ label: data.course.courseCode, href: '/courses/' + data.course.courseId });
@@ -696,13 +699,14 @@ class AppController {
             const course = await Course.findByCode(courseCode);
             const resolvedCourseName = courseName || (course ? course.courseName : courseCode);
 
-            await GdbSolution.create({
+            const gdbSolution = await GdbSolution.create({
                 courseCode,
                 courseName: resolvedCourseName,
                 gdbTitle: gdbTitle.trim(),
-                solution: solution.trim()
+                solution: solution.trim(),
+                authorId: req.user.id
             });
-            res.redirect('/gdb-solutions');
+            res.redirect('/gdb-solutions/' + gdbSolution.id);
         } catch (err) {
             res.status(400).render('error', { title: 'Error', message: err.message, error: null, redirect_url: '/gdb-solutions', header: false, footer: false });
         }
@@ -725,9 +729,21 @@ class AppController {
     static async adminGdbSolutionUpdate(req, res) {
         try {
             await GdbSolution.update(req.params.id, req.body);
-            res.redirect('/gdb-solutions/' + req.params.id + '/edit');
+            res.redirect('/gdb-solutions/' + req.params.id);
         } catch (err) {
             res.status(400).render('error', { title: 'Error', message: err.message, error: null, redirect_url: '/gdb-solutions', header: false, footer: false });
+        }
+    }
+
+    static async adminGdbSolutionShow(req, res) {
+        try {
+            const solution = await GdbSolution.findById(req.params.id);
+            if (!solution) return res.redirect('/gdb-solutions');
+
+            const courses = await Course.findAll({ limit: 500 });
+            renderAdmin(res, 'admin/gdb_show', { page: 'gdb-solutions', mode: 'show', solution, courses });
+        } catch (err) {
+            res.status(500).render('error', { title: 'Server Error', message: err.message, error: null, redirect_url: '/gdb-solutions', header: false, footer: false });
         }
     }
 

@@ -63,6 +63,7 @@ router.post('/assignments/:id/delete', authenticate, authorize('admin'), AppCont
 router.get('/gdb-solutions', authenticate, authorize('admin'), AppController.adminGdbSolutions);
 router.get('/gdb-solutions/new', authenticate, authorize('admin'), AppController.adminGdbSolutionNew);
 router.post('/gdb-solutions', authenticate, authorize('admin'), AppController.adminGdbSolutionCreate);
+router.get('/gdb-solutions/:id', authenticate, authorize('admin'), AppController.adminGdbSolutionShow);
 router.get('/gdb-solutions/:id/edit', authenticate, authorize('admin'), AppController.adminGdbSolutionEdit);
 router.post('/gdb-solutions/:id', authenticate, authorize('admin'), AppController.adminGdbSolutionUpdate);
 router.post('/gdb-solutions/:id/delete', authenticate, authorize('admin'), AppController.adminGdbSolutionDelete);

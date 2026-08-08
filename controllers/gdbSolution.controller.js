@@ -46,7 +46,8 @@ class GdbSolutionController {
             }
 
             const gdbSolution = await GdbSolution.create({
-                courseCode, courseName, gdbTitle, solution
+                courseCode, courseName, gdbTitle, solution,
+                authorId: req.user.id
             });
 
             res.status(201).json({ success: true, data: { gdbSolution } });

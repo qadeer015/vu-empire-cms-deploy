@@ -10,12 +10,12 @@ class GdbSolution {
     }
 
     static async create(data) {
-        const { courseCode, courseName, gdbTitle, solution } = data;
+        const { courseCode, courseName, gdbTitle, solution, authorId } = data;
 
         const [result] = await db.query(
-            `INSERT INTO gdb_solutions (courseCode, courseName, gdbTitle, solution)
-             VALUES (?, ?, ?, ?)`,
-            [courseCode, courseName, gdbTitle, solution]
+            `INSERT INTO gdb_solutions (courseCode, courseName, gdbTitle, solution, authorId)
+             VALUES (?, ?, ?, ?, ?)`,
+            [courseCode, courseName, gdbTitle, solution, authorId]
         );
 
         await this._invalidateCaches(courseCode);
@@ -72,7 +72,7 @@ class GdbSolution {
     }
 
     static async update(id, updates) {
-        const allowed = ['courseCode', 'courseName', 'gdbTitle', 'solution'];
+        const allowed = ['courseCode', 'courseName', 'gdbTitle', 'solution', 'authorId'];
         const fields = [];
         const values = [];
 
