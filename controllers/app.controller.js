@@ -1,5 +1,6 @@
 // controllers/app.controller.js
 const AppService = require('../services/app.service');
+const User = require('../models/User');
 const Course = require('../models/Course');
 const Quiz = require('../models/Quiz');
 const Question = require('../models/Question');
@@ -97,9 +98,49 @@ class AppController {
                 return res.redirect('/auth/login');
             }
             const result = await AppService.dashboard();
-            return renderAdmin(res, 'admin/dashboard', { ...result, page: 'dashboard' });
+            return renderAdmin(res, 'dashboard', { ...result, page: 'dashboard' });
         } catch (err) {
             res.status(500).render('error', { title: 'Server Error', message: err.message, error: null, redirect_url: '/', header: false, footer: false });
+        }
+    }
+
+    // ================= USERS =================
+    static async adminUsers(req, res) {
+        try {
+            const page = parseInt(req.query.page) || 1;
+            const limit = 50;
+            const offset = (page - 1) * limit;
+
+            const [users, total] = await Promise.all([
+                User.findAll({ limit, offset }),
+                User.countAll()
+            ]);
+
+            renderAdmin(res, 'users/index', {
+                page: 'users',
+                users,
+                total,
+                pagination: { page, limit, total, pages: Math.ceil(total / limit) }
+            });
+        } catch (err) {
+            res.status(500).render('error', { title: 'Server Error', message: err.message, error: null, redirect_url: '/', header: false, footer: false });
+        }
+    }
+
+    static async adminUserShow(req, res) {
+        try {
+            console.log(req.params.studentId)
+            const userClient = await User.findById(req.params.studentId);
+            console.log('userCLinet', userClient)
+
+            if (!userClient) return res.redirect('/users');
+
+            renderAdmin(res, 'users/show', {
+                page: 'users',
+                userClient
+            });
+        } catch (err) {
+            res.status(500).render('error', { title: 'Server Error', message: err.message, error: null, redirect_url: '/courses', header: false, footer: false });
         }
     }
 
@@ -115,7 +156,7 @@ class AppController {
                 Course.countAll()
             ]);
 
-            renderAdmin(res, 'admin/courses', {
+            renderAdmin(res, 'courses/index', {
                 page: 'courses',
                 courses,
                 total,
@@ -127,7 +168,7 @@ class AppController {
     }
 
     static async adminCourseNew(req, res) {
-        renderAdmin(res, 'admin/course_form', { page: 'courses', mode: 'new', course: '' });
+        renderAdmin(res, 'courses/new', { page: 'courses', mode: 'new', course: '' });
     }
 
     static async adminCourseCreate(req, res) {
@@ -156,7 +197,7 @@ class AppController {
                 GdbSolution.getByCourse(course.courseCode)
             ]);
 
-            renderAdmin(res, 'admin/course_show', {
+            renderAdmin(res, 'courses/show', {
                 page: 'courses',
                 course,
                 quizzes: quizzes || [],
@@ -173,7 +214,7 @@ class AppController {
         try {
             const course = await Course.findById(req.params.id);
             if (!course) return res.redirect('/courses');
-            renderAdmin(res, 'admin/course_form', { page: 'courses', mode: 'edit', course });
+            renderAdmin(res, 'courses/edit', { page: 'courses', mode: 'edit', course });
         } catch (err) {
             res.status(500).render('error', { title: 'Server Error', message: err.message, error: null, redirect_url: '/courses', header: false, footer: false });
         }
@@ -209,7 +250,7 @@ class AppController {
                 Quiz.countAll()
             ]);
 
-            renderAdmin(res, 'admin/quizzes', {
+            renderAdmin(res, 'quizzes/index', {
                 page: 'quizzes',
                 quizzes,
                 total,
@@ -225,7 +266,7 @@ class AppController {
             const courses = await Course.findAll({ limit: 500 });
             const selectedCourseCode = req.query.courseCode ? String(req.query.courseCode).trim() : '';
             const selectedCourse = selectedCourseCode ? await Course.findByCode(selectedCourseCode) : null;
-            renderAdmin(res, 'admin/quiz_form', {
+            renderAdmin(res, 'quizzes/new', {
                 page: 'quizzes',
                 mode: 'new',
                 courses,
@@ -261,7 +302,7 @@ class AppController {
 
             const questions = await Question.findByQuizId(quiz.quizId);
 
-            renderAdmin(res, 'admin/quiz_form', { page: 'quizzes', mode: 'edit', quiz, courses, questions });
+            renderAdmin(res, 'quizzes/edit', { page: 'quizzes', mode: 'edit', quiz, courses, questions });
         } catch (err) {
             res.status(500).render('error', { title: 'Server Error', message: err.message, error: null, redirect_url: '/quizzes', header: false, footer: false });
         }
@@ -291,7 +332,7 @@ class AppController {
             const quiz = await Quiz.findById(req.params.quizId);
             if (!quiz) return res.redirect('/quizzes');
             const courses = await Course.findAll({ limit: 500 });
-            renderAdmin(res, 'admin/question_form', { page: 'quizzes', mode: 'new', quiz, courses, question: '' });
+            renderAdmin(res, 'quizzes/questions/new', { page: 'quizzes', mode: 'new', quiz, courses, question: '' });
         } catch (err) {
             res.status(500).render('error', { title: 'Server Error', message: err.message, error: null, redirect_url: '/quizzes', header: false, footer: false });
         }
@@ -482,7 +523,7 @@ class AppController {
 
             const quiz = await Quiz.findById(question.quizId);
 
-            renderAdmin(res, 'admin/question_form', { page: 'quizzes', mode: 'edit', question, quiz, courses });
+            renderAdmin(res, 'quizzes/questions/edit', { page: 'quizzes', mode: 'edit', question, quiz, courses });
         } catch (err) {
             res.status(500).render('error', { title: 'Server Error', message: err.message, error: null, redirect_url: '/quizzes', header: false, footer: false });
         }
@@ -554,7 +595,7 @@ class AppController {
                 Assignment.countAll()
             ]);
 
-            renderAdmin(res, 'admin/assignments', {
+            renderAdmin(res, 'assignments/index', {
                 page: 'assignments',
                 assignments,
                 total,
@@ -570,7 +611,7 @@ class AppController {
             const courses = await Course.findAll({ limit: 500 });
             const selectedCourseCode = req.query.courseCode ? String(req.query.courseCode).trim() : '';
             const selectedCourse = selectedCourseCode ? await Course.findByCode(selectedCourseCode) : null;
-            renderAdmin(res, 'admin/assignment_form', {
+            renderAdmin(res, 'assignments/new', {
                 page: 'assignments',
                 mode: 'new',
                 courses,
@@ -615,7 +656,7 @@ class AppController {
             ]);
             if (!assignment) return res.redirect('/assignments');
 
-            renderAdmin(res, 'admin/assignment_form', { page: 'assignments', mode: 'edit', assignment, courses });
+            renderAdmin(res, 'assignments/edit', { page: 'assignments', mode: 'edit', assignment, courses });
         } catch (err) {
             res.status(500).render('error', { title: 'Server Error', message: err.message, error: null, redirect_url: '/assignments', header: false, footer: false });
         }
@@ -636,7 +677,7 @@ class AppController {
             if (!assignment) return res.redirect('/assignments');
 
             const courses = await Course.findAll({ limit: 500 });
-            renderAdmin(res, 'admin/assignment_show', { page: 'assignments', mode: 'show', assignment, courses });
+            renderAdmin(res, 'assignments/show', { page: 'assignments', mode: 'show', assignment, courses });
         } catch (err) {
             res.status(500).render('error', { title: 'Server Error', message: err.message, error: null, redirect_url: '/assignments', header: false, footer: false });
         }
@@ -663,7 +704,7 @@ class AppController {
                 GdbSolution.countAll()
             ]);
 
-            renderAdmin(res, 'admin/gdb-solutions', {
+            renderAdmin(res, 'gdbs/index', {
                 page: 'gdb-solutions',
                 solutions,
                 total,
@@ -679,7 +720,7 @@ class AppController {
             const courses = await Course.findAll({ limit: 500 });
             const selectedCourseCode = req.query.courseCode ? String(req.query.courseCode).trim() : '';
             const selectedCourse = selectedCourseCode ? await Course.findByCode(selectedCourseCode) : null;
-            renderAdmin(res, 'admin/gdb_form', {
+            renderAdmin(res, 'gdbs/new', {
                 page: 'gdb-solutions',
                 mode: 'new',
                 courses,
@@ -720,7 +761,7 @@ class AppController {
             ]);
             if (!solution) return res.redirect('/gdb-solutions');
 
-            renderAdmin(res, 'admin/gdb_form', { page: 'gdb-solutions', mode: 'edit', solution, courses });
+            renderAdmin(res, 'gdbs/edit', { page: 'gdb-solutions', mode: 'edit', solution, courses });
         } catch (err) {
             res.status(500).render('error', { title: 'Server Error', message: err.message, error: null, redirect_url: '/gdb-solutions', header: false, footer: false });
         }
@@ -741,7 +782,7 @@ class AppController {
             if (!solution) return res.redirect('/gdb-solutions');
 
             const courses = await Course.findAll({ limit: 500 });
-            renderAdmin(res, 'admin/gdb_show', { page: 'gdb-solutions', mode: 'show', solution, courses });
+            renderAdmin(res, 'gdbs/show', { page: 'gdb-solutions', mode: 'show', solution, courses });
         } catch (err) {
             res.status(500).render('error', { title: 'Server Error', message: err.message, error: null, redirect_url: '/gdb-solutions', header: false, footer: false });
         }
@@ -768,7 +809,7 @@ class AppController {
                 PastPaper.countAll()
             ]);
 
-            renderAdmin(res, 'admin/past-papers', {
+            renderAdmin(res, 'pastpapers/index', {
                 page: 'past-papers',
                 papers,
                 total,
@@ -784,7 +825,7 @@ class AppController {
             const courses = await Course.findAll({ limit: 500 });
             const selectedCourseCode = req.query.courseCode ? String(req.query.courseCode).trim() : '';
             const selectedCourse = selectedCourseCode ? await Course.findByCode(selectedCourseCode) : null;
-            renderAdmin(res, 'admin/pastpaper_form', {
+            renderAdmin(res, 'pastpapers/new', {
                 page: 'past-papers',
                 mode: 'new',
                 courses,
@@ -832,7 +873,7 @@ class AppController {
             ]);
             if (!paper) return res.redirect('/pastpapers');
 
-            renderAdmin(res, 'admin/pastpaper_form', { page: 'past-papers', mode: 'edit', paper, courses });
+            renderAdmin(res, 'pastpapers/edit', { page: 'past-papers', mode: 'edit', paper, courses });
         } catch (err) {
             res.status(500).render('error', { title: 'Server Error', message: err.message, error: null, redirect_url: '/pastpapers', header: false, footer: false });
         }
@@ -843,7 +884,7 @@ class AppController {
             const paper = await PastPaper.findById(req.params.id);
             if (!paper) return res.redirect('/pastpapers');
 
-            renderAdmin(res, 'admin/pastpaper_show', { page: 'past-papers', mode: 'show', paper });
+            renderAdmin(res, 'pastpapers/show', { page: 'past-papers', mode: 'show', paper });
         } catch (err) {
             res.status(500).render('error', { title: 'Server Error', message: err.message, error: null, redirect_url: '/pastpapers', header: false, footer: false });
         }

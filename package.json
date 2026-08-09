@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "npx nodemon server",
+    "dev": "node server.js",
     "migrate": "mysql -u root -p < db_schema/paid.sql"
   },
   "keywords": [],

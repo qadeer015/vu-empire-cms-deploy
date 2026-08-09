@@ -25,6 +25,11 @@ const jsonUpload = multer({
 // Dashboard
 router.get('/', authenticate, authorize('admin'), AppController.dashboard);
 
+// ── Users CRUD ───────────────────────────────────────────────────
+router.get('/users', authenticate, authorize('admin'), AppController.adminUsers);
+router.get('/users/:studentId', authenticate, authorize('admin'), AppController.adminUserShow);
+
+
 // ── Courses CRUD ───────────────────────────────────────────────────
 router.get('/courses', authenticate, authorize('admin'), AppController.adminCourses);
 router.get('/courses/new', authenticate, authorize('admin'), AppController.adminCourseNew);

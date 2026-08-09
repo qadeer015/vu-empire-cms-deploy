@@ -1,9 +1,9 @@
-<!-- admin/question_form.ejs -->
+<!-- quizzes/questions/_form.ejs -->
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3 mb-0"><%= mode === 'new' ? 'Add Question' : 'Edit Question' %></h1>
     </div>
-    <%- include('../partials/_breadcrumb') %>
+    <%- include('../../partials/_breadcrumb') %>
 
     <% if (quiz && quiz.title === 'Main') { %>
     <div class="card border-0 shadow-sm mb-4">

@@ -13,6 +13,28 @@ class User {
         await cache.delByPattern('dashboard:*');
     }
 
+    static async findAll({ limit = 25, offset = 0 } = {}) {
+        const cacheKey = `users:list:${limit}:${offset}`;
+        return cache.remember(cacheKey, TTL.USERS, async () => {
+            const [rows] = await db.query(
+                `SELECT *
+                 FROM users 
+                 ORDER BY id ASC
+                 LIMIT ? OFFSET ?`,
+                [parseInt(limit), parseInt(offset)]
+            );
+            return rows;
+        });
+    }
+
+    static async countAll() {
+        const cacheKey = 'users:count';
+        return cache.remember(cacheKey, TTL.USERS, async () => {
+            const [[{ total }]] = await db.query('SELECT COUNT(*) as total FROM users');
+            return total;
+        });
+    }
+
     // Finds by studentId OR vuEmail
     static async findByIdentifier(identifier) {
         const cacheKey = `user:identifier:${identifier}`;
