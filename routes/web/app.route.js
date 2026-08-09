@@ -43,6 +43,7 @@ router.post('/courses/:id/delete', authenticate, authorize('admin'), AppControll
 router.get('/quizzes', authenticate, authorize('admin'), AppController.adminQuizzes);
 router.get('/quizzes/new', authenticate, authorize('admin'), AppController.adminQuizNew);
 router.post('/quizzes', authenticate, authorize('admin'), AppController.adminQuizCreate);
+router.get('/quizzes/:id', authenticate, authorize('admin'), AppController.adminQuizShow);
 router.get('/quizzes/:id/edit', authenticate, authorize('admin'), AppController.adminQuizEdit);
 router.post('/quizzes/:id', authenticate, authorize('admin'), AppController.adminQuizUpdate);
 router.post('/quizzes/:id/delete', authenticate, authorize('admin'), AppController.adminQuizDelete);

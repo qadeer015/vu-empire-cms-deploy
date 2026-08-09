@@ -63,6 +63,9 @@ function buildBreadcrumbs(data = {}) {
         } else if (mode === 'show' && data.solution) {
             crumbs.push(parentCrumb);
             crumbs.push({ label: 'GDB Solution', href: '/gdb-solutions/' + data.solution.id });
+        } else if (mode === 'show' && data.quiz) {
+            crumbs.push(parentCrumb);
+            crumbs.push({ label: data.quiz.title, href: '/quizzes/' + data.quiz.quizId });
         } else if (page === 'courses' && data.course) {
             crumbs.push(parentCrumb);
             crumbs.push({ label: data.course.courseCode, href: '/courses/' + data.course.courseId });
@@ -289,6 +292,19 @@ class AppController {
             res.redirect('/quizzes');
         } catch (err) {
             res.status(400).render('error', { title: 'Error', message: err.message, error: null, redirect_url: '/quizzes', header: false, footer: false });
+        }
+    }
+
+    static async adminQuizShow(req, res) {
+        try {
+            const quiz = await Quiz.findById(req.params.id);
+            if (!quiz) return res.redirect('/quizzes');
+
+            const questions = await Question.findByQuizId(quiz.quizId);
+
+            renderAdmin(res, 'quizzes/show', { page: 'quizzes', mode: 'show', quiz, questions });
+        } catch (err) {
+            res.status(500).render('error', { title: 'Server Error', message: err.message, error: null, redirect_url: '/quizzes', header: false, footer: false });
         }
     }
 

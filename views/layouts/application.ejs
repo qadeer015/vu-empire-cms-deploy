@@ -135,7 +135,7 @@
     <link href="https://fonts.googleapis.com/css?family=Playfair&#43;Display:700,900&display=swap" rel="stylesheet">
 </head>
 
-<body class="<%= (currentPage !== 'home' && currentPage !== 'genie-landing' && user && user.role) ? 'overflow-hidden' : '' %>">
+<body>
     <% if (header) { %>
         <%- include('../partials/_navbar') %>
     <% } %>
@@ -171,12 +171,16 @@
                 <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
             </div>
             <div class="offcanvas-body p-0">
-                <div class="d-flex flex-column gap-1 p-2 h-100 position-sticky top-0 sidebar">
+                <div class="d-flex flex-column gap-1 p-2 h-100 position-sticky sidebar" style="top:86px">
                     <p class="text-uppercase text-muted px-3 mb-1" style="font-size: 11px; letter-spacing: .05em;"></p>
                     <% if (user.role==='admin' ) { %>
                         <%- include('../partials/_sidebar') %>
                     <% } %>
-                    <%- include('../partials/_profile') %>
+                    <form action="/api/auth/logout?_method=DELETE" method="POST" class="sidebar-link d-inline">
+                      <button type="submit" onclick="return confirm('Are you sure to logout?')" class="btn p-0 border-0 outline-0 text-danger">
+                        <i class="bi bi-box-arrow-right me-2"></i> Logout
+                      </button>
+                    </form>
                 </div>
             </div>
         </div>
@@ -185,22 +189,21 @@
     <main class="min-vh-75">
         <% if ( currentPage !== "genie-landing" ) { %>
             <!-- Student sidebar layout -->
-            <div class="<%= currentPage === 'home' ? '' : 'overflow-auto' %>">
+            <div>
                 <div class="<%= currentPage === 'home' ? '' : 'container' %>">
-                    <div class="row g-0 min-vh-75" style="<%=(currentPage !== 'home' && currentPage !== 'genie-landing' && user && user.role) ? 'max-height: 75vh;' : '' %>">
+                    <div class="row g-0 min-vh-75">
                         <% if (sidebar && user) { %>
                             <!-- Desktop Sidebar - hidden on mobile -->
                             <div class="col-auto d-none d-md-block z-1">
-                                <div class="d-flex flex-column gap-1 p-2 h-100 position-sticky top-0 sidebar" style="max-height: 75vh;">
+                                <div class="d-flex flex-column gap-1 p-2 position-sticky sidebar" style="max-height: 75vh; top: 86px;">
                                     <p class="text-uppercase text-muted px-3 mb-1" style="font-size: 11px; letter-spacing: .05em;"></p>
                                     <% if (user.role==='admin') { %>
                                         <%- include('../partials/_sidebar') %>
-                                        <%- include('../partials/_profile') %>
                                     <% } %>
                                 </div>
                             </div>
                         <% } %>
-                        <div class="col z-0 <%= currentPage === 'home' ? '' : 'p-4 overflow-auto' %>" style="max-height: 100%;">
+                        <div class="col z-0 <%= currentPage === 'home' ? '' : 'p-4' %>">
                             <%- body %>
                         </div>
                     </div>
