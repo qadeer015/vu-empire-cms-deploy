@@ -34,12 +34,16 @@
                             <small class="d-block text-muted"><%= s.courseName %></small>
                         </a>
                     </td>
-                    <td class="fw-medium"><%= s.gdbTitle %></td>
+                    <td class="fw-medium">
+                        <a href="/gdb-solutions/<%= s.id %>" class="text-decoration-none fw-medium" title="View <%= s.gdbTitle %>">
+                            <%= s.gdbTitle %>
+                        </a>
+                    </td>
                     <td class="text-muted small text-truncate" style="max-width: 300px;"><%= s.solution %></td>
                     <td class="text-muted small"><%= s.createdAt ? new Date(s.createdAt).toLocaleDateString() : '-' %></td>
                     <td class="text-end">
                         <a href="/gdb-solutions/<%= s.id %>/edit" class="btn btn-sm btn-outline-primary">
-                            <i class="bi bi-pencil"></i>
+                            <i class="bi bi-list-check"></i>
                         </a>
                         <form action="/gdb-solutions/<%= s.id %>/delete" method="POST" class="d-inline" onsubmit="return confirm('Delete this GDB solution?')">
                             <button type="submit" class="btn btn-sm btn-outline-danger">

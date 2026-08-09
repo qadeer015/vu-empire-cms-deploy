@@ -48,9 +48,26 @@
           <h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>Details</h6>
         </div>
         <div class="card-body">
-          <p class="mb-1"><strong>ID:</strong> <%= solution.id %></p>
-          <p class="mb-1"><strong>Course Code:</strong> <%= solution.courseCode %></p>
-          <p class="mb-0"><strong>Author ID:</strong> <%= solution.authorId || '-' %></p>
+          <p class="mb-1">
+            <strong>ID:</strong> 
+            <%= solution.id %>
+          </p>
+          <p class="mb-1">
+            <strong>Course Code:</strong> 
+            <a href="/courses/<%= solution.courseId %>">
+              <%= solution.courseCode %>
+            </a>
+          </p>
+          <p class="mb-1">
+            <strong>Course Name:</strong>
+            <a href="/courses/<%= solution.courseId %>">
+              <%= solution.courseName %>
+            </a>
+          </p>
+          <p class="mb-0">
+            <strong>Author ID:</strong>
+            <%= solution.authorId || '-' %>
+          </p>
         </div>
       </div>
     </div>

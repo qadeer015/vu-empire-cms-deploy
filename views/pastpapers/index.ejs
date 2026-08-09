@@ -17,6 +17,7 @@
       <thead class="table-light">
         <tr>
           <th>Course</th>
+          <th>Title</th>
           <th>Year</th>
           <th>Type</th>
           <th>Semester</th>
@@ -35,6 +36,13 @@
             </a>
             <a href="/courses/<%= p.courseId %>" class="text-decoration-none fw-medium" title="View <%= p.courseCode %> course">
               <small class="d-block text-muted"><%= p.courseName %></small>
+            </a>
+          </td>
+          <td>
+            <a href="/pastpapers/<%= p.id %>" class="text-decoration-none fw-medium" title="View <%= p.courseCode || '-' %> <%= p.type || '-' %> <%= p.year || '-' %>">
+            <%= p.courseCode || '-' %>
+            <%= p.type || '-' %>
+            <%= p.year || '-' %>
             </a>
           </td>
           <td><%= p.year || '-' %></td>
@@ -57,7 +65,7 @@
           <td class="text-muted small"><%= p.createdAt ? new Date(p.createdAt).toLocaleDateString() : '-' %></td>
           <td class="text-end">
             <a href="/pastpapers/<%= p.id %>/edit" class="btn btn-sm btn-outline-primary">
-              <i class="bi bi-pencil"></i>
+              <i class="bi bi-list-check"></i>
             </a>
             <form action="/pastpapers/<%= p.id %>/delete" method="POST" class="d-inline" onsubmit="return confirm('Delete this past paper?')">
               <button type="submit" class="btn btn-sm btn-outline-danger">

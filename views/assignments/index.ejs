@@ -35,7 +35,11 @@
                             <small class="d-block text-muted"><%= a.courseName %></small>
                         </a>
                     </td>
-                    <td><%= a.title %></td>
+                    <td> 
+                        <a href="/assignments/<%= a.id %>" class="text-decoration-none fw-medium" title="View <%= a.title %>">
+                            <%= a.title %>
+                        </a>
+                    </td>
                     <td class="text-muted small"><%= a.dueDate ? new Date(a.dueDate).toLocaleDateString() : '-' %></td>
                     <td>
                         <span class="badge bg-<%= a.status === 'publish' ? 'success' : (a.status === 'draft' ? 'secondary' : 'warning') %>">
@@ -45,7 +49,7 @@
                     <td class="text-muted small"><%= a.createdAt ? new Date(a.createdAt).toLocaleDateString() : '-' %></td>
                     <td class="text-end">
                         <a href="/assignments/<%= a.id %>/edit" class="btn btn-sm btn-outline-primary">
-                            <i class="bi bi-pencil"></i>
+                            <i class="bi bi-list-check"></i>
                         </a>
                         <form action="/assignments/<%= a.id %>/delete" method="POST" class="d-inline" onsubmit="return confirm('Delete this assignment?')">
                             <button type="submit" class="btn btn-sm btn-outline-danger">

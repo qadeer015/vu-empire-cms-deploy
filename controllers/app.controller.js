@@ -780,7 +780,6 @@ class AppController {
         try {
             const solution = await GdbSolution.findById(req.params.id);
             if (!solution) return res.redirect('/gdb-solutions');
-
             const courses = await Course.findAll({ limit: 500 });
             renderAdmin(res, 'gdbs/show', { page: 'gdb-solutions', mode: 'show', solution, courses });
         } catch (err) {
