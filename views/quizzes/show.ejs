@@ -7,15 +7,33 @@
         <%= quiz.courseCode %> &mdash; <%= quiz.courseName %>
       </p>
     </div>
-    <div class="d-flex gap-2">
-      <a href="/quizzes/<%= quiz.quizId %>/edit" class="btn btn-outline-primary btn-sm">
-        <i class="bi bi-pencil"></i> Edit
-      </a>
-      <form action="/quizzes/<%= quiz.quizId %>/delete" method="POST" class="d-inline" onsubmit="return confirm('Delete this quiz and all its questions?')">
-        <button type="submit" class="btn btn-sm btn-outline-danger">
-          <i class="bi bi-trash"></i> Delete
+    <div>
+      <!-- Desktop buttons -->
+      <div class="d-none d-md-flex gap-2">
+        <a href="/quizzes/<%= quiz.quizId %>/edit" class="btn btn-outline-primary btn-sm">
+          <i class="bi bi-pencil"></i> Edit
+        </a>
+        <form action="/quizzes/<%= quiz.quizId %>/delete" method="POST" class="d-inline" onsubmit="return confirm('Delete this quiz and all its questions?')">
+          <button type="submit" class="btn btn-sm btn-outline-danger">
+            <i class="bi bi-trash"></i> Delete
+          </button>
+        </form>
+      </div>
+      <!-- Mobile dropdown -->
+      <div class="dropdown d-block d-md-none">
+        <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+          Actions
         </button>
-      </form>
+        <ul class="dropdown-menu">
+          <li><a class="dropdown-item" href="/quizzes/<%= quiz.quizId %>/edit"><i class="bi bi-pencil me-2"></i>Edit</a></li>
+          <li><hr class="dropdown-divider"></li>
+          <li>
+            <form action="/quizzes/<%= quiz.quizId %>/delete" method="POST" onsubmit="return confirm('Delete this quiz and all its questions?')">
+              <button class="dropdown-item text-danger" type="submit"><i class="bi bi-trash me-2"></i>Delete</button>
+            </form>
+          </li>
+        </ul>
+      </div>
     </div>
   </div>
   <%- include('../partials/_breadcrumb') %>
@@ -50,17 +68,17 @@
             <% questions.forEach(function(q, i) { %>
             <div class="list-group-item">
               <div class="d-flex justify-content-between align-items-start">
-                <div class="flex-grow-1 me-3">
+                <div class="flex-grow-1 me-3" style="min-width: 0;">
                   <div class="d-flex align-items-start">
-                    <span class="badge bg-primary me-2 mt-1"><%= i + 1 %></span>
-                    <div class="flex-grow-1">
-                      <p class="mb-1 fw-medium"><%= q.questionText %></p>
+                    <span class="badge bg-primary me-2 mt-1 flex-shrink-0"><%= i + 1 %></span>
+                    <div class="flex-grow-1" style="min-width: 0;">
+                      <p class="mb-1 fw-medium text-break"><%= q.questionText %></p>
                       <% if (q.explanation) { %>
-                      <small class="text-muted d-block mb-2">Explanation: <%= q.explanation %></small>
+                      <small class="text-muted d-block mb-2 text-break">Explanation: <%= q.explanation %></small>
                       <% } %>
                       <div class="d-flex flex-wrap gap-1">
                         <% (q.options || []).forEach(function(opt) { %>
-                        <span class="badge bg-<%= opt.isCorrect ? 'success' : 'light text-dark' %> border">
+                        <span class="badge bg-<%= opt.isCorrect ? 'success' : 'light text-dark' %> border text-break" style="white-space: normal;">
                           <%= opt.letter %>. <%= opt.optionText %>
                         </span>
                         <% }); %>
@@ -68,7 +86,7 @@
                     </div>
                   </div>
                 </div>
-                <div class="d-flex gap-1 flex-shrink-0">
+                <div class="d-none d-md-flex gap-1 flex-shrink-0">
                   <a href="/questions/<%= q.questionId %>/edit" class="btn btn-sm btn-outline-primary">
                     <i class="bi bi-pencil"></i>
                   </a>
@@ -77,6 +95,20 @@
                       <i class="bi bi-trash"></i>
                     </button>
                   </form>
+                </div>
+                <div class="dropdown d-block d-md-none">
+                  <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
+                    <i class="bi bi-three-dots-vertical"></i>
+                  </button>
+                  <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="/questions/<%= q.questionId %>/edit"><i class="bi bi-pencil me-2"></i>Edit</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                      <form action="/questions/<%= q.questionId %>/delete" method="POST" onsubmit="return confirm('Delete this question?')">
+                        <button class="dropdown-item text-danger" type="submit"><i class="bi bi-trash me-2"></i>Delete</button>
+                      </form>
+                    </li>
+                  </ul>
                 </div>
               </div>
             </div>
