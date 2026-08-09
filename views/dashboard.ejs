@@ -132,24 +132,24 @@
 
       <table class="table table-hover align-middle mb-0">
         <thead>
-          <tr>
-            <th class="sticky-table-header">Course</th>
-            <th width="13.3%" class="text-center sticky-table-header">
+          <tr class="sticky-table-header">
+            <th class="text-start">Course</th>
+            <th width="13.3%" class="text-center">
               Questions
             </th>
-            <th width="13.3%" class="text-center sticky-table-header">
+            <th width="13.3%" class="text-center">
               Quizzes
             </th>
-            <th width="13.3%" class="text-center sticky-table-header">
+            <th width="13.3%" class="text-center">
               Past Papers
             </th>
-            <th width="13.3%" class="text-center sticky-table-header">
+            <th width="13.3%" class="text-center">
               Assignments
             </th>
-            <th width="13.3%" class="text-center sticky-table-header">
+            <th width="13.3%" class="text-center">
               GDBs
             </th>
-            <th width="13.3%" class="sticky-table-header">
+            <th width="13.3%" class="mkdir">
               Last Updated
             </th>
           </tr>
@@ -160,9 +160,7 @@
           <tr>
             <td>
               <a href="/courses/<%= c.courseId %>" class="text-decoration-none fw-medium" title="View <%= c.courseCode %> course">
-                <span class="fw-semibold">
-                  <%= c.courseCode %>
-                </span>
+                <span class="fw-semibold"><%= c.courseCode %></span>
               </a>
               <a href="/courses/<%= c.courseId %>" class="text-decoration-none fw-medium" title="View <%= c.courseCode %> course">
                 <small class="d-block text-muted">
@@ -210,12 +208,3 @@
     </div>
   </div>
 </div>
-
-<style>
-  .sticky-table-header {
-    position: sticky;
-    top: 86px;
-    z-index: 10;
-    background-color: #f8f9fa;
-  }
-</style>

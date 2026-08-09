@@ -1,85 +1,83 @@
 <!-- gdbs/index.ejs -->
 <div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0">GDB Solutions</h1>
-        <div class="d-flex align-items-center gap-2">
-            <span class="badge bg-primary"><%= total || 0 %> solutions</span>
-            <a href="/gdb-solutions/new" class="btn btn-primary btn-sm">
-                <i class="bi bi-plus-lg"></i> Add GDB Solution
-            </a>
-        </div>
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">GDB Solutions</h1>
+    <div class="d-flex align-items-center gap-2">
+      <span class="badge bg-primary"><%= total || 0 %> solutions</span>
+      <a href="/gdb-solutions/new" class="btn btn-primary btn-sm">
+        <i class="bi bi-plus-lg"></i> Add GDB Solution
+      </a>
     </div>
-    <%- include('../partials/_breadcrumb') %>
+  </div>
+  <%- include('../partials/_breadcrumb') %>
 
-    <% if (typeof solutions !== 'undefined' && solutions.length > 0) { %>
-    <div class="table-responsive">
-        <table class="table table-hover align-middle">
-            <thead class="table-light">
-                <tr>
-                    <th>Course</th>
-                    <th>GDB Topic</th>
-                    <th>Solution Preview</th>
-                    <th>Created</th>
-                    <th class="text-end">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <% solutions.forEach(function(s) { %>
-                <tr>
-                    <td>
-                        <a href="/courses/<%= s.courseId %>" class="text-decoration-none fw-medium" title="View <%= s.courseCode %> course">
-                            <span class="fw-semibold"><%= s.courseCode %></span>
-                        </a>
-                        <a href="/courses/<%= s.courseId %>" class="text-decoration-none fw-medium" title="View <%= s.courseCode %> course">
-                            <small class="d-block text-muted"><%= s.courseName %></small>
-                        </a>
-                    </td>
-                    <td class="fw-medium">
-                        <a href="/gdb-solutions/<%= s.id %>" class="text-decoration-none fw-medium" title="View <%= s.gdbTitle %>">
-                            <%= s.gdbTitle %>
-                        </a>
-                    </td>
-                    <td class="text-muted small text-truncate" style="max-width: 300px;"><%= s.solution %></td>
-                    <td class="text-muted small"><%= s.createdAt ? new Date(s.createdAt).toLocaleDateString() : '-' %></td>
-                    <td class="text-end">
-                        <a href="/gdb-solutions/<%= s.id %>/edit" class="btn btn-sm btn-outline-primary">
-                            <i class="bi bi-list-check"></i>
-                        </a>
-                        <form action="/gdb-solutions/<%= s.id %>/delete" method="POST" class="d-inline" onsubmit="return confirm('Delete this GDB solution?')">
-                            <button type="submit" class="btn btn-sm btn-outline-danger">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </form>
-                    </td>
-                </tr>
-                <% }); %>
-            </tbody>
-        </table>
-    </div>
+  <% if (typeof solutions !== 'undefined' && solutions.length > 0) { %>
+  <table class="table table-hover align-middle">
+    <thead>
+      <tr class="sticky-table-header">
+        <th>Course</th>
+        <th>GDB Topic</th>
+        <th>Solution Preview</th>
+        <th>Created</th>
+        <th class="text-end">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% solutions.forEach(function(s) { %>
+      <tr>
+        <td>
+          <a href="/courses/<%= s.courseId %>" class="text-decoration-none fw-medium" title="View <%= s.courseCode %> course">
+            <span class="fw-semibold"><%= s.courseCode %></span>
+          </a>
+          <a href="/courses/<%= s.courseId %>" class="text-decoration-none fw-medium" title="View <%= s.courseCode %> course">
+            <small class="d-block text-muted"><%= s.courseName %></small>
+          </a>
+        </td>
+        <td class="fw-medium">
+          <a href="/gdb-solutions/<%= s.id %>" class="text-decoration-none fw-medium" title="View <%= s.gdbTitle %>">
+            <%= s.gdbTitle %>
+          </a>
+        </td>
+        <td class="text-muted small text-truncate" style="max-width: 300px;"><%= s.solution %></td>
+        <td class="text-muted small"><%= s.createdAt ? new Date(s.createdAt).toLocaleDateString() : '-' %></td>
+        <td class="text-end">
+          <a href="/gdb-solutions/<%= s.id %>/edit" class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-list-check"></i>
+          </a>
+          <form action="/gdb-solutions/<%= s.id %>/delete" method="POST" class="d-inline" onsubmit="return confirm('Delete this GDB solution?')">
+            <button type="submit" class="btn btn-sm btn-outline-danger">
+              <i class="bi bi-trash"></i>
+            </button>
+          </form>
+        </td>
+      </tr>
+      <% }); %>
+    </tbody>
+  </table>
 
-    <!-- Pagination -->
-    <% if (typeof pagination !== 'undefined' && pagination.pages > 1) { %>
-    <nav>
-        <ul class="pagination justify-content-center">
-            <li class="page-item <%= pagination.page <= 1 ? 'disabled' : '' %>">
-                <a class="page-link" href="?page=<%= pagination.page - 1 %>">Previous</a>
-            </li>
-            <li class="page-item disabled">
-                <span class="page-link">Page <%= pagination.page %> of <%= pagination.pages %></span>
-            </li>
-            <li class="page-item <%= pagination.page >= pagination.pages ? 'disabled' : '' %>">
-                <a class="page-link" href="?page=<%= pagination.page + 1 %>">Next</a>
-            </li>
-        </ul>
-    </nav>
-    <% } %>
-    <% } else { %>
-    <div class="text-center py-5">
-        <i class="bi bi-chat-dots display-1 text-muted mb-3"></i>
-        <h5 class="text-muted">No GDB solutions found</h5>
-        <a href="/gdb-solutions/new" class="btn btn-primary mt-2">
-            <i class="bi bi-plus-lg"></i> Add your first GDB solution
-        </a>
-    </div>
-    <% } %>
+  <!-- Pagination -->
+  <% if (typeof pagination !== 'undefined' && pagination.pages > 1) { %>
+  <nav>
+    <ul class="pagination justify-content-center">
+      <li class="page-item <%= pagination.page <= 1 ? 'disabled' : '' %>">
+        <a class="page-link" href="?page=<%= pagination.page - 1 %>">Previous</a>
+      </li>
+      <li class="page-item disabled">
+        <span class="page-link">Page <%= pagination.page %> of <%= pagination.pages %></span>
+      </li>
+      <li class="page-item <%= pagination.page >= pagination.pages ? 'disabled' : '' %>">
+        <a class="page-link" href="?page=<%= pagination.page + 1 %>">Next</a>
+      </li>
+    </ul>
+  </nav>
+  <% } %>
+  <% } else { %>
+  <div class="text-center py-5">
+    <i class="bi bi-chat-dots display-1 text-muted mb-3"></i>
+    <h5 class="text-muted">No GDB solutions found</h5>
+    <a href="/gdb-solutions/new" class="btn btn-primary mt-2">
+      <i class="bi bi-plus-lg"></i> Add your first GDB solution
+    </a>
+  </div>
+  <% } %>
 </div>
