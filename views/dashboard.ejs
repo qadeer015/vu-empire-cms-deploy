@@ -159,12 +159,16 @@
           <% courseStats.forEach(function(c) { %>
           <tr>
             <td>
-              <span class="fw-semibold">
-                <%= c.courseCode %>
-              </span>
-              <small class="d-block text-muted">
-                <%= c.courseName %>
-              </small>
+              <a href="/courses/<%= c.courseId %>" class="text-decoration-none fw-medium" title="View <%= c.courseCode %> course">
+                <span class="fw-semibold">
+                  <%= c.courseCode %>
+                </span>
+              </a>
+              <a href="/courses/<%= c.courseId %>" class="text-decoration-none fw-medium" title="View <%= c.courseCode %> course">
+                <small class="d-block text-muted">
+                  <%= c.courseName %>
+                </small>
+              </a>
             </td>
 
             <td class="text-center fw-bold">
@@ -209,9 +213,9 @@
 
 <style>
   .sticky-table-header {
-  position: sticky;
-  top: 86px;
-  z-index: 10;
-  background-color: #f8f9fa;
+    position: sticky;
+    top: 86px;
+    z-index: 10;
+    background-color: #f8f9fa;
   }
 </style>

@@ -166,6 +166,7 @@ class Course {
             const [rows] = await db.query(`
                 SELECT
                     c.courseCode, c.courseName,
+                    c.courseId,
                     COUNT(q.questionId)                                AS question_count,
                     COUNT(DISTINCT qz.quizId)                          AS quiz_count,
                     COUNT(DISTINCT pp.id)                              AS past_paper_count,
