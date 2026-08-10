@@ -15,30 +15,31 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Configure Git credentials
-        env:
-          DEPLOY_REPO_TOKEN: ${{ secrets.DEPLOY_REPO_TOKEN }}
+      - name: Configure Git
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git config --global credential.helper store
-
-          printf "https://qadeer015:%s@github.com\n" "$DEPLOY_REPO_TOKEN" \
-            > ~/.git-credentials
-
       - name: Test destination repository
+        env:
+          DEPLOY_REPO_TOKEN: ${{ secrets.DEPLOY_REPO_TOKEN }}
         run: |
-          git ls-remote https://github.com/qadeer015/vu-empire-cms-deploy.git
+          AUTH=$(printf 'qadeer015:%s' "$DEPLOY_REPO_TOKEN" | base64 -w 0)
+
+          git \
+            -c "http.extraHeader=Authorization: Basic $AUTH" \
+            ls-remote \
+            https://github.com/qadeer015/vu-empire-cms-deploy.git
 
       - name: Push mirror
+        env:
+          DEPLOY_REPO_TOKEN: ${{ secrets.DEPLOY_REPO_TOKEN }}
         run: |
+          AUTH=$(printf 'qadeer015:%s' "$DEPLOY_REPO_TOKEN" | base64 -w 0)
+
           git remote add deployment \
             https://github.com/qadeer015/vu-empire-cms-deploy.git
 
-          git push deployment main --force
-
-      - name: Cleanup credentials
-        if: always()
-        run: |
-          rm -f ~/.git-credentials
+          git \
+            -c "http.extraHeader=Authorization: Basic $AUTH" \
+            push deployment main
