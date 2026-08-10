@@ -15,6 +15,39 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Check deployment token
+        env:
+          DEPLOY_REPO_TOKEN: ${{ secrets.DEPLOY_REPO_TOKEN }}
+        run: |
+          if [ -z "$DEPLOY_REPO_TOKEN" ]; then
+            echo "❌ DEPLOY_REPO_TOKEN is empty or not available"
+            exit 1
+          fi
+
+          echo "✓ DEPLOY_REPO_TOKEN exists"
+
+      - name: Verify GitHub authentication
+        env:
+          DEPLOY_REPO_TOKEN: ${{ secrets.DEPLOY_REPO_TOKEN }}
+        run: |
+          echo "Checking token authentication..."
+
+          curl -fsS \
+            -H "Authorization: Bearer $DEPLOY_REPO_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/user
+
+      - name: Check destination repository access
+        env:
+          DEPLOY_REPO_TOKEN: ${{ secrets.DEPLOY_REPO_TOKEN }}
+        run: |
+          echo "Checking access to destination repository..."
+
+          curl -fsS \
+            -H "Authorization: Bearer $DEPLOY_REPO_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/qadeer015/vu-empire-cms-deploy
+
       - name: Push mirror
         env:
           DEPLOY_REPO_TOKEN: ${{ secrets.DEPLOY_REPO_TOKEN }}
