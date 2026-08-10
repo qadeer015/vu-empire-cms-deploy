@@ -21,46 +21,15 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-      - name: Configure deployment authentication
-        env:
-          DEPLOY_REPO_TOKEN: ${{ secrets.DEPLOY_REPO_TOKEN }}
-        run: |
-          cat > "$RUNNER_TEMP/git-askpass.sh" <<'EOF'
-          #!/bin/sh
-
-          case "$1" in
-            *Username*)
-              echo "qadeer015"
-              ;;
-            *Password*)
-              echo "$DEPLOY_REPO_TOKEN"
-              ;;
-          esac
-          EOF
-
-          chmod +x "$RUNNER_TEMP/git-askpass.sh"
-
-      - name: Test destination repository
-        env:
-          DEPLOY_REPO_TOKEN: ${{ secrets.DEPLOY_REPO_TOKEN }}
-          GIT_ASKPASS: ${{ runner.temp }}/git-askpass.sh
-          GIT_TERMINAL_PROMPT: "0"
-        run: |
-          git ls-remote \
-            https://github.com/qadeer015/vu-empire-cms-deploy.git
-
       - name: Push mirror
         env:
           DEPLOY_REPO_TOKEN: ${{ secrets.DEPLOY_REPO_TOKEN }}
-          GIT_ASKPASS: ${{ runner.temp }}/git-askpass.sh
-          GIT_TERMINAL_PROMPT: "0"
         run: |
+          AUTH=$(printf 'qadeer015:%s' "$DEPLOY_REPO_TOKEN" | base64 -w 0)
+
           git remote add deployment \
             https://github.com/qadeer015/vu-empire-cms-deploy.git
 
-          git push deployment main
-
-      - name: Cleanup
-        if: always()
-        run: |
-          rm -f "$RUNNER_TEMP/git-askpass.sh"
+          git \
+            -c "http.extraHeader=Authorization: Basic $AUTH" \
+            push deployment main
