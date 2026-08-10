@@ -1,0 +1,28 @@
+name: Mirror to Deployment Repository
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Push mirror
+        env:
+          DEPLOY_REPO_TOKEN: ${{ secrets.DEPLOY_REPO_TOKEN }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git remote add deployment \
+            "https://x-access-token:${DEPLOY_REPO_TOKEN}@github.com/qadeer015/vu-empire-cms-deploy.git"
+
+          git push deployment main --force
