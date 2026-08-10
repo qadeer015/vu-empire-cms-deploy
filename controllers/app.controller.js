@@ -408,134 +408,255 @@ class AppController {
         }
     }
 
-    static async adminQuestionBulkCreate(req, res) {
+    static async adminQuestionBulkPreview(req, res) {
         try {
             const { quizId } = req.params;
             const quiz = await Quiz.findById(quizId);
-            if (!quiz) return res.redirect('/quizzes');
-
-            // Only allow bulk creation for quizzes with title "Main"
-            if (quiz.title !== 'Main') {
-                return res.status(403).render('error', {
-                    title: 'Forbidden',
-                    message: 'Bulk question upload is only allowed for quizzes with title "Main".',
-                    error: null,
-                    redirect_url: '/quizzes/' + quizId + '/edit',
-                    header: false,
-                    footer: false
-                });
+            if (!quiz) {
+                return res.status(404).json({ success: false, message: 'Quiz not found' });
             }
 
             if (!req.file) {
-                return res.status(400).render('error', {
-                    title: 'Error',
-                    message: 'No JSON file uploaded.',
-                    error: null,
-                    redirect_url: '/quizzes/' + quizId + '/edit',
-                    header: false,
-                    footer: false
-                });
+                return res.status(400).json({ success: false, message: 'No JSON file uploaded.' });
             }
 
             let payload;
             try {
                 payload = JSON.parse(req.file.buffer.toString('utf-8'));
             } catch (parseErr) {
-                return res.status(400).render('error', {
-                    title: 'Error',
-                    message: 'Invalid JSON file: ' + parseErr.message,
-                    error: null,
-                    redirect_url: '/quizzes/' + quizId + '/edit',
-                    header: false,
-                    footer: false
-                });
+                return res.status(400).json({ success: false, message: 'Invalid JSON file: ' + parseErr.message });
             }
 
             if (!payload.questions || !Array.isArray(payload.questions)) {
-                return res.status(400).render('error', {
-                    title: 'Error',
-                    message: 'JSON must contain a "questions" array.',
-                    error: null,
-                    redirect_url: '/quizzes/' + quizId + '/edit',
-                    header: false,
-                    footer: false
+                return res.status(400).json({ success: false, message: 'JSON must contain a "questions" array.' });
+            }
+
+            const courseId = quiz.courseId;
+            const existingQuestions = await Question.findByCourse(courseId);
+            const existingTexts = new Set(
+                existingQuestions.map(q => q.questionText.trim().toLowerCase().substring(0, 100))
+            );
+
+            const normalizedInputTexts = new Set();
+            const preview = payload.questions.map((q, i) => {
+                const originalIndex = i + 1;
+                if (!q.questionText || !q.options || !Array.isArray(q.options) || q.options.length < 2) {
+                    return {
+                        originalIndex,
+                        questionText: q.questionText || '(empty)',
+                        status: 'invalid',
+                        reason: 'Missing text or options',
+                        options: q.options || [],
+                        explanation: q.explanation || ''
+                    };
+                }
+
+                const normalizedText = q.questionText.trim().toLowerCase().substring(0, 100);
+
+                if (normalizedInputTexts.has(normalizedText)) {
+                    return {
+                        originalIndex,
+                        questionText: q.questionText,
+                        status: 'duplicate_in_file',
+                        reason: 'Duplicate within uploaded file',
+                        options: q.options || [],
+                        explanation: q.explanation || ''
+                    };
+                }
+
+                if (existingTexts.has(normalizedText)) {
+                    return {
+                        originalIndex,
+                        questionText: q.questionText,
+                        status: 'duplicate_in_db',
+                        reason: 'Already exists in database',
+                        options: q.options || [],
+                        explanation: q.explanation || ''
+                    };
+                }
+
+                normalizedInputTexts.add(normalizedText);
+                return {
+                    originalIndex,
+                    questionText: q.questionText,
+                    status: 'ready',
+                    reason: 'Ready to create',
+                    options: q.options || [],
+                    explanation: q.explanation || ''
+                };
+            });
+
+            const summary = {
+                total: preview.length,
+                valid: preview.filter(p => p.status === 'ready').length,
+                invalid: preview.filter(p => p.status === 'invalid').length,
+                duplicateInFile: preview.filter(p => p.status === 'duplicate_in_file').length,
+                duplicateInDb: preview.filter(p => p.status === 'duplicate_in_db').length
+            };
+
+            return res.status(200).json({ success: true, summary, preview });
+        } catch (err) {
+            return res.status(500).json({ success: false, message: 'Server error: ' + err.message });
+        }
+    }
+
+    static async adminQuestionBulkCreate(req, res) {
+        try {
+            const { quizId } = req.params;
+            const quiz = await Quiz.findById(quizId);
+            if (!quiz) {
+                return res.status(404).json({ success: false, message: 'Quiz not found' });
+            }
+
+            // Only allow bulk creation for quizzes with title "Main"
+            if (quiz.title !== 'Main') {
+                return res.status(403).json({
+                    success: false,
+                    message: 'Bulk question upload is only allowed for quizzes with title "Main".'
                 });
+            }
+
+            if (!req.file) {
+                return res.status(400).json({ success: false, message: 'No JSON file uploaded.' });
+            }
+
+            let payload;
+            try {
+                payload = JSON.parse(req.file.buffer.toString('utf-8'));
+            } catch (parseErr) {
+                return res.status(400).json({ success: false, message: 'Invalid JSON file: ' + parseErr.message });
+            }
+
+            if (!payload.questions || !Array.isArray(payload.questions)) {
+                return res.status(400).json({ success: false, message: 'JSON must contain a "questions" array.' });
             }
 
             const letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
             const courseId = quiz.courseId;
 
-            // Build set of existing question texts for this course to avoid duplicates
+            // Build set of existing question texts for this course to avoid duplicates.
+            // IMPORTANT: The DB unique index is on (courseId, questionText(100)),
+            // so we must normalize to the same 100-char prefix to avoid false negatives
+            // that would otherwise blow up with ER_DUP_ENTRY at INSERT time.
             const existingQuestions = await Question.findByCourse(courseId);
             const existingTexts = new Set(
-                existingQuestions.map(q => q.questionText.trim().toLowerCase())
+                existingQuestions.map(q => q.questionText.trim().toLowerCase().substring(0, 100))
             );
 
             const normalizedInputTexts = new Set();
             let createdCount = 0;
             let skippedDuplicates = 0;
+            let errorCount = 0;
 
-            for (const q of payload.questions) {
+            const createdQuestions = [];
+            const skippedQuestions = [];
+
+            for (let i = 0; i < payload.questions.length; i++) {
+                const q = payload.questions[i];
+
                 if (!q.questionText || !q.options || !Array.isArray(q.options) || q.options.length < 2) {
+                    skippedQuestions.push({
+                        originalIndex: i + 1,
+                        questionText: q.questionText || '(empty)',
+                        reason: 'Invalid question: missing text or options',
+                        options: q.options || [],
+                        explanation: q.explanation || ''
+                    });
+                    skippedDuplicates++;
                     continue;
                 }
 
-                const normalizedText = q.questionText.trim().toLowerCase();
+                const normalizedText = q.questionText.trim().toLowerCase().substring(0, 100);
 
                 // Skip if duplicate within the uploaded file
                 if (normalizedInputTexts.has(normalizedText)) {
+                    skippedQuestions.push({
+                        originalIndex: i + 1,
+                        questionText: q.questionText,
+                        reason: 'Duplicate within uploaded file',
+                        options: q.options || [],
+                        explanation: q.explanation || ''
+                    });
                     skippedDuplicates++;
                     continue;
                 }
 
                 // Skip if already exists in database
                 if (existingTexts.has(normalizedText)) {
+                    skippedQuestions.push({
+                        originalIndex: i + 1,
+                        questionText: q.questionText,
+                        reason: 'Duplicate question already exists',
+                        options: q.options || [],
+                        explanation: q.explanation || ''
+                    });
                     skippedDuplicates++;
                     continue;
                 }
 
                 normalizedInputTexts.add(normalizedText);
 
-                const question = await Question.create({
-                    courseId,
-                    quizId,
-                    questionText: q.questionText.trim(),
-                    explanation: q.explanation ? q.explanation.trim() : '',
-                    timestamp: new Date()
-                }, true);
+                try {
+                    const question = await Question.create({
+                        courseId,
+                        quizId,
+                        questionText: q.questionText.trim(),
+                        explanation: q.explanation ? q.explanation.trim() : '',
+                        timestamp: new Date()
+                    }, true);
 
-                const optionData = q.options.map((optText, idx) => ({
-                    questionId: question.questionId,
-                    letter: letters[idx] || String.fromCharCode(65 + idx),
-                    optionText: optText.trim(),
-                    optionIndex: idx + 1,
-                    isCorrect: idx === 0 ? 1 : 0
-                }));
+                    const optionData = q.options.map((optText, idx) => ({
+                        questionId: question.questionId,
+                        letter: letters[idx] || String.fromCharCode(65 + idx),
+                        optionText: optText.trim(),
+                        optionIndex: idx + 1,
+                        isCorrect: idx === 0 ? 1 : 0
+                    }));
 
-                if (optionData.length > 0) {
-                    await Option.createMultiple(optionData);
+                    if (optionData.length > 0) {
+                        await Option.createMultiple(optionData);
+                    }
+
+                    createdCount++;
+                    createdQuestions.push({
+                        questionId: question.questionId,
+                        questionText: q.questionText.trim(),
+                        optionsCount: q.options.length
+                    });
+                } catch (err) {
+                    errorCount++;
+                    let reason = 'Error: ' + err.message;
+                    if (err.code === 'ER_DUP_ENTRY') {
+                        reason = 'Duplicate question (database constraint violation)';
+                    }
+                    skippedQuestions.push({
+                        originalIndex: i + 1,
+                        questionText: q.questionText,
+                        reason: reason,
+                        options: q.options || [],
+                        explanation: q.explanation || ''
+                    });
                 }
-                createdCount++;
             }
 
             // Invalidate caches once after all inserts
             await Question._invalidateQuestionCaches(null, courseId, quizId);
 
-            const message = skippedDuplicates > 0
-                ? `Successfully created ${createdCount} questions. Skipped ${skippedDuplicates} duplicate(s).`
-                : `Successfully created ${createdCount} questions.`;
-
-            req.flash = req.flash || ((type, msg) => { req._flash = { type, msg }; });
-            req.flash('success', message);
-            res.redirect('/quizzes/' + quizId + '/edit');
+            res.status(200).json({
+                success: true,
+                summary: {
+                    total: payload.questions.length,
+                    created: createdCount,
+                    skipped: skippedDuplicates,
+                    errors: errorCount
+                },
+                createdQuestions,
+                skippedQuestions
+            });
         } catch (err) {
-            res.status(400).render('error', {
-                title: 'Error',
-                message: err.message,
-                error: null,
-                redirect_url: '/quizzes/' + req.params.quizId + '/edit',
-                header: false,
-                footer: false
+            res.status(500).json({
+                success: false,
+                message: 'Server error: ' + err.message
             });
         }
     }
@@ -609,6 +730,79 @@ class AppController {
             res.status(400).render('error', { title: 'Error', message: err.message, error: null, redirect_url: '/quizzes', header: false, footer: false });
         }
     }
+
+    static async adminQuestionCreateApi(req, res) {
+        try {
+            const { quizId } = req.params;
+            const { courseId, questionText, explanation, options } = req.body;
+
+            const quiz = await Quiz.findById(quizId);
+            if (!quiz) {
+                return res.status(404).json({ success: false, message: 'Quiz not found' });
+            }
+
+            const targetCourseId = courseId || quiz.courseId;
+            const trimmedText = questionText.trim();
+
+            // Check for duplicates
+            const existing = await Question.findByCourseAndText(targetCourseId, trimmedText);
+            if (existing) {
+                return res.status(409).json({
+                    success: false,
+                    message: 'Duplicate question already exists',
+                    data: { existingQuestionId: existing.questionId }
+                });
+            }
+
+            let question;
+            try {
+                question = await Question.create({
+                    courseId: targetCourseId,
+                    quizId,
+                    questionText: trimmedText,
+                    explanation: explanation ? explanation.trim() : '',
+                    timestamp: new Date()
+                });
+            } catch (err) {
+                if (err.code === 'ER_DUP_ENTRY') {
+                    return res.status(409).json({
+                        success: false,
+                        message: 'Duplicate question already exists'
+                    });
+                }
+                throw err;
+            }
+
+            if (options && Array.isArray(options)) {
+                const letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+                const optionData = options
+                    .filter(o => o && o.text && o.text.trim())
+                    .map((o, idx) => {
+                        const isCorrect = o.isCorrect === 'on' || o.isCorrect === 'true' || o.isCorrect === true || o.isCorrect === '1';
+                        return {
+                            questionId: question.questionId,
+                            letter: o.letter || letters[idx] || String.fromCharCode(65 + idx),
+                            optionText: o.text.trim(),
+                            optionIndex: idx + 1,
+                            isCorrect: isCorrect ? 1 : 0
+                        };
+                    });
+                if (optionData.length > 0) {
+                    await Option.createMultiple(optionData);
+                }
+            }
+
+            const questionWithOptions = await Question.getQuestionWithOptions(question.questionId);
+
+            res.status(201).json({
+                success: true,
+                data: questionWithOptions
+            });
+        } catch (err) {
+            res.status(500).json({ success: false, message: err.message });
+        }
+    }
+
 
     // ================= ASSIGNMENTS =================
     static async adminAssignments(req, res) {

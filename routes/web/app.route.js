@@ -52,6 +52,8 @@ router.post('/quizzes/:id/delete', authenticate, authorize('admin'), AppControll
 router.get('/quizzes/:quizId/questions/new', authenticate, authorize('admin'), AppController.adminQuestionNew);
 router.post('/quizzes/:quizId/questions', authenticate, authorize('admin'), AppController.adminQuestionCreate);
 router.post('/quizzes/:quizId/questions/bulk', authenticate, authorize('admin'), jsonUpload.single('questionsFile'), AppController.adminQuestionBulkCreate);
+router.post('/quizzes/:quizId/questions/api', authenticate, authorize('admin'), AppController.adminQuestionCreateApi);
+router.post('/quizzes/:quizId/questions/preview', authenticate, authorize('admin'), jsonUpload.single('questionsFile'), AppController.adminQuestionBulkPreview);
 router.get('/questions/:questionId/edit', authenticate, authorize('admin'), AppController.adminQuestionEdit);
 router.post('/questions/:questionId', authenticate, authorize('admin'), AppController.adminQuestionUpdate);
 router.post('/questions/:questionId/delete', authenticate, authorize('admin'), AppController.adminQuestionDelete);
