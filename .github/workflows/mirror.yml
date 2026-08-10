@@ -15,47 +15,30 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Check deployment token
-        env:
-          DEPLOY_REPO_TOKEN: ${{ secrets.DEPLOY_REPO_TOKEN }}
-        run: |
-          if [ -z "$DEPLOY_REPO_TOKEN" ]; then
-            echo "❌ DEPLOY_REPO_TOKEN is empty or not available"
-            exit 1
-          fi
-
-          echo "✓ DEPLOY_REPO_TOKEN exists"
-
-      - name: Verify GitHub authentication
-        env:
-          DEPLOY_REPO_TOKEN: ${{ secrets.DEPLOY_REPO_TOKEN }}
-        run: |
-          echo "Checking token authentication..."
-
-          curl -fsS \
-            -H "Authorization: Bearer $DEPLOY_REPO_TOKEN" \
-            -H "Accept: application/vnd.github+json" \
-            https://api.github.com/user
-
-      - name: Check destination repository access
-        env:
-          DEPLOY_REPO_TOKEN: ${{ secrets.DEPLOY_REPO_TOKEN }}
-        run: |
-          echo "Checking access to destination repository..."
-
-          curl -fsS \
-            -H "Authorization: Bearer $DEPLOY_REPO_TOKEN" \
-            -H "Accept: application/vnd.github+json" \
-            https://api.github.com/repos/qadeer015/vu-empire-cms-deploy
-
-      - name: Push mirror
+      - name: Configure Git credentials
         env:
           DEPLOY_REPO_TOKEN: ${{ secrets.DEPLOY_REPO_TOKEN }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
+          git config --global credential.helper store
+
+          printf "https://qadeer015:%s@github.com\n" "$DEPLOY_REPO_TOKEN" \
+            > ~/.git-credentials
+
+      - name: Test destination repository
+        run: |
+          git ls-remote https://github.com/qadeer015/vu-empire-cms-deploy.git
+
+      - name: Push mirror
+        run: |
           git remote add deployment \
-            "https://x-access-token:${DEPLOY_REPO_TOKEN}@github.com/qadeer015/vu-empire-cms-deploy.git"
+            https://github.com/qadeer015/vu-empire-cms-deploy.git
 
           git push deployment main --force
+
+      - name: Cleanup credentials
+        if: always()
+        run: |
+          rm -f ~/.git-credentials
