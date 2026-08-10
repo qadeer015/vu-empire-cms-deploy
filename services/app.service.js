@@ -6,13 +6,13 @@ const cache = require('./cacheService');
 const TTL = require('../config/cacheTTL');
 
 class AppService {
-    static async dashboard() {
-        const cacheKey = 'dashboard:data:admin';
+    static async dashboard(search = '') {
+        const cacheKey = `dashboard:data:admin:${search}`;
 
         return cache.remember(cacheKey, TTL.DASHBOARD, async () => {
             const overallStats = await App.overallStats();
             const dailyStats = await Question.dailyStats();
-            const courseStats = await Course.courseStats();
+            const courseStats = await Course.courseStats(search);
             const adminStats = await App.adminDashboardStats();
 
             return {

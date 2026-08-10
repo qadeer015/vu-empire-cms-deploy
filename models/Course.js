@@ -28,10 +28,75 @@ class Course {
         });
     }
 
+    static async findAllWithFilters({ search, handout, limit = 25, offset = 0 } = {}) {
+        const conditions = [];
+        const params = [];
+
+        if (search && search.trim()) {
+            conditions.push('(courseCode LIKE ? OR courseName LIKE ?)');
+            params.push(`${search.trim()}%`, `%${search.trim()}%`);
+        }
+
+        if (handout === 'with') {
+            conditions.push('handoutPdf IS NOT NULL');
+        } else if (handout === 'without') {
+            conditions.push('handoutPdf IS NULL');
+        }
+
+        const whereClause = conditions.length ? 'WHERE ' + conditions.join(' AND ') : '';
+        const cacheKey = `courses:filtered:${search}:${handout}:${limit}:${offset}`;
+
+        console.log('FIND ALL WITH FILTERS:', { search, handout, whereClause, params, cacheKey });
+
+        return cache.remember(cacheKey, TTL.COURSES, async () => {
+            const [rows] = await db.query(
+                `SELECT courseId, slug, courseCode, courseName, handoutPdf,
+                        handoutOriginalFilename, downloadCount, createdAt
+                 FROM courses 
+                 ${whereClause}
+                 ORDER BY courseId ASC
+                 LIMIT ? OFFSET ?`,
+                [...params, parseInt(limit), parseInt(offset)]
+            );
+            console.log('FIND ALL RESULT:', rows.length, 'rows');
+            return rows;
+        });
+    }
+
     static async countAll() {
         const cacheKey = 'courses:count';
         return cache.remember(cacheKey, TTL.COURSES, async () => {
             const [[{ total }]] = await db.query('SELECT COUNT(*) as total FROM courses');
+            return total;
+        });
+    }
+
+    static async countAllWithFilters({ search, handout } = {}) {
+        const conditions = [];
+        const params = [];
+
+        if (search && search.trim()) {
+            conditions.push('(courseCode LIKE ? OR courseName LIKE ?)');
+            params.push(`${search.trim()}%`, `%${search.trim()}%`);
+        }
+
+        if (handout === 'with') {
+            conditions.push('handoutPdf IS NOT NULL');
+        } else if (handout === 'without') {
+            conditions.push('handoutPdf IS NULL');
+        }
+
+        const whereClause = conditions.length ? 'WHERE ' + conditions.join(' AND ') : '';
+        const cacheKey = `courses:count:${search}:${handout}`;
+
+        console.log('COUNT ALL WITH FILTERS:', { search, handout, whereClause, params, cacheKey });
+
+        return cache.remember(cacheKey, TTL.COURSES, async () => {
+            const [[{ total }]] = await db.query(
+                `SELECT COUNT(*) as total FROM courses ${whereClause}`,
+                params
+            );
+            console.log('COUNT RESULT:', total);
             return total;
         });
     }
@@ -159,8 +224,17 @@ class Course {
         });
     }
 
-    static async courseStats() {
-        const cacheKey = 'courses:allStats';
+    static async courseStats(search = '') {
+        const conditions = [];
+        const params = [];
+
+        if (search && search.trim()) {
+            conditions.push('(c.courseCode LIKE ? OR c.courseName LIKE ?)');
+            params.push(`${search.trim()}%`, `%${search.trim()}%`);
+        }
+
+        const whereClause = conditions.length ? 'WHERE ' + conditions.join(' AND ') : '';
+        const cacheKey = `courses:allStats:${search}`;
 
         return cache.remember(cacheKey, TTL.COURSES, async () => {
             const [rows] = await db.query(`
@@ -179,9 +253,10 @@ class Course {
                 LEFT JOIN past_papers pp ON c.courseId = pp.courseId
                 LEFT JOIN assignments a  ON CONVERT(c.courseCode USING utf8mb4) COLLATE utf8mb4_0900_ai_ci = CONVERT(a.courseCode USING utf8mb4) COLLATE utf8mb4_0900_ai_ci
                 LEFT JOIN gdb_solutions gs ON CONVERT(c.courseCode USING utf8mb4) COLLATE utf8mb4_0900_ai_ci = CONVERT(gs.courseCode USING utf8mb4) COLLATE utf8mb4_0900_ai_ci
+                ${whereClause}
                 GROUP BY c.courseId
                 ORDER BY question_count DESC, c.courseCode
-            `);
+            `, params);
             return rows;
         });
     }

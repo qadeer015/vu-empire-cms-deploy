@@ -100,9 +100,11 @@ class AppController {
             if (!req.user) {
                 return res.redirect('/auth/login');
             }
-            const result = await AppService.dashboard();
-            return renderAdmin(res, 'dashboard', { ...result, page: 'dashboard' });
+            const courseSearch = req.query.courseSearch || '';
+            const result = await AppService.dashboard(courseSearch);
+            return renderAdmin(res, 'dashboard', { ...result, page: 'dashboard', courseSearch });
         } catch (err) {
+            console.error('DASHBOARD ERROR:', err);
             res.status(500).render('error', { title: 'Server Error', message: err.message, error: null, redirect_url: '/', header: false, footer: false });
         }
     }
@@ -153,19 +155,28 @@ class AppController {
             const page = parseInt(req.query.page) || 1;
             const limit = 50;
             const offset = (page - 1) * limit;
+            const search = req.query.q || '';
+            const handout = req.query.handout || 'all';
+
+            console.log('COURSES FILTER:', { search, handout, page, limit, offset });
 
             const [courses, total] = await Promise.all([
-                Course.findAll({ limit, offset }),
-                Course.countAll()
+                Course.findAllWithFilters({ search, handout, limit, offset }),
+                Course.countAllWithFilters({ search, handout })
             ]);
+
+            console.log('COURSES RESULT:', { total, count: courses.length });
 
             renderAdmin(res, 'courses/index', {
                 page: 'courses',
                 courses,
                 total,
+                q: search,
+                handout,
                 pagination: { page, limit, total, pages: Math.ceil(total / limit) }
             });
         } catch (err) {
+            console.error('COURSES ERROR:', err);
             res.status(500).render('error', { title: 'Server Error', message: err.message, error: null, redirect_url: '/', header: false, footer: false });
         }
     }
