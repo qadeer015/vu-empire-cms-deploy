@@ -50,6 +50,11 @@ function buildBreadcrumbs(data = {}) {
         
         if (mode === 'new') {
             crumbs.push(parentCrumb);
+
+            if (page === 'quizzes' && data.quiz) {
+                crumbs.push({ label: data.quiz.title, href: '/quizzes/' + data.quiz.quizId });
+            }
+
             crumbs.push({ label: 'Add New', href: '' });
         } else if (mode === 'edit') {
             crumbs.push(parentCrumb);
