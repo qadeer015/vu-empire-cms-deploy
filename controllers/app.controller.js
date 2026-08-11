@@ -383,6 +383,24 @@ class AppController {
         }
     }
 
+    static async adminQuizQuestions(req, res) {
+        try {
+            const quiz = await Quiz.findById(req.params.quizId);
+            if (!quiz) return res.redirect('/quizzes');
+
+            const questions = await Question.findByQuizId(quiz.quizId);
+
+            renderAdmin(res, 'quizzes/questions/index', {
+                page: 'quizzes',
+                mode: 'show',
+                quiz,
+                questions: questions || []
+            });
+        } catch (err) {
+            res.status(500).render('error', { title: 'Server Error', message: err.message, error: null, redirect_url: '/quizzes', header: false, footer: false });
+        }
+    }
+
     static async adminQuestionCreate(req, res) {
         try {
             const { quizId } = req.params;

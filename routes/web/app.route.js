@@ -49,6 +49,7 @@ router.post('/quizzes/:id', authenticate, authorize('admin'), AppController.admi
 router.post('/quizzes/:id/delete', authenticate, authorize('admin'), AppController.adminQuizDelete);
 
 // ── Quiz Questions CRUD ────────────────────────────────────────────
+router.get('/quizzes/:quizId/questions', authenticate, authorize('admin'), AppController.adminQuizQuestions);
 router.get('/quizzes/:quizId/questions/new', authenticate, authorize('admin'), AppController.adminQuestionNew);
 router.post('/quizzes/:quizId/questions', authenticate, authorize('admin'), AppController.adminQuestionCreate);
 router.post('/quizzes/:quizId/questions/bulk', authenticate, authorize('admin'), jsonUpload.single('questionsFile'), AppController.adminQuestionBulkCreate);
