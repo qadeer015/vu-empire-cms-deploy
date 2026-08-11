@@ -53,6 +53,10 @@ function buildBreadcrumbs(data = {}) {
 
             if (page === 'quizzes' && data.quiz) {
                 crumbs.push({ label: data.quiz.title, href: '/quizzes/' + data.quiz.quizId });
+
+                if (data.subPage === 'questions') {
+                    crumbs.push({ label: 'Questions', href: '/quizzes/' + data.quiz.quizId + '/questions' });
+                }
             }
 
             crumbs.push({ label: 'Add New', href: '' });
@@ -63,6 +67,10 @@ function buildBreadcrumbs(data = {}) {
                 crumbs.push({ label: data.course.courseCode, href: '/courses/' + data.course.courseId });
             } else if (page === 'quizzes' && data.quiz) {
                 crumbs.push({ label: data.quiz.title, href: '/quizzes/' + data.quiz.quizId });
+
+                if (data.subPage === 'questions') {
+                    crumbs.push({ label: 'Questions', href: '/quizzes/' + data.quiz.quizId + '/questions' });
+                }
             } else if (page === 'assignments' && data.assignment) {
                 crumbs.push({ label: 'Assignment', href: '/assignments/' + data.assignment.id });
             } else if (page === 'gdb-solutions' && data.solution) {
@@ -84,6 +92,10 @@ function buildBreadcrumbs(data = {}) {
         } else if (mode === 'show' && data.quiz) {
             crumbs.push(parentCrumb);
             crumbs.push({ label: data.quiz.title, href: '/quizzes/' + data.quiz.quizId });
+
+            if (data.subPage === 'questions') {
+                crumbs.push({ label: 'Questions', href: '/quizzes/' + data.quiz.quizId + '/questions' });
+            }
         } else if (page === 'courses' && data.course) {
             crumbs.push(parentCrumb);
             crumbs.push({ label: data.course.courseCode, href: '/courses/' + data.course.courseId });
@@ -377,7 +389,7 @@ class AppController {
             const quiz = await Quiz.findById(req.params.quizId);
             if (!quiz) return res.redirect('/quizzes');
             const courses = await Course.findAll({ limit: 500 });
-            renderAdmin(res, 'quizzes/questions/new', { page: 'quizzes', mode: 'new', quiz, courses, question: '' });
+            renderAdmin(res, 'quizzes/questions/new', { page: 'quizzes', mode: 'new', subPage: 'questions', quiz, courses, question: '' });
         } catch (err) {
             res.status(500).render('error', { title: 'Server Error', message: err.message, error: null, redirect_url: '/quizzes', header: false, footer: false });
         }
@@ -393,6 +405,7 @@ class AppController {
             renderAdmin(res, 'quizzes/questions/index', {
                 page: 'quizzes',
                 mode: 'show',
+                subPage: 'questions',
                 quiz,
                 questions: questions || []
             });
@@ -739,7 +752,7 @@ class AppController {
 
             const quiz = await Quiz.findById(question.quizId);
 
-            renderAdmin(res, 'quizzes/questions/edit', { page: 'quizzes', mode: 'edit', question, quiz, courses });
+            renderAdmin(res, 'quizzes/questions/edit', { page: 'quizzes', mode: 'edit', subPage: 'questions', question, quiz, courses });
         } catch (err) {
             res.status(500).render('error', { title: 'Server Error', message: err.message, error: null, redirect_url: '/quizzes', header: false, footer: false });
         }
