@@ -53,6 +53,19 @@ function buildBreadcrumbs(data = {}) {
             crumbs.push({ label: 'Add New', href: '' });
         } else if (mode === 'edit') {
             crumbs.push(parentCrumb);
+
+            if (page === 'courses' && data.course) {
+                crumbs.push({ label: data.course.courseCode, href: '/courses/' + data.course.courseId });
+            } else if (page === 'quizzes' && data.quiz) {
+                crumbs.push({ label: data.quiz.title, href: '/quizzes/' + data.quiz.quizId });
+            } else if (page === 'assignments' && data.assignment) {
+                crumbs.push({ label: 'Assignment', href: '/assignments/' + data.assignment.id });
+            } else if (page === 'gdb-solutions' && data.solution) {
+                crumbs.push({ label: 'GDB Solution', href: '/gdb-solutions/' + data.solution.id });
+            } else if (page === 'past-papers' && data.paper) {
+                crumbs.push({ label: 'Past Paper', href: '/pastpapers/' + data.paper.id });
+            }
+
             crumbs.push({ label: 'Edit', href: '' });
         } else if (mode === 'show' && data.paper) {
             crumbs.push(parentCrumb);
