@@ -427,8 +427,15 @@ class AppController {
                 return res.status(400).json({ success: false, message: 'Invalid JSON file: ' + parseErr.message });
             }
 
-            if (!payload.questions || !Array.isArray(payload.questions)) {
-                return res.status(400).json({ success: false, message: 'JSON must contain a "questions" array.' });
+            // Accept either a top-level array or an object with a questions array
+            const questions = Array.isArray(payload)
+                ? payload
+                : (payload.questions && Array.isArray(payload.questions)
+                    ? payload.questions
+                    : null);
+
+            if (!questions) {
+                return res.status(400).json({ success: false, message: 'JSON must be an array of questions or contain a "questions" array.' });
             }
 
             const courseId = quiz.courseId;
@@ -438,7 +445,7 @@ class AppController {
             );
 
             const normalizedInputTexts = new Set();
-            const preview = payload.questions.map((q, i) => {
+            const preview = questions.map((q, i) => {
                 const originalIndex = i + 1;
                 if (!q.questionText || !q.options || !Array.isArray(q.options) || q.options.length < 2) {
                     return {
@@ -527,8 +534,15 @@ class AppController {
                 return res.status(400).json({ success: false, message: 'Invalid JSON file: ' + parseErr.message });
             }
 
-            if (!payload.questions || !Array.isArray(payload.questions)) {
-                return res.status(400).json({ success: false, message: 'JSON must contain a "questions" array.' });
+            // Accept either a top-level array or an object with a questions array
+            const questions = Array.isArray(payload)
+                ? payload
+                : (payload.questions && Array.isArray(payload.questions)
+                    ? payload.questions
+                    : null);
+
+            if (!questions) {
+                return res.status(400).json({ success: false, message: 'JSON must be an array of questions or contain a "questions" array.' });
             }
 
             const letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
@@ -551,8 +565,8 @@ class AppController {
             const createdQuestions = [];
             const skippedQuestions = [];
 
-            for (let i = 0; i < payload.questions.length; i++) {
-                const q = payload.questions[i];
+            for (let i = 0; i < questions.length; i++) {
+                const q = questions[i];
 
                 if (!q.questionText || !q.options || !Array.isArray(q.options) || q.options.length < 2) {
                     skippedQuestions.push({
@@ -605,13 +619,31 @@ class AppController {
                         timestamp: new Date()
                     }, true);
 
-                    const optionData = q.options.map((optText, idx) => ({
-                        questionId: question.questionId,
-                        letter: letters[idx] || String.fromCharCode(65 + idx),
-                        optionText: optText.trim(),
-                        optionIndex: idx + 1,
-                        isCorrect: idx === 0 ? 1 : 0
-                    }));
+                    // The uploaded JSON format (CS001.json) does not include correct-answer
+                    // metadata, so we do NOT mark any option as correct by default.
+                    // If the file ever includes a `solution.correctAnswers` array we honor it.
+                    const solution = q.solution && typeof q.solution === 'object' ? q.solution : null;
+                    const correctLetters = new Set(
+                        (solution && Array.isArray(solution.correctAnswers)
+                            ? solution.correctAnswers
+                            : []
+                        ).map(l => String(l).trim().toUpperCase())
+                    );
+
+                    const options = Array.isArray(q.options) ? q.options : [];
+                    const optionData = options.map((opt, idx) => {
+                        const text = typeof opt === 'string' ? opt : (opt.text || '');
+                        const label = typeof opt === 'string' ? '' : String(opt.label || '').trim().toUpperCase();
+                        const letter = label || letters[idx] || String.fromCharCode(65 + idx);
+                        const isCorrect = correctLetters.has(letter);
+                        return {
+                            questionId: question.questionId,
+                            letter: letter,
+                            optionText: text.trim(),
+                            optionIndex: idx + 1,
+                            isCorrect: isCorrect ? 1 : 0
+                        };
+                    });
 
                     if (optionData.length > 0) {
                         await Option.createMultiple(optionData);
@@ -621,7 +653,7 @@ class AppController {
                     createdQuestions.push({
                         questionId: question.questionId,
                         questionText: q.questionText.trim(),
-                        optionsCount: q.options.length
+                        optionsCount: options.length
                     });
                 } catch (err) {
                     errorCount++;
@@ -645,7 +677,7 @@ class AppController {
             res.status(200).json({
                 success: true,
                 summary: {
-                    total: payload.questions.length,
+                    total: questions.length,
                     created: createdCount,
                     skipped: skippedDuplicates,
                     errors: errorCount

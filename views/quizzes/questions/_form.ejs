@@ -15,7 +15,7 @@
                         <label class="form-label fw-bold">Upload JSON File</label>
                         <input type="file" name="questionsFile" accept=".json" class="form-control" required id="questionsFileInput">
                         <div class="form-text">
-                            Expected format: { "questions": [ { "questionText": "...", "options": ["A", "B", "C", "D"], "explanation": "..." } ] }
+                            Expected format: [ { "questionText": "...", "options": [{"label":"A","text":"..."},{"label":"B","text":"..."}], "explanation": "..."} ]
                         </div>
                     </div>
                     <div class="col-md-4">
@@ -376,20 +376,29 @@
 
     // Download JSON template
     document.getElementById('downloadTemplateBtn').addEventListener('click', function() {
-        const template = {
-            questions: [
-                {
-                    questionText: "What is the capital of France?",
-                    options: ["Paris", "London", "Berlin", "Madrid"],
-                    explanation: "Paris is the capital and largest city of France."
-                },
-                {
-                    questionText: "What is 2 + 2?",
-                    options: ["3", "4", "5", "6"],
-                    explanation: "2 + 2 equals 4."
-                }
-            ]
-        };
+        const template = [
+            {
+                questionText: "What is the capital of France?",
+                options: [
+                    { label: "A", text: "Paris" },
+                    { label: "B", text: "London" },
+                    { label: "C", text: "Berlin" },
+                    { label: "D", text: "Madrid" }
+                ],
+                explanation: "Paris is the capital and largest city of France."
+                // No correct answer data provided -> no option is marked correct
+            },
+            {
+                questionText: "What is 2 + 2?",
+                options: [
+                    { label: "A", text: "3" },
+                    { label: "B", text: "4" },
+                    { label: "C", text: "5" },
+                    { label: "D", text: "6" }
+                ],
+                explanation: "2 + 2 equals 4."
+            }
+        ];
         
         const blob = new Blob([JSON.stringify(template, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
@@ -546,11 +555,18 @@
         const explanation = btn.dataset.explanation;
         
         // Convert bulk format to API format
-        const apiOptions = rawOptions.map((text, idx) => ({
-            text: text,
-            letter: String.fromCharCode(65 + idx),
-            isCorrect: idx === 0
-        }));
+        // Note: we intentionally do not set isCorrect here because the bulk
+        // JSON format does not carry correct-answer data. If the user wants
+        // to mark correct answers, they must use the solution API format.
+        const apiOptions = rawOptions.map((opt, idx) => {
+            const text = typeof opt === 'string' ? opt : (opt.text || '');
+            const letter = typeof opt === 'string' ? String.fromCharCode(65 + idx) : String(opt.label || '').toUpperCase();
+            return {
+                text: text,
+                letter: letter,
+                isCorrect: false
+            };
+        });
         
         btn.disabled = true;
         btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
