@@ -95,10 +95,7 @@ class User {
         const cacheKey = `user:identifier:${identifier}`;
         return cache.remember(cacheKey, TTL.USERS, async () => {
             const [rows] = await db.query(
-                `SELECT u.id, u.studentId, u.role, u.status, u.isOnline, u.avatar,
-                        u.profilePublic, u.emailNotifications, u.lastLoginAt,
-                        u.createdAt, u.updatedAt,
-                        s.*
+                `SELECT u.*, s.*
                  FROM users u
                  JOIN students s ON u.studentId = s.studentId
                  WHERE u.studentId = ? OR s.vuEmail = ?
@@ -113,10 +110,7 @@ class User {
         const cacheKey = `user:${id}`;
         return cache.remember(cacheKey, TTL.USERS, async () => {
             const [rows] = await db.query(
-                `SELECT u.id, u.studentId, u.role, u.status, u.isOnline, u.avatar,
-                        u.profilePublic, u.emailNotifications, u.lastLoginAt,
-                        u.createdAt, u.updatedAt,
-                        s.*
+                `SELECT u.*, s.*
                  FROM users u
                  JOIN students s ON u.studentId = s.studentId
                  WHERE u.id = ?`,
