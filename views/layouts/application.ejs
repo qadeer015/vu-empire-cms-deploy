@@ -209,6 +209,13 @@
   <% if (footer) { %>
   <%- include('../partials/_footer') %>
   <% } %>
+<script>
+  const filterBtn = document.querySelector('.filter-btn');
+  const filterArea = document.querySelector('.filter-area');
+  filterBtn?.addEventListener('click', function() {
+    filterArea?.classList.contains('d-none') ? filterArea.classList.remove('d-none') : filterArea.classList.add('d-none');
+  });
+</script>
   </body>
 
 </html>
