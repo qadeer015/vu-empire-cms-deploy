@@ -27,6 +27,8 @@ router.get('/', authenticate, authorize('admin'), AppController.dashboard);
 
 // ── Users CRUD ───────────────────────────────────────────────────
 router.get('/users', authenticate, authorize('admin'), AppController.adminUsers);
+router.post('/users/:id/status', authenticate, authorize('admin'), AppController.adminUserUpdateStatus);
+router.post('/users/:id/role', authenticate, authorize('admin'), AppController.adminUserUpdateRole);
 router.get('/users/:studentId', authenticate, authorize('admin'), AppController.adminUserShow);
 
 

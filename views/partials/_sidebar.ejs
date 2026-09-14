@@ -1,6 +1,9 @@
 <!-- Sidebar -->
 <a href="/" class="sidebar-link <%= page === 'dashboard' ? 'active' : '' %>">
-    <i class="bi bi-grid-1x2"></i> <span>Dashboard</span>
+  <i class="bi bi-grid-1x2"></i> <span>Dashboard</span>
+</a>
+<a href="/users" class="sidebar-link <%= page === 'users' ? 'active' : '' %>">
+  <i class="bi bi-people"></i> <span>Users</span>
 </a>
 <a href="/courses" class="sidebar-link <%= page === 'courses' ? 'active' : '' %>">
   <i class="bi bi-journal-bookmark"></i> <span>Courses</span>

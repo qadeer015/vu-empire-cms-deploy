@@ -17,13 +17,68 @@ class User {
         const cacheKey = `users:list:${limit}:${offset}`;
         return cache.remember(cacheKey, TTL.USERS, async () => {
             const [rows] = await db.query(
-                `SELECT *
-                 FROM users 
-                 ORDER BY id ASC
+                `SELECT u.*, s.vuEmail, s.studentName
+                 FROM users u
+                 JOIN students s ON u.studentId = s.studentId
+                 ORDER BY u.id ASC
                  LIMIT ? OFFSET ?`,
                 [parseInt(limit), parseInt(offset)]
             );
             return rows;
+        });
+    }
+
+    // Builds WHERE clause shared by filtered list/count
+    static _buildFilters({ search, role, status } = {}) {
+        const where = [];
+        const params = [];
+
+        if (search) {
+            where.push('(u.studentId LIKE ? OR s.studentName LIKE ? OR s.vuEmail LIKE ?)');
+            const like = `%${search}%`;
+            params.push(like, like, like);
+        }
+        if (role && role !== 'all') {
+            where.push('u.role = ?');
+            params.push(role);
+        }
+        if (status && status !== 'all') {
+            where.push('u.status = ?');
+            params.push(status);
+        }
+
+        return { clause: where.length ? ` WHERE ${where.join(' AND ')}` : '', params };
+    }
+
+    static async findAllWithFilters({ search = '', role = 'all', status = 'all', limit = 50, offset = 0 } = {}) {
+        const cacheKey = `users:filtered:${search}:${role}:${status}:${limit}:${offset}`;
+        return cache.remember(cacheKey, TTL.USERS, async () => {
+            const { clause, params } = this._buildFilters({ search, role, status });
+            const [rows] = await db.query(
+                `SELECT u.*, s.vuEmail, s.studentName
+                 FROM users u
+                 JOIN students s ON u.studentId = s.studentId
+                 ${clause}
+                 ORDER BY u.id ASC
+                 LIMIT ? OFFSET ?`,
+                [...params, parseInt(limit), parseInt(offset)]
+            );
+            return rows;
+        });
+    }
+
+    static async countAllWithFilters({ search = '', role = 'all', status = 'all' } = {}) {
+        const cacheKey = `users:filtered:count:${search}:${role}:${status}`;
+        return cache.remember(cacheKey, TTL.USERS, async () => {
+            const { clause, params } = this._buildFilters({ search, role, status });
+            const [[{ total }]] = await db.query(
+                `SELECT COUNT(*) AS total
+                 FROM users u
+                 JOIN students s ON u.studentId = s.studentId
+                 ${clause}`,
+                params
+            );
+            return total;
         });
     }
 
@@ -40,7 +95,10 @@ class User {
         const cacheKey = `user:identifier:${identifier}`;
         return cache.remember(cacheKey, TTL.USERS, async () => {
             const [rows] = await db.query(
-                `SELECT u.*, s.vuEmail, s.studentName 
+                `SELECT u.id, u.studentId, u.role, u.status, u.isOnline, u.avatar,
+                        u.profilePublic, u.emailNotifications, u.lastLoginAt,
+                        u.createdAt, u.updatedAt,
+                        s.*
                  FROM users u
                  JOIN students s ON u.studentId = s.studentId
                  WHERE u.studentId = ? OR s.vuEmail = ?
@@ -55,7 +113,10 @@ class User {
         const cacheKey = `user:${id}`;
         return cache.remember(cacheKey, TTL.USERS, async () => {
             const [rows] = await db.query(
-                `SELECT u.*, s.vuEmail, s.studentName 
+                `SELECT u.id, u.studentId, u.role, u.status, u.isOnline, u.avatar,
+                        u.profilePublic, u.emailNotifications, u.lastLoginAt,
+                        u.createdAt, u.updatedAt,
+                        s.*
                  FROM users u
                  JOIN students s ON u.studentId = s.studentId
                  WHERE u.id = ?`,

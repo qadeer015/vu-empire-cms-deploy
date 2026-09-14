@@ -1,0 +1,177 @@
+<!-- users/show.ejs -->
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0"><%= userClient.studentName %></h1>
+    </div>
+    <%- include('../partials/_breadcrumb') %>
+
+    <% if (typeof userClient !== 'undefined' && userClient) { %>
+    <div class="row g-4">
+
+        <!-- ── Profile card ─────────────────────────────── -->
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-body text-center">
+                    <% if (userClient.avatar && userClient.avatar !== '/avatars/default.png') { %>
+                        <img src="<%= userClient.avatar %>" class="rounded-circle mb-3" style="width:96px;height:96px;object-fit:cover;" alt="<%= userClient.studentName %>" />
+                    <% } else { %>
+                        <span class="rounded-circle bg-primary bg-opacity-10 d-inline-flex align-items-center justify-content-center text-primary fw-bold mb-3"
+                              style="width:96px;height:96px;font-size:36px">
+                            <%= userClient.studentName ? userClient.studentName[0].toUpperCase() : '?' %>
+                        </span>
+                    <% } %>
+                    <h5 class="mb-1"><%= userClient.studentName %></h5>
+                    <p class="text-muted mb-2"><code><%= userClient.studentId %></code></p>
+                    <div class="d-flex justify-content-center gap-2 mb-3">
+                        <span class="badge bg-<%= userClient.role === 'admin' ? 'danger' : 'secondary' %>">
+                            <%= userClient.role %>
+                        </span>
+                        <span class="badge bg-<%= userClient.status === 'active' ? 'success' : (userClient.status === 'deleted' ? 'danger' : 'warning') %>">
+                            <%= userClient.status || 'active' %>
+                        </span>
+                        <span class="badge bg-<%= userClient.isOnline ? 'success' : 'secondary' %>">
+                            <%= userClient.isOnline ? 'Online' : 'Offline' %>
+                        </span>
+                    </div>
+                    <div class="text-start small text-muted">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span><i class="bi bi-envelope me-1"></i> Email</span>
+                            <a href="mailto:<%= userClient.vuEmail %>" class="text-decoration-none"><%= userClient.vuEmail %></a>
+                        </div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span><i class="bi bi-clock-history me-1"></i> Last Login</span>
+                            <span><%= userClient.lastLoginAt ? new Date(userClient.lastLoginAt).toLocaleString() : 'Never' %></span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span><i class="bi bi-calendar-plus me-1"></i> Joined</span>
+                            <span><%= userClient.createdAt ? new Date(userClient.createdAt).toLocaleDateString() : '-' %></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="row g-4">
+                    <!-- ── Personal details ─────────────────────── -->
+                    <div class="col-12">
+                        <div class="card shadow-sm">
+                            <div class="card-header bg-light fw-semibold">
+                                <i class="bi bi-person me-2"></i>Personal Details
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <% const personal = [
+                                        ['Father Name', userClient.fatherName],
+                                        ['Gender', userClient.gender],
+                                        ['Date of Birth', userClient.dateOfBirth ? new Date(userClient.dateOfBirth).toLocaleDateString() : null],
+                                        ['CNIC', userClient.cnic],
+                                        ['Mobile', userClient.mobile],
+                                        ['Personal Email', userClient.personalEmail],
+                                        ['Mailing Address', userClient.mailingAddress],
+                                        ['Permanent Address', userClient.permanentAddress]
+                                    ]; %>
+                                    <% personal.forEach(function(item) { %>
+                                    <div class="col-md-6 mb-3">
+                                        <div class="text-muted small"><%= item[0] %></div>
+                                        <div><%= item[1] || '-' %></div>
+                                    </div>
+                                    <% }); %>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- ── Academic info ────────────────────────── -->
+                    <div class="col-12">
+                        <div class="card shadow-sm">
+                            <div class="card-header bg-light fw-semibold">
+                                <i class="bi bi-mortarboard me-2"></i>Academic Information
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <% const academic = [
+                                        ['Registration No', userClient.registrationNo],
+                                        ['Form No', userClient.formNo],
+                                        ['Program', userClient.program],
+                                        ['Study Status', userClient.studyStatus],
+                                        ['Semester', userClient.currentSemester ? 'Semester ' + userClient.currentSemester : userClient.semester],
+                                        ['Admission Date', userClient.admissionDate ? new Date(userClient.admissionDate).toLocaleDateString() : null]
+                                    ]; %>
+                                    <% academic.forEach(function(item) { %>
+                                    <div class="col-md-4 mb-3">
+                                        <div class="text-muted small"><%= item[0] %></div>
+                                        <div><%= item[1] || '-' %></div>
+                                    </div>
+                                    <% }); %>
+                                </div>
+                                <hr>
+                                <div class="row">
+                                    <% const marks = [
+                                        ['Matric', userClient.matricMarks, userClient.matricTotal],
+                                        ['Intermediate', userClient.interMarks, userClient.interTotal],
+                                        ['Bachelor' + (userClient.bachelorDegree ? ' (' + userClient.bachelorDegree + ')' : ''), userClient.bachelorMarks, null],
+                                        ['Master' + (userClient.masterDegree ? ' (' + userClient.masterDegree + ')' : ''), userClient.masterMarks, null]
+                                    ]; %>
+                                    <% marks.forEach(function(item) { %>
+                                    <div class="col-md-3 mb-3">
+                                        <div class="text-muted small"><%= item[0] %></div>
+                                        <div><%= item[1] != null ? item[1] : '-' %><%= item[2] != null ? ' / ' + item[2] : '' %></div>
+                                    </div>
+                                    <% }); %>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- ── Account settings ───────────────────────── -->
+                    <div class="col-12">
+                        <div class="card shadow-sm">
+                            <div class="card-header bg-light fw-semibold">
+                                <i class="bi bi-gear me-2"></i>Account Settings
+                            </div>
+                            <div class="card-body">
+                                <div class="row align-items-center">
+                                    <div class="col-md-4 mb-3 mb-md-0">
+                                        <div class="text-muted small">Role</div>
+                                        <form method="POST" action="/users/<%= userClient.id %>/role" class="d-flex gap-2 mt-1">
+                                            <select name="role" class="form-select form-select-sm">
+                                                <option value="student" <%= userClient.role === 'student' ? 'selected' : '' %>>Student</option>
+                                                <option value="admin" <%= userClient.role === 'admin' ? 'selected' : '' %>>Admin</option>
+                                            </select>
+                                            <button type="submit" class="btn btn-sm btn-primary">Save</button>
+                                        </form>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="text-muted small">Status</div>
+                                        <form method="POST" action="/users/<%= userClient.id %>/status" class="d-flex gap-2 mt-1">
+                                            <select name="status" class="form-select form-select-sm">
+                                                <% ['active', 'blocked', 'deleted'].forEach(function(s) { %>
+                                                <option value="<%= s %>" <%= (userClient.status || 'active') === s ? 'selected' : '' %>><%= s.charAt(0).toUpperCase() + s.slice(1) %></option>
+                                                <% }); %>
+                                            </select>
+                                            <button type="submit" class="btn btn-sm btn-primary">Save</button>
+                                        </form>
+                                    </div>
+                                    <div class="col-md-4 mt-3 mt-md-0">
+                                        <div class="text-muted small mb-1">Preferences</div>
+                                        <span class="badge bg-<%= userClient.profilePublic ? 'success' : 'secondary' %>">
+                                            Profile <%= userClient.profilePublic ? 'Public' : 'Private' %>
+                                        </span>
+                                        <span class="badge bg-<%= userClient.emailNotifications ? 'success' : 'secondary' %>">
+                                            Email <%= userClient.emailNotifications ? 'On' : 'Off' %>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+            </div>
+        </div>
+    </div>
+    <% } else { %>
+    <div class="text-center py-5">
+        <i class="bi bi-person-x display-1 text-muted mb-3"></i>
+        <h5 class="text-muted">User not found</h5>
+        <a href="/users" class="btn btn-primary mt-2">Back to Users</a>
+    </div>
+    <% } %>
+</div>

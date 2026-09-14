@@ -1,62 +1,146 @@
 <!-- admin/users.ejs -->
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0">All Users</h1>
+        <h1 class="h3 mb-0">Users</h1>
         <span class="badge bg-primary"><%= (typeof total !== 'undefined' && total) ? total : '' %> users</span>
     </div>
     <%- include('../partials/_breadcrumb') %>
 
+    <!-- Search & Filter -->
+    <form method="GET" action="/users" class="mb-3">
+        <div class="row g-2 align-items-end">
+            <div class="col-sm-6 col-md-4">
+                <label for="userSearch" class="form-label small text-muted">Search</label>
+                <input
+                    type="text"
+                    class="form-control form-control-sm"
+                    id="userSearch"
+                    name="q"
+                    placeholder="Search by ID, name or email..."
+                    value="<%= typeof q !== 'undefined' ? q : '' %>"
+                >
+            </div>
+            <div class="col-sm-3 col-md-2">
+                <label for="roleFilter" class="form-label small text-muted">Role</label>
+                <select class="form-select form-select-sm" id="roleFilter" name="role">
+                    <option value="all" <%= (typeof role === 'undefined' || role === 'all') ? 'selected' : '' %>>All</option>
+                    <option value="admin" <%= typeof role !== 'undefined' && role === 'admin' ? 'selected' : '' %>>Admin</option>
+                    <option value="student" <%= typeof role !== 'undefined' && role === 'student' ? 'selected' : '' %>>Student</option>
+                </select>
+            </div>
+            <div class="col-sm-3 col-md-2">
+                <label for="statusFilter" class="form-label small text-muted">Status</label>
+                <select class="form-select form-select-sm" id="statusFilter" name="status">
+                    <option value="all" <%= (typeof status === 'undefined' || status === 'all') ? 'selected' : '' %>>All</option>
+                    <option value="active" <%= typeof status !== 'undefined' && status === 'active' ? 'selected' : '' %>>Active</option>
+                    <option value="blocked" <%= typeof status !== 'undefined' && status === 'blocked' ? 'selected' : '' %>>Blocked</option>
+                    <option value="deleted" <%= typeof status !== 'undefined' && status === 'deleted' ? 'selected' : '' %>>Deleted</option>
+                </select>
+            </div>
+            <div class="col-sm-2">
+                <button type="submit" class="btn btn-primary btn-sm w-100">
+                    <i class="bi bi-search"></i> Search
+                </button>
+            </div>
+            <div class="col-sm-2">
+                <a href="/users" class="btn btn-outline-secondary btn-sm w-100">Reset</a>
+            </div>
+        </div>
+    </form>
+
     <% if (typeof users !== 'undefined' && users.length > 0) { %>
-    <div class="table-responsive">
-        <table class="table table-hover align-middle">
-            <thead class="table-light">
-                <tr>
-                    <th>#</th>
-                    <th>Student ID</th>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Role</th>
-                    <th>Status</th>
-                    <th>Joined</th>
-                </tr>
-            </thead>
-            <tbody>
-                <% users.forEach(function(u, i) { %>
-                <tr onclick="window.location='/<%= u.studentId %>'" style="cursor:pointer" class="user-row">
-                    <td class="text-muted"><%= i + 1 %></td>
-                    <td><a href="/users/<%= u.studentId %>"><code><%= u.studentId %></code></a></td>
-                    <td>
-                        <a href="/users/<%= u.studentId %>" class="text-decoration-none text-reset">
-                            <div class="d-flex align-items-center gap-2">
-                                <% if (u.avatar && u.avatar !== '/avatars/default.png') { %>
-                                    <img src="<%= u.avatar %>" class="rounded-circle" style="width:32px;height:32px;object-fit:cover;" />
-                                <% } else { %>
-                                    <span class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center text-primary fw-medium"
-                                          style="width:32px;height:32px;font-size:12px;flex-shrink:0">
-                                        <%= u.studentName ? u.studentName[0].toUpperCase() : '?' %>
-                                    </span>
-                                <% } %>
-                                <span><%= u.studentName %></span>
-                            </div>
-                        </a>
-                    </td>
-                    <td><a href="/users/<%= u.studentId %>" class="text-decoration-none text-muted"><%= u.vuEmail %></a></td>
-                    <td><a href="/users/<%= u.studentId %>" class="text-decoration-none text-reset">
-                        <span class="badge bg-<%= u.role === 'admin' ? 'danger' : 'secondary' %>">
-                            <%= u.role %>
-                        </span>
-                    </a></td>
-                    <td><a href="/users/<%= u.studentId %>" class="text-decoration-none text-reset">
-                        <span class="badge bg-<%= u.status === 'active' ? 'success' : (u.status === 'deleted' ? 'danger' : 'warning') %>">
-                            <%= u.status || 'active' %>
-                        </span>
-                    </a></td>
-                    <td><a href="/users/<%= u.studentId %>" class="text-decoration-none text-muted small"><%= u.createdAt ? new Date(u.createdAt).toLocaleString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true, month: 'short', day: 'numeric', year: 'numeric' }) : '-' %></a></td>
-                </tr>
-                <% }); %>
-            </tbody>
-        </table>
-    </div>
+    <table class="table table-hover align-middle">
+      <thead>
+        <tr class="sticky-table-header">
+          <th>Student ID</th>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Role</th>
+          <th>Status</th>
+          <th>Joined</th>
+          <th class="text-center">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% users.forEach(function(u, i) { %>
+        <tr onclick="window.location='/users/<%= u.studentId %>'" style="cursor:pointer" class="user-row">
+          <td><a href="/users/<%= u.studentId %>"><code><%= u.studentId %></code></a></td>
+          <td>
+            <a href="/users/<%= u.studentId %>" class="text-decoration-none text-reset">
+              <div class="d-flex align-items-center gap-2">
+                <% if (u.avatar && u.avatar !== '/avatars/default.png') { %>
+                <img src="<%= u.avatar %>" class="rounded-circle" style="width:32px;height:32px;object-fit:cover;" />
+                <% } else { %>
+                <span class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center text-primary fw-medium" style="width:32px;height:32px;font-size:12px;flex-shrink:0">
+                  <%= u.studentName ? u.studentName[0].toUpperCase() : '?' %>
+                </span>
+                <% } %>
+                <span><%= u.studentName %></span>
+              </div>
+            </a>
+          </td>
+          <td><a href="/users/<%= u.studentId %>" class="text-decoration-none text-muted"><%= u.vuEmail %></a></td>
+          <td><a href="/users/<%= u.studentId %>" class="text-decoration-none text-reset">
+              <span class="badge bg-<%= u.role === 'admin' ? 'danger' : 'secondary' %>">
+                <%= u.role %>
+              </span>
+            </a></td>
+          <td><a href="/users/<%= u.studentId %>" class="text-decoration-none text-reset">
+              <span class="badge bg-<%= u.status === 'active' ? 'success' : (u.status === 'deleted' ? 'danger' : 'warning') %>">
+                <%= u.status || 'active' %>
+              </span>
+            </a></td>
+          <td><a href="/users/<%= u.studentId %>" class="text-decoration-none text-muted small"><%= u.createdAt ? new Date(u.createdAt).toLocaleString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true, month: 'short', day: 'numeric', year: 'numeric' }) : '-' %></a></td>
+          <td onclick="event.stopPropagation()" class="text-center">
+            <div class="dropdown">
+              <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-three-dots-vertical"></i>
+              </button>
+              <div class="dropdown-menu dropdown-menu-end p-3" style="min-width: 220px;">
+                <form method="POST" action="/users/<%= u.id %>/role" class="mb-3">
+                  <label class="form-label small fw-semibold mb-1">Role</label>
+                  <div class="d-flex gap-2">
+                    <select name="role" class="form-select form-select-sm">
+                      <option value="student" <%= u.role === 'student' ? 'selected' : '' %>>Student</option>
+                      <option value="admin" <%= u.role === 'admin' ? 'selected' : '' %>>Admin</option>
+                    </select>
+                    <button type="submit" class="btn btn-sm btn-primary">Save</button>
+                  </div>
+                </form>
+                <form method="POST" action="/users/<%= u.id %>/status">
+                  <label class="form-label small fw-semibold mb-1">Status</label>
+                  <div class="d-flex gap-2">
+                    <select name="status" class="form-select form-select-sm">
+                      <% ['active', 'blocked', 'deleted'].forEach(function(s) { %>
+                      <option value="<%= s %>" <%= (u.status || 'active') === s ? 'selected' : '' %>><%= s.charAt(0).toUpperCase() + s.slice(1) %></option>
+                      <% }); %>
+                    </select>
+                    <button type="submit" class="btn btn-sm btn-primary">Save</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </td>
+        </tr>
+        <% }); %>
+      </tbody>
+    </table>
+    <% if (typeof pagination !== 'undefined' && pagination.pages > 1) { %>
+    <nav>
+        <ul class="pagination justify-content-center">
+            <% const qs = []; if (typeof q !== 'undefined' && q) qs.push('q=' + encodeURIComponent(q)); if (typeof role !== 'undefined' && role && role !== 'all') qs.push('role=' + encodeURIComponent(role)); if (typeof status !== 'undefined' && status && status !== 'all') qs.push('status=' + encodeURIComponent(status)); const qsStr = qs.length ? '&' + qs.join('&') : ''; %>
+            <li class="page-item <%= pagination.page <= 1 ? 'disabled' : '' %>">
+                <a class="page-link" href="?page=<%= pagination.page - 1 %><%= qsStr %>">Previous</a>
+            </li>
+            <li class="page-item disabled">
+                <span class="page-link">Page <%= pagination.page %> of <%= pagination.pages %></span>
+            </li>
+            <li class="page-item <%= pagination.page >= pagination.pages ? 'disabled' : '' %>">
+                <a class="page-link" href="?page=<%= pagination.page + 1 %><%= qsStr %>">Next</a>
+            </li>
+        </ul>
+    </nav>
+    <% } %>
     <% } else { %>
     <div class="text-center py-5">
         <i class="bi bi-people display-1 text-muted mb-3"></i>

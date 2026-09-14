@@ -29,7 +29,9 @@ function buildBreadcrumbs(data = {}) {
         'quizzes': 'Quizzes',
         'assignments': 'Assignments',
         'gdb-solutions': 'GDB Solutions',
-        'past-papers': 'Past Papers'
+        'past-papers': 'Past Papers',
+        'users': 'Users',
+        'tasks': 'Task Center'
     };
     
     const pageUrls = {
@@ -38,7 +40,9 @@ function buildBreadcrumbs(data = {}) {
         'quizzes': '/quizzes',
         'assignments': '/assignments',
         'gdb-solutions': '/gdb-solutions',
-        'past-papers': '/pastpapers'
+        'past-papers': '/pastpapers',
+        'users': '/users',
+        'tasks': '/tasks'
     };
     
     const crumbs = [
@@ -145,16 +149,22 @@ class AppController {
             const page = parseInt(req.query.page) || 1;
             const limit = 50;
             const offset = (page - 1) * limit;
+            const search = req.query.q || '';
+            const role = req.query.role || 'all';
+            const status = req.query.status || 'all';
 
             const [users, total] = await Promise.all([
-                User.findAll({ limit, offset }),
-                User.countAll()
+                User.findAllWithFilters({ search, role, status, limit, offset }),
+                User.countAllWithFilters({ search, role, status })
             ]);
 
             renderAdmin(res, 'users/index', {
                 page: 'users',
                 users,
                 total,
+                q: search,
+                role,
+                status,
                 pagination: { page, limit, total, pages: Math.ceil(total / limit) }
             });
         } catch (err) {
@@ -164,18 +174,53 @@ class AppController {
 
     static async adminUserShow(req, res) {
         try {
-            console.log(req.params.studentId)
-            const userClient = await User.findById(req.params.studentId);
-            console.log('userCLinet', userClient)
+            const userClient = await User.findByIdentifier(req.params.studentId);
 
             if (!userClient) return res.redirect('/users');
 
             renderAdmin(res, 'users/show', {
                 page: 'users',
-                userClient
+                userClient,
+                breadcrumbs: [
+                    { label: 'Home', href: '/' },
+                    { label: 'Users', href: '/users' },
+                    { label: userClient.studentName + ' (' + userClient.studentId + ')' }
+                ]
             });
         } catch (err) {
             res.status(500).render('error', { title: 'Server Error', message: err.message, error: null, redirect_url: '/courses', header: false, footer: false });
+        }
+    }
+
+    static async adminUserUpdateStatus(req, res) {
+        try {
+            const allowedStatuses = ['active', 'blocked', 'deleted'];
+            const { status } = req.body;
+
+            if (!status || !allowedStatuses.includes(status)) {
+                throw new Error('Invalid status. Allowed: ' + allowedStatuses.join(', '));
+            }
+
+            await User.updateStatus(req.params.id, status);
+            res.redirect('/users');
+        } catch (err) {
+            res.status(400).render('error', { title: 'Error', message: err.message, error: null, redirect_url: '/users', header: false, footer: false });
+        }
+    }
+
+    static async adminUserUpdateRole(req, res) {
+        try {
+            const allowedRoles = ['admin', 'student'];
+            const { role } = req.body;
+
+            if (!role || !allowedRoles.includes(role)) {
+                throw new Error('Invalid role. Allowed: ' + allowedRoles.join(', '));
+            }
+
+            await User.updateUser(req.params.id, { role });
+            res.redirect('/users');
+        } catch (err) {
+            res.status(400).render('error', { title: 'Error', message: err.message, error: null, redirect_url: '/users', header: false, footer: false });
         }
     }
 
