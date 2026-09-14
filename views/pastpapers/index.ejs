@@ -15,8 +15,8 @@
   <table class="table table-hover align-middle">
     <thead>
       <tr class="sticky-table-header">
-        <th>Course</th>
         <th>Title</th>
+        <th>Course</th>
         <th>Year</th>
         <th>Type</th>
         <th>Semester</th>
@@ -30,18 +30,18 @@
       <% papers.forEach(function(p) { %>
       <tr>
         <td>
+          <a href="/pastpapers/<%= p.id %>" class="text-decoration-none fw-medium" title="View <%= p.courseCode || '-' %> <%= p.type || '-' %> <%= p.year || '-' %>">
+            <%= p.courseCode || '-' %>
+            <%= p.type || '-' %>
+            <%= p.year || '-' %>
+          </a>
+        </td>
+        <td>
           <a href="/courses/<%= p.courseId %>" class="text-decoration-none fw-medium" title="View <%= p.courseCode %> course">
             <span class="fw-semibold"><%= p.courseCode %></span>
           </a>
           <a href="/courses/<%= p.courseId %>" class="text-decoration-none fw-medium" title="View <%= p.courseCode %> course">
             <small class="d-block text-muted"><%= p.courseName %></small>
-          </a>
-        </td>
-        <td>
-          <a href="/pastpapers/<%= p.id %>" class="text-decoration-none fw-medium" title="View <%= p.courseCode || '-' %> <%= p.type || '-' %> <%= p.year || '-' %>">
-            <%= p.courseCode || '-' %>
-            <%= p.type || '-' %>
-            <%= p.year || '-' %>
           </a>
         </td>
         <td><%= p.year || '-' %></td>

@@ -15,8 +15,8 @@
   <table class="table table-hover align-middle">
     <thead>
       <tr class="sticky-table-header">
-        <th>Course</th>
         <th>Quiz Title</th>
+        <th>Course</th>
         <th>Type</th>
         <th class="text-center">Questions</th>
         <th>Created</th>
@@ -27,16 +27,16 @@
       <% quizzes.forEach(function(q) { %>
       <tr>
         <td>
+          <a href="/quizzes/<%= q.quizId %>" class="text-decoration-none fw-medium">
+            <%= q.title || '-' %>
+          </a>
+        </td>
+        <td>
           <a href="/courses/<%= q.courseId %>" class="text-decoration-none fw-medium" title="View <%= q.courseCode %> course">
             <span class="fw-semibold"><%= q.courseCode %></span>
           </a>
           <a href="/courses/<%= q.courseId %>" class="text-decoration-none fw-medium" title="View <%= q.courseCode %> course">
             <small class="d-block text-muted"><%= q.courseName %></small>
-          </a>
-        </td>
-        <td>
-          <a href="/quizzes/<%= q.quizId %>" class="text-decoration-none fw-medium">
-            <%= q.title || '-' %>
           </a>
         </td>
         <td><span class="badge bg-secondary"><%= q.type || 'quiz' %></span></td>

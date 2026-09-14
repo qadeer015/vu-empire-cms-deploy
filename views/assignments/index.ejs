@@ -15,8 +15,8 @@
   <table class="table table-hover align-middle">
     <thead>
       <tr class="sticky-table-header">
-        <th>Course</th>
         <th>Title</th>
+        <th>Course</th>
         <th>Due Date</th>
         <th>Status</th>
         <th>Created</th>
@@ -27,16 +27,16 @@
       <% assignments.forEach(function(a) { %>
       <tr>
         <td>
+          <a href="/assignments/<%= a.id %>" class="text-decoration-none fw-medium" title="View <%= a.title %>">
+            <%= a.title %>
+          </a>
+        </td>
+        <td>
           <a href="/courses/<%= a.courseId %>" class="text-decoration-none fw-medium" title="View <%= a.courseCode %> course">
             <span class="fw-semibold"><%= a.courseCode %></span>
           </a>
           <a href="/courses/<%= a.courseId %>" class="text-decoration-none fw-medium" title="View <%= a.courseCode %> course">
             <small class="d-block text-muted"><%= a.courseName %></small>
-          </a>
-        </td>
-        <td>
-          <a href="/assignments/<%= a.id %>" class="text-decoration-none fw-medium" title="View <%= a.title %>">
-            <%= a.title %>
           </a>
         </td>
         <td class="text-muted small"><%= a.dueDate ? new Date(a.dueDate).toLocaleDateString() : '-' %></td>
