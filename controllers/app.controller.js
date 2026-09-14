@@ -10,6 +10,7 @@ const GdbSolution = require('../models/GdbSolution');
 const PastPaper = require('../models/PastPaper');
 const cache = require('../services/cacheService');
 const TTL = require('../config/cacheTTL');
+const { db } = require('../config/firebase');
 
 const SITE_URL = process.env.SITE_URL || 'https://vuempire.online';
 
@@ -31,7 +32,8 @@ function buildBreadcrumbs(data = {}) {
         'gdb-solutions': 'GDB Solutions',
         'past-papers': 'Past Papers',
         'users': 'Users',
-        'tasks': 'Task Center'
+        'tasks': 'Task Center',
+        'feedback': 'Feedback'
     };
     
     const pageUrls = {
@@ -42,7 +44,8 @@ function buildBreadcrumbs(data = {}) {
         'gdb-solutions': '/gdb-solutions',
         'past-papers': '/pastpapers',
         'users': '/users',
-        'tasks': '/tasks'
+        'tasks': '/tasks',
+        'feedback': '/feedback'
     };
     
     const crumbs = [
@@ -1267,6 +1270,48 @@ class AppController {
         } catch (err) {
             res.status(400).json({ success: false, message: err.message });
         }
+    }
+
+    // ================= FEEDBACK (Firestore) =================
+    static async adminFeedback(req, res) {
+        try {
+            const activeTab = req.query.tab === 'subscribers' ? 'subscribers' : 'requests';
+
+            const [featureRequests, subscribers] = await Promise.all([
+                AppController._fetchFirestoreDocs('featureRequests'),
+                AppController._fetchFirestoreDocs('newsletterSubscribers')
+            ]);
+
+            return renderAdmin(res, 'feedback/index', {
+                page: 'feedback',
+                activeTab,
+                featureRequests,
+                subscribers,
+                total: featureRequests.length + subscribers.length
+            });
+        } catch (err) {
+            console.error('FEEDBACK ERROR:', err);
+            res.status(500).render('error', { title: 'Server Error', message: err.message, error: null, redirect_url: '/', header: false, footer: false });
+        }
+    }
+
+    static async _fetchFirestoreDocs(collectionName, limit = 200) {
+        // NOTE: we intentionally do NOT use orderBy('createdAt') here — Firestore
+        // silently EXCLUDES documents that lack the ordered field (no error thrown),
+        // which made collections using e.g. 'subscribedAt' appear empty.
+        // Fetch unordered and sort in memory instead.
+        const snapshot = await db.collection(collectionName).limit(limit).get();
+        return snapshot.docs
+            .map(doc => ({ id: doc.id, ...doc.data() }))
+            .sort((a, b) => {
+                const ts = (d) => {
+                    const v = d.createdAt || d.subscribedAt || d.submittedAt || d.timestamp || null;
+                    if (!v) return 0;
+                    const date = v.toDate ? v.toDate() : new Date(v);
+                    return isNaN(date.getTime()) ? 0 : date.getTime();
+                };
+                return ts(b) - ts(a); // newest first
+            });
     }
 }
 

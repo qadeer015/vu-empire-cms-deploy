@@ -1,0 +1,236 @@
+<!-- feedback/index.ejs -->
+<div class="container-fluid">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">Feedback</h1>
+    <span class="badge bg-primary"><%= total %> items</span>
+  </div>
+  <%- include('../partials/_breadcrumb') %>
+
+  <ul class="nav nav-tabs mb-3" role="tablist" id="feedbackTabs">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link <%= activeTab === 'requests' ? 'active' : '' %>" data-bs-toggle="tab" data-bs-target="#featureRequests" type="button" role="tab">
+        <i class="bi bi-lightbulb"></i> Feature Requests
+        <span class="badge bg-secondary ms-1"><%= featureRequests.length %></span>
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link <%= activeTab === 'subscribers' ? 'active' : '' %>" data-bs-toggle="tab" data-bs-target="#subscribers" type="button" role="tab">
+        <i class="bi bi-envelope"></i> Newsletter Subscribers
+        <span class="badge bg-secondary ms-1"><%= subscribers.length %></span>
+      </button>
+    </li>
+  </ul>
+
+  <div class="tab-content">
+    <!-- Feature Requests Tab -->
+    <div class="tab-pane fade <%= activeTab === 'requests' ? 'show active' : '' %>" id="featureRequests" role="tabpanel">
+      <% if (featureRequests.length > 0) { %>
+      <table class="table table-hover align-middle">
+        <thead>
+          <tr class="sticky-table-header">
+            <th>#</th>
+            <th>Title</th>
+            <th>Description</th>
+            <th>User</th>
+            <th>Status</th>
+            <th>Type</th>
+            <th>Submitted</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% featureRequests.forEach(function (r, i) { %>
+          <tr class="feature-request-row" role="button" data-index="<%= i %>">
+            <td class="text-muted small"><%= i + 1 %></td>
+            <td class="fw-medium"><%= r.title || r.name || '—' %></td>
+            <td class="text-muted small" style="max-width: 380px;">
+              <span class="d-inline-block text-truncate" style="max-width: 380px;" title="<%= r.description || r.message || r.details || '' %>">
+                <%= r.description || r.message || r.details || '—' %>
+              </span>
+            </td>
+            <td class="small"><%= r.email || r.userEmail || r.submittedBy || '—' %></td>
+            <td>
+              <% const st = (r.status || 'new').toLowerCase(); %>
+              <span class="badge bg-<%= st === 'completed' || st === 'done' ? 'success' : (st === 'in progress' ? 'warning' : (st === 'rejected' ? 'danger' : 'secondary')) %>">
+                <%= r.status || 'new' %>
+              </span>
+            </td>
+            <td class="small">
+              <% const ftype = r.type || '—'; %>
+              <span class="badge bg-<%= ftype.toLowerCase() === 'bug' ? 'danger' : (ftype.toLowerCase() === 'improvement' || ftype.toLowerCase() === 'enhancement' ? 'info' : 'secondary') %> text-uppercase">
+                <%= ftype %>
+              </span>
+            </td>
+            <td class="text-muted small"><%= r.createdAt ? new Date(r.createdAt.toDate ? r.createdAt.toDate() : r.createdAt).toLocaleString() : '—' %></td>
+          </tr>
+          <% }); %>
+        </tbody>
+      </table>
+      <% } else { %>
+      <div class="text-center py-5">
+        <i class="bi bi-lightbulb display-1 text-muted mb-3"></i>
+        <h5 class="text-muted">No feature requests found</h5>
+      </div>
+      <% } %>
+    </div>
+
+    <!-- Newsletter Subscribers Tab -->
+    <div class="tab-pane fade <%= activeTab === 'subscribers' ? 'show active' : '' %>" id="subscribers" role="tabpanel">
+      <% if (subscribers.length > 0) { %>
+      <table class="table table-hover align-middle">
+        <thead>
+          <tr class="sticky-table-header">
+            <th>#</th>
+            <th>Email</th>
+            <th>Status</th>
+            <th>Subscribed</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% subscribers.forEach(function (s, i) { %>
+          <tr>
+            <td class="text-muted small"><%= i + 1 %></td>
+            <td class="fw-medium"><%= s.email || s.subscriberEmail || '—' %></td>
+            <td>
+              <% const st = (s.status || 'active').toLowerCase(); %>
+              <span class="badge bg-<%= st === 'active' || st === 'subscribed' ? 'success' : 'secondary' %>"><%= s.status || 'active' %></span>
+            </td>
+            <td class="text-muted small"><%= (s.createdAt || s.subscribedAt) ? new Date((s.createdAt || s.subscribedAt).toDate ? (s.createdAt || s.subscribedAt).toDate() : (s.createdAt || s.subscribedAt)).toLocaleString() : '—' %></td>
+          </tr>
+          <% }); %>
+        </tbody>
+      </table>
+      <% } else { %>
+      <div class="text-center py-5">
+        <i class="bi bi-envelope display-1 text-muted mb-3"></i>
+        <h5 class="text-muted">No newsletter subscribers found</h5>
+      </div>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<!-- Feature Request Detail Modal -->
+<div class="modal fade" id="featureRequestModal" tabindex="-1" aria-labelledby="featureRequestModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="featureRequestModalLabel">Feature Request</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <h4 id="frTitle" class="mb-1">—</h4>
+        <div id="frMeta" class="mb-3 d-flex flex-wrap gap-2"></div>
+        <h6 class="text-muted text-uppercase small">Description</h6>
+        <p id="frDescription" class="mb-3" style="white-space: pre-wrap;">—</p>
+        <h6 class="text-muted text-uppercase small">Other Details</h6>
+        <dl id="frOtherDetails" class="row row-cols-1 row-cols-sm-2 g-2 mb-0"></dl>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function () {
+    // Sync ?tab= query param with the active tab (without reload)
+    var tabs = document.querySelectorAll('#feedbackTabs button[data-bs-toggle="tab"]');
+    if (!tabs.length) return;
+
+    tabs.forEach(function (tab) {
+      tab.addEventListener('shown.bs.tab', function (event) {
+        var target = event.target.getAttribute('data-bs-target'); // e.g. "#subscribers"
+        var tabName = target.replace('#', '');
+        var url = new URL(window.location.href);
+        url.searchParams.set('tab', tabName);
+        window.history.replaceState(null, '', url);
+      });
+    });
+  })();
+</script>
+
+<script>
+  window.__featureRequestsData = <%- JSON.stringify(featureRequests).replace(/</g, '\\u003c') %>;
+</script>
+<script>
+  (function () {
+    var modalEl = document.getElementById('featureRequestModal');
+    if (!modalEl || typeof bootstrap === 'undefined') return;
+    var modal = new bootstrap.Modal(modalEl);
+
+    var esc = function (s) {
+      var d = document.createElement('div');
+      d.textContent = s === null || s === undefined ? '' : String(s);
+      return d.innerHTML;
+    };
+    var dateFmt = function (v) {
+      if (!v) return '—';
+      try {
+        var d = v.toDate ? v.toDate() : new Date(v);
+        return isNaN(d.getTime()) ? '—' : d.toLocaleString();
+      } catch (e) { return '—'; }
+    };
+    var statusBadge = function (status) {
+      var st = (status || 'new').toLowerCase();
+      var color = st === 'completed' || st === 'done' ? 'success'
+        : st === 'in progress' ? 'warning'
+        : st === 'rejected' ? 'danger' : 'secondary';
+      return '<span class="badge bg-' + color + '">' + esc(status || 'new') + '</span>';
+    };
+    var typeBadge = function (type) {
+      if (!type) type = '—';
+      var t = type.toLowerCase();
+      var color = t === 'bug' ? 'danger' : (t === 'improvement' || t === 'enhancement' ? 'info' : 'secondary');
+      return '<span class="badge bg-' + color + ' text-uppercase">' + esc(type) + '</span>';
+    };
+
+    var KNOWN_FIELDS = ['title', 'name', 'description', 'message', 'details',
+      'email', 'userEmail', 'submittedBy', 'status', 'type', 'createdAt'];
+
+    document.querySelectorAll('.feature-request-row').forEach(function (row) {
+      row.addEventListener('click', function () {
+        var idx = parseInt(row.getAttribute('data-index'), 10);
+        var r = window.__featureRequestsData && window.__featureRequestsData[idx];
+        if (!r) return;
+
+        // Move the modal to document.body before showing it.
+        // The modal otherwise renders inside the content column (z-0), whose
+        // sibling sidebar (z-1) / header / floating buttons (z-3) create their
+        // own stacking contexts and would paint above the backdrop (z-1050).
+        if (modalEl.parentNode !== document.body) {
+          document.body.appendChild(modalEl);
+        }
+
+        document.getElementById('frTitle').textContent = r.title || r.name || 'Untitled request';
+
+        document.getElementById('frMeta').innerHTML =
+          statusBadge(r.status) + ' ' + typeBadge(r.type) +
+          '<span class="badge bg-light text-dark border">' + esc(dateFmt(r.createdAt)) + '</span>';
+
+        document.getElementById('frDescription').textContent =
+          r.description || r.message || r.details || '—';
+
+        var meta = [
+          ['Email', r.email || r.userEmail || r.submittedBy],
+          ['Submitted', dateFmt(r.createdAt)]
+        ];
+        Object.keys(r).forEach(function (k) {
+          if (KNOWN_FIELDS.indexOf(k) === -1) {
+            var v = r[k];
+            if (v && typeof v === 'object') v = JSON.stringify(v);
+            meta.push([k, v]);
+          }
+        });
+
+        var dl = document.getElementById('frOtherDetails');
+        dl.innerHTML = meta.map(function (m) {
+          return '<div class="col"><dt class="small text-muted mb-0">' + esc(m[0]) +
+            '</dt><dd class="mb-1 text-break">' + esc(m[1] || '—') + '</dd></div>';
+        }).join('');
+
+        modal.show();
+      });
+    });
+  })();
+</script>

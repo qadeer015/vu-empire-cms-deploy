@@ -88,4 +88,7 @@ router.get('/pastpapers/:id/edit', authenticate, authorize('admin'), AppControll
 router.post('/pastpapers/:id', authenticate, authorize('admin'), AppController.adminPastPaperUpdate);
 router.post('/pastpapers/:id/delete', authenticate, authorize('admin'), AppController.adminPastPaperDelete);
 
+// ── Feedback (Firestore: featureRequests + newsletterSubscribers) ──
+router.get('/feedback', authenticate, authorize('admin'), AppController.adminFeedback);
+
 module.exports = router;
