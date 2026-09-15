@@ -12,6 +12,7 @@ const uploadRoutes = require('../routes/api/upload.route');
 const pastPaperRoutes = require('../routes/api/pastPaper.route');
 const assignmentRoutes = require('../routes/api/assignment.route');
 const gdbSolutionRoutes = require('../routes/api/gdbSolution.route');
+const analyticsRoutes = require('../routes/api/analytics.route');
 
 //web routes
 const webAppRoutes = require('../routes/web/app.route');
@@ -65,6 +66,7 @@ app.use('/api/past-papers', pastPaperRoutes);
 app.use('/api/assignments', assignmentRoutes);
 app.use('/api/gdb-solutions', gdbSolutionRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 // Global variables for views
 app.use((req, res, next) => {

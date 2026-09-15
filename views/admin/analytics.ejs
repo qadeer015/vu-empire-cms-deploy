@@ -1,0 +1,333 @@
+<!-- admin/analytics.ejs -->
+<div class="container-fluid">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">Analytics Dashboard</h1>
+    <div class="d-flex align-items-center gap-2">
+      <select id="dateRange" class="form-select form-select-sm" style="width: 180px;">
+        <option value="7daysAgo|today">Last 7 days</option>
+        <option value="30daysAgo|today" selected>Last 30 days</option>
+        <option value="90daysAgo|today">Last 90 days</option>
+      </select>
+      <button id="refreshBtn" class="btn btn-primary btn-sm">
+        <i class="bi bi-arrow-clockwise"></i> Refresh
+      </button>
+    </div>
+  </div>
+  <%- include('../partials/_breadcrumb') %>
+
+  <!-- Stat Cards -->
+  <div class="row g-3 mb-4" id="summaryCards">
+    <div class="col-md-3 col-lg-2">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body text-center">
+          <i class="bi bi-people display-6 text-primary"></i>
+          <h2 class="mt-2 mb-0" data-stat="activeUsers">–</h2>
+          <small class="text-muted">Active Users</small>
+          <div class="mt-1 small" data-change="activeUsers"></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 col-lg-2">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body text-center">
+          <i class="bi bi-person-check display-6 text-success"></i>
+          <h2 class="mt-2 mb-0" data-stat="realtimeUsers">–</h2>
+          <small class="text-muted">Realtime Users</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 col-lg-2">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body text-center">
+          <i class="bi bi-box-arrow-in-right display-6 text-info"></i>
+          <h2 class="mt-2 mb-0" data-stat="sessions">–</h2>
+          <small class="text-muted">Sessions</small>
+          <div class="mt-1 small" data-change="sessions"></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 col-lg-2">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body text-center">
+          <i class="bi bi-eye display-6 text-warning"></i>
+          <h2 class="mt-2 mb-0" data-stat="pageViews">–</h2>
+          <small class="text-muted">Page Views</small>
+          <div class="mt-1 small" data-change="pageViews"></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 col-lg-2">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body text-center">
+          <i class="bi bi-heart-pulse display-6 text-danger"></i>
+          <h2 class="mt-2 mb-0" data-stat="engagementRate">–</h2>
+          <small class="text-muted">Engagement Rate</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 col-lg-2">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body text-center">
+          <i class="bi bi-stopwatch display-6 text-secondary"></i>
+          <h2 class="mt-2 mb-0" data-stat="avgSessionDuration">–</h2>
+          <small class="text-muted">Avg Session</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Traffic Trend -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-header bg-transparent border-bottom">
+      <h5 class="mb-0"><i class="bi bi-graph-up me-2"></i>Traffic Trend</h5>
+    </div>
+    <div class="card-body">
+      <div id="trendChart" class="d-flex align-items-end gap-1" style="height: 220px;">
+        <div class="text-muted w-100 text-center py-5">Loading…</div>
+      </div>
+      <div class="mt-2 small text-muted text-center">
+        <span class="badge bg-primary">&nbsp;</span> Active Users
+        <span class="badge bg-success ms-2">&nbsp;</span> Sessions
+        <span class="badge bg-warning text-dark ms-2">&nbsp;</span> Page Views
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4 mb-4">
+    <!-- Devices -->
+    <div class="col-lg-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-header bg-transparent border-bottom">
+          <h6 class="mb-0"><i class="bi bi-phone me-2"></i>Devices</h6>
+        </div>
+        <div class="card-body" id="devicesList">
+          <div class="text-muted text-center py-4">Loading…</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Traffic Sources -->
+    <div class="col-lg-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-header bg-transparent border-bottom">
+          <h6 class="mb-0"><i class="bi bi-signpost-split me-2"></i>Traffic Sources</h6>
+        </div>
+        <div class="card-body" id="trafficList">
+          <div class="text-muted text-center py-4">Loading…</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Countries -->
+    <div class="col-lg-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-header bg-transparent border-bottom">
+          <h6 class="mb-0"><i class="bi bi-globe2 me-2"></i>Top Countries</h6>
+        </div>
+        <div class="card-body p-0">
+          <table class="table table-sm table-hover align-middle mb-0">
+            <thead>
+              <tr><th class="ps-3">Country</th><th class="text-center">Users</th></tr>
+            </thead>
+            <tbody id="countriesBody">
+              <tr><td colspan="2" class="text-muted text-center py-4">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top Pages -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-header bg-transparent border-bottom">
+      <h5 class="mb-0"><i class="bi bi-file-earmark-text me-2"></i>Top Pages</h5>
+    </div>
+    <div class="card-body p-0">
+      <table class="table table-hover align-middle mb-0">
+        <thead>
+          <tr><th class="ps-3">Page</th><th class="text-center" width="20%">Views</th></tr>
+        </thead>
+        <tbody id="pagesBody">
+          <tr><td colspan="2" class="text-muted text-center py-4">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<style>
+  .trend-bar { min-width: 6px; border-radius: 3px 3px 0 0; }
+  .trend-bar.users { background: var(--bs-primary); }
+  .trend-bar.sessions { background: var(--bs-success); opacity: .55; }
+  .trend-bar.views { background: var(--bs-warning); opacity: .45; }
+  .trend-col { flex: 1 1 0; display: flex; flex-direction: column; justify-content: flex-end; align-items: stretch; gap: 2px; height: 100%; }
+  .change-up { color: var(--bs-success); }
+  .change-down { color: var(--bs-danger); }
+  .hbar { height: 8px; border-radius: 4px; background: var(--bs-primary); }
+</style>
+
+<script>
+  (function () {
+    const nf = new Intl.NumberFormat();
+    let realtimeTimer = null;
+
+    const fmtDuration = (seconds) => {
+      const s = Math.round(Number(seconds) || 0);
+      const m = Math.floor(s / 60);
+      return m > 0 ? `${m}m ${s % 60}s` : `${s}s`;
+    };
+
+    const renderChange = (key, comparison) => {
+      const el = document.querySelector(`[data-change="${key}"]`);
+      if (!el || !comparison) return;
+      const c = comparison[key];
+      if (!c || typeof c.change !== 'number' || c.previous === 0) {
+        el.textContent = '';
+        return;
+      }
+      const up = c.change >= 0;
+      el.className = 'mt-1 small ' + (up ? 'change-up' : 'change-down');
+      el.innerHTML = `<i class="bi bi-arrow-${up ? 'up' : 'down'}"></i> ${Math.abs(c.change).toFixed(1)}% vs previous`;
+    };
+
+    const pct = (value, total) => (total > 0 ? (value / total) * 100 : 0);
+
+    const renderBars = (rows, labelKey, valueKey, color) => {
+      const total = rows.reduce((sum, r) => sum + r[valueKey], 0);
+      return rows.map((row) => `
+        <div class="mb-2">
+          <div class="d-flex justify-content-between small mb-1">
+            <span class="fw-medium">${row[labelKey]}</span>
+            <span class="text-muted">${nf.format(row[valueKey])} (${pct(row[valueKey], total).toFixed(0)}%)</span>
+          </div>
+          <div class="hbar" style="width: ${pct(row[valueKey], rows[0][valueKey])}%; ${color ? 'background:' + color : ''}"></div>
+        </div>
+      `).join('');
+    };
+
+    const renderTrend = (trend) => {
+      const wrap = document.getElementById('trendChart');
+      if (!trend || trend.length === 0) {
+        wrap.innerHTML = '<div class="text-muted w-100 text-center py-5">No trend data available</div>';
+        return;
+      }
+      const max = Math.max(...trend.map((t) => Math.max(t.activeUsers, t.sessions, t.pageViews)), 1);
+      wrap.innerHTML = trend.map((t) => `
+        <div class="trend-col" title="${t.date}: ${t.activeUsers} users, ${t.sessions} sessions, ${t.pageViews} views">
+          <div class="trend-bar users" style="height: ${(t.activeUsers / max) * 100}%"></div>
+          <div class="trend-bar sessions" style="height: ${(t.sessions / max) * 100}%"></div>
+          <div class="trend-bar views" style="height: ${(t.pageViews / max) * 100}%"></div>
+        </div>
+      `).join('');
+    };
+
+    const fillTable = (bodyId, rows, labelKey, valueKey) => {
+      const body = document.getElementById(bodyId);
+      if (!rows || rows.length === 0) {
+        body.innerHTML = '<tr><td colspan="2" class="text-muted text-center py-4">No data available</td></tr>';
+        return;
+      }
+      body.innerHTML = rows.map((row) => `
+        <tr>
+          <td class="ps-3 text-break">${row[labelKey]}</td>
+          <td class="text-center fw-bold">${nf.format(row[valueKey])}</td>
+        </tr>
+      `).join('');
+    };
+
+    const refreshRealtime = () => {
+      fetch('/api/analytics/realtime', { credentials: 'same-origin' })
+        .then((res) => res.json())
+        .then((json) => {
+          if (!json.success) return;
+          const el = document.querySelector('[data-stat="realtimeUsers"]');
+          if (el) el.textContent = nf.format(json.data.realtimeUsers);
+        })
+        .catch(() => {});
+    };
+
+    const setLoading = (loading) => {
+      const btn = document.getElementById('refreshBtn');
+      const range = document.getElementById('dateRange');
+      if (!btn) return;
+      btn.disabled = loading;
+      if (range) range.disabled = loading;
+      btn.innerHTML = loading
+        ? '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Loading…'
+        : '<i class="bi bi-arrow-clockwise"></i> Refresh';
+    };
+
+    const loadDashboard = () => {
+      setLoading(true);
+      const [startDate, endDate] = document.getElementById('dateRange').value.split('|');
+      fetch(`/api/analytics/dashboard?startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}`, { credentials: 'same-origin' })
+        .then((res) => res.json())
+        .then((json) => {
+          if (!json.success) throw new Error(json.message || 'Failed to load');
+          const data = json.data;
+
+          const set = (key, value) => {
+            const el = document.querySelector(`[data-stat="${key}"]`);
+            if (!el) return;
+            if (key === 'engagementRate') el.textContent = `${(value || 0).toFixed(1)}%`;
+            else if (key === 'avgSessionDuration') el.textContent = fmtDuration(value);
+            else el.textContent = nf.format(value || 0);
+          };
+
+          set('activeUsers', data.summary.activeUsers);
+          set('sessions', data.summary.sessions);
+          set('pageViews', data.summary.pageViews);
+          set('engagementRate', data.summary.engagementRate);
+          set('avgSessionDuration', data.summary.avgSessionDuration);
+
+          renderChange('activeUsers', data.comparison);
+          renderChange('sessions', data.comparison);
+          renderChange('pageViews', data.comparison);
+
+          renderTrend(data.trend);
+
+          const devices = (data.devices || []).map((r) => ({
+            device: r.dimensionValues?.[0]?.value || 'Unknown',
+            activeUsers: Number(r.metricValues?.[0]?.value || 0)
+          }));
+          document.getElementById('devicesList').innerHTML = devices.length
+            ? renderBars(devices, 'device', 'activeUsers')
+            : '<div class="text-muted text-center py-4">No data available</div>';
+
+          const traffic = (data.traffic || []).map((r) => ({
+            source: r.dimensionValues?.[0]?.value || 'Unknown',
+            sessions: Number(r.metricValues?.[0]?.value || 0)
+          }));
+          document.getElementById('trafficList').innerHTML = traffic.length
+            ? renderBars(traffic, 'source', 'sessions', 'var(--bs-success)')
+            : '<div class="text-muted text-center py-4">No data available</div>';
+
+          fillTable('countriesBody', (data.countries || []).map((r) => ({
+            country: r.dimensionValues?.[0]?.value || 'Unknown',
+            activeUsers: Number(r.metricValues?.[0]?.value || 0)
+          })).slice(0, 10), 'country', 'activeUsers');
+
+          fillTable('pagesBody', (data.pages || []).map((r) => ({
+            path: r.dimensionValues?.[0]?.value || 'Unknown',
+            pageViews: Number(r.metricValues?.[0]?.value || 0)
+          })), 'path', 'pageViews');
+        })
+        .catch((err) => {
+          console.error(err);
+          ['trendChart', 'devicesList', 'trafficList', 'countriesBody', 'pagesBody'].forEach((id) => {
+            const el = document.getElementById(id);
+            if (el) el.innerHTML = '<div class="text-danger text-center py-4"><i class="bi bi-exclamation-triangle me-1"></i>Failed to load analytics data</div>';
+          });
+        })
+        .finally(() => setLoading(false));
+    };
+
+    document.getElementById('refreshBtn').addEventListener('click', loadDashboard);
+    document.getElementById('dateRange').addEventListener('change', loadDashboard);
+
+    loadDashboard();
+    refreshRealtime();
+    realtimeTimer = setInterval(refreshRealtime, 60000);
+    window.addEventListener('beforeunload', () => clearInterval(realtimeTimer));
+  })();
+</script>
