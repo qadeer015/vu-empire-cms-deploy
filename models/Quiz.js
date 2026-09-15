@@ -79,6 +79,69 @@ class Quiz {
         });
     }
 
+    static async findAllWithFilters({ search, type, limit = 50, offset = 0 } = {}) {
+        const conditions = [];
+        const params = [];
+
+        if (search && search.trim()) {
+            conditions.push('(qz.title LIKE ? OR c.courseCode LIKE ? OR c.courseName LIKE ?)');
+            params.push(`%${search.trim()}%`, `${search.trim()}%`, `%${search.trim()}%`);
+        }
+
+        if (type && type !== 'all') {
+            conditions.push('qz.type = ?');
+            params.push(type);
+        }
+
+        const whereClause = conditions.length ? 'WHERE ' + conditions.join(' AND ') : '';
+        const cacheKey = `quizzes:filtered:${search}:${type}:${limit}:${offset}`;
+
+        return cache.remember(cacheKey, TTL.QUIZZES, async () => {
+            const [rows] = await db.query(`
+                SELECT
+                    qz.quizId, qz.title, qz.type, qz.createdAt,
+                    c.courseId, c.courseCode, c.courseName,
+                    COUNT(q.questionId) AS question_count
+                FROM quizzes qz
+                JOIN courses c ON qz.courseId = c.courseId
+                LEFT JOIN questions q ON q.quizId = qz.quizId
+                ${whereClause}
+                GROUP BY qz.quizId, qz.title, qz.type, qz.createdAt, c.courseId, c.courseCode, c.courseName
+                ORDER BY c.courseCode, qz.quizId
+                LIMIT ? OFFSET ?
+            `, [...params, parseInt(limit), parseInt(offset)]);
+            return rows;
+        });
+    }
+
+    static async countAllWithFilters({ search, type } = {}) {
+        const conditions = [];
+        const params = [];
+
+        if (search && search.trim()) {
+            conditions.push('(qz.title LIKE ? OR c.courseCode LIKE ? OR c.courseName LIKE ?)');
+            params.push(`%${search.trim()}%`, `${search.trim()}%`, `%${search.trim()}%`);
+        }
+
+        if (type && type !== 'all') {
+            conditions.push('qz.type = ?');
+            params.push(type);
+        }
+
+        const whereClause = conditions.length ? 'WHERE ' + conditions.join(' AND ') : '';
+        const cacheKey = `quizzes:count:${search}:${type}`;
+
+        return cache.remember(cacheKey, TTL.QUIZZES, async () => {
+            const [[{ total }]] = await db.query(`
+                SELECT COUNT(DISTINCT qz.quizId) as total
+                FROM quizzes qz
+                JOIN courses c ON qz.courseId = c.courseId
+                ${whereClause}
+            `, params);
+            return total;
+        });
+    }
+
     static async countAll() {
         const cacheKey = 'quizzes:count';
         return cache.remember(cacheKey, TTL.QUIZZES, async () => {

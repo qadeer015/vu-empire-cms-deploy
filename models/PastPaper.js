@@ -134,6 +134,91 @@ class PastPaper {
         return rows;
     }
 
+    static async getAllWithFilters({ search, type, semester, status, limit = 20, offset = 0 } = {}) {
+        const conditions = [];
+        const params = [];
+
+        if (search && search.trim()) {
+            conditions.push('(c.courseCode LIKE ? OR c.courseName LIKE ? OR pp.year LIKE ?)');
+            params.push(`${search.trim()}%`, `%${search.trim()}%`, `%${search.trim()}%`);
+        }
+
+        if (type && type !== 'all') {
+            conditions.push('pp.type = ?');
+            params.push(type);
+        }
+
+        if (semester && semester !== 'all') {
+            conditions.push('pp.semester = ?');
+            params.push(semester);
+        }
+
+        if (status && status !== 'all') {
+            conditions.push('pp.status = ?');
+            params.push(status);
+        }
+
+        const whereClause = conditions.length ? 'WHERE ' + conditions.join(' AND ') : '';
+        const cacheKey = `pastPapers:filtered:${search}:${type}:${semester}:${status}:${limit}:${offset}`;
+
+        return cache.remember(cacheKey, TTL.PASTPAPERS, async () => {
+            const [rows] = await db.query(
+                `SELECT
+                    pp.*,
+                    c.courseCode,
+                    c.courseName
+                FROM past_papers pp
+                LEFT JOIN courses c ON pp.courseId = c.courseId
+                ${whereClause}
+                ORDER BY pp.createdAt DESC
+                LIMIT ?
+                OFFSET ?`,
+                [...params, parseInt(limit), parseInt(offset)]
+            );
+
+            return rows;
+        });
+    }
+
+    static async countAllWithFilters({ search, type, semester, status } = {}) {
+        const conditions = [];
+        const params = [];
+
+        if (search && search.trim()) {
+            conditions.push('(c.courseCode LIKE ? OR c.courseName LIKE ? OR pp.year LIKE ?)');
+            params.push(`${search.trim()}%`, `%${search.trim()}%`, `%${search.trim()}%`);
+        }
+
+        if (type && type !== 'all') {
+            conditions.push('pp.type = ?');
+            params.push(type);
+        }
+
+        if (semester && semester !== 'all') {
+            conditions.push('pp.semester = ?');
+            params.push(semester);
+        }
+
+        if (status && status !== 'all') {
+            conditions.push('pp.status = ?');
+            params.push(status);
+        }
+
+        const whereClause = conditions.length ? 'WHERE ' + conditions.join(' AND ') : '';
+        const cacheKey = `pastPapers:count:${search}:${type}:${semester}:${status}`;
+
+        return cache.remember(cacheKey, TTL.PASTPAPERS, async () => {
+            const [[{ total }]] = await db.query(
+                `SELECT COUNT(*) as total
+                FROM past_papers pp
+                LEFT JOIN courses c ON pp.courseId = c.courseId
+                ${whereClause}`,
+                params
+            );
+            return total;
+        });
+    }
+
     static async countAll() {
         const cacheKey = 'pastPapers:count';
         return cache.remember(cacheKey, TTL.PASTPAPERS, async () => {

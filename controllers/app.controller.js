@@ -336,16 +336,20 @@ class AppController {
             const page = parseInt(req.query.page) || 1;
             const limit = 50;
             const offset = (page - 1) * limit;
+            const search = req.query.q || '';
+            const type = req.query.type || 'all';
 
             const [quizzes, total] = await Promise.all([
-                Quiz.findAll({ limit, offset }),
-                Quiz.countAll()
+                Quiz.findAllWithFilters({ search, type, limit, offset }),
+                Quiz.countAllWithFilters({ search, type })
             ]);
 
             renderAdmin(res, 'quizzes/index', {
                 page: 'quizzes',
                 quizzes,
                 total,
+                q: search,
+                type,
                 pagination: { page, limit, total, pages: Math.ceil(total / limit) }
             });
         } catch (err) {
@@ -939,16 +943,22 @@ class AppController {
             const page = parseInt(req.query.page) || 1;
             const limit = 20;
             const offset = (page - 1) * limit;
+            const search = req.query.q || '';
+            const status = req.query.status || 'all';
+            const dueDate = req.query.dueDate || 'all';
 
             const [assignments, total] = await Promise.all([
-                Assignment.findAll({ limit, offset }),
-                Assignment.countAll()
+                Assignment.findAllWithFilters({ search, status, dueDate, limit, offset }),
+                Assignment.countAllWithFilters({ search, status, dueDate })
             ]);
 
             renderAdmin(res, 'assignments/index', {
                 page: 'assignments',
                 assignments,
                 total,
+                q: search,
+                status,
+                dueDate,
                 pagination: { page, limit, total, pages: Math.ceil(total / limit) }
             });
         } catch (err) {
@@ -1048,16 +1058,18 @@ class AppController {
             const page = parseInt(req.query.page) || 1;
             const limit = 20;
             const offset = (page - 1) * limit;
+            const search = req.query.q || '';
 
             const [solutions, total] = await Promise.all([
-                GdbSolution.findAll({ limit, offset }),
-                GdbSolution.countAll()
+                GdbSolution.findAllWithFilters({ search, limit, offset }),
+                GdbSolution.countAllWithFilters({ search })
             ]);
 
             renderAdmin(res, 'gdbs/index', {
                 page: 'gdb-solutions',
                 solutions,
                 total,
+                q: search,
                 pagination: { page, limit, total, pages: Math.ceil(total / limit) }
             });
         } catch (err) {
@@ -1152,16 +1164,24 @@ class AppController {
             const page = parseInt(req.query.page) || 1;
             const limit = 20;
             const offset = (page - 1) * limit;
+            const search = req.query.q || '';
+            const type = req.query.type || 'all';
+            const semester = req.query.semester || 'all';
+            const status = req.query.status || 'all';
 
             const [papers, total] = await Promise.all([
-                PastPaper.getAll(limit, offset),
-                PastPaper.countAll()
+                PastPaper.getAllWithFilters({ search, type, semester, status, limit, offset }),
+                PastPaper.countAllWithFilters({ search, type, semester, status })
             ]);
 
             renderAdmin(res, 'pastpapers/index', {
                 page: 'past-papers',
                 papers,
                 total,
+                q: search,
+                type,
+                semester,
+                status,
                 pagination: { page, limit, total, pages: Math.ceil(total / limit) }
             });
         } catch (err) {
@@ -1273,21 +1293,76 @@ class AppController {
     }
 
     // ================= FEEDBACK (Firestore) =================
+    // NOTE: Firestore has no LIKE/full-text queries, so filters are applied
+    // in memory after fetching (collections are capped at 200 docs anyway).
+    static _filterFirestoreDocs(docs, search, fields) {
+        if (!search || !search.trim()) return docs;
+        const q = search.trim().toLowerCase();
+        return docs.filter(doc =>
+            fields.some(f => {
+                const v = doc[f];
+                return v !== undefined && v !== null && String(v).toLowerCase().includes(q);
+            })
+        );
+    }
+
     static async adminFeedback(req, res) {
         try {
             const activeTab = req.query.tab === 'subscribers' ? 'subscribers' : 'requests';
+            const search = req.query.q || '';
+            const frStatus = req.query.status || 'all';
+            const frType = req.query.type || 'all';
+            const subStatus = req.query.subStatus || 'all';
+            const subscribedDate = req.query.subscribedDate || '';
 
             const [featureRequests, subscribers] = await Promise.all([
                 AppController._fetchFirestoreDocs('featureRequests'),
                 AppController._fetchFirestoreDocs('newsletterSubscribers')
             ]);
 
+            // Feature request filters
+            let filteredRequests = AppController._filterFirestoreDocs(
+                featureRequests, search, ['title', 'name', 'description', 'message', 'details', 'email', 'userEmail', 'submittedBy']
+            );
+            if (frStatus !== 'all') {
+                filteredRequests = filteredRequests.filter(r => String(r.status || 'new').toLowerCase() === frStatus);
+            }
+            if (frType !== 'all') {
+                filteredRequests = filteredRequests.filter(r => String(r.type || '').toLowerCase() === frType);
+            }
+
+            // Subscriber filters: email search + status (active/inactive) + subscribed date (YYYY-MM-DD)
+            let filteredSubscribers = AppController._filterFirestoreDocs(subscribers, search, ['email', 'subscriberEmail']);
+            if (subStatus !== 'all') {
+                filteredSubscribers = filteredSubscribers.filter(s => {
+                    const isActive = s.active === undefined ? true : Boolean(s.active);
+                    return subStatus === 'active' ? isActive : !isActive;
+                });
+            }
+            if (subscribedDate && /^\d{4}-\d{2}-\d{2}$/.test(subscribedDate)) {
+                filteredSubscribers = filteredSubscribers.filter(s => {
+                    const v = s.subscribedAt || s.createdAt;
+                    if (!v) return false;
+                    const d = v.toDate ? v.toDate() : new Date(v);
+                    if (isNaN(d.getTime())) return false;
+                    const y = d.getFullYear();
+                    const m = String(d.getMonth() + 1).padStart(2, '0');
+                    const day = String(d.getDate()).padStart(2, '0');
+                    return `${y}-${m}-${day}` === subscribedDate;
+                });
+            }
+
             return renderAdmin(res, 'feedback/index', {
                 page: 'feedback',
                 activeTab,
-                featureRequests,
-                subscribers,
-                total: featureRequests.length + subscribers.length
+                featureRequests: filteredRequests,
+                subscribers: filteredSubscribers,
+                total: filteredRequests.length + filteredSubscribers.length,
+                q: search,
+                status: frStatus,
+                type: frType,
+                subStatus,
+                subscribedDate
             });
         } catch (err) {
             console.error('FEEDBACK ERROR:', err);

@@ -63,6 +63,97 @@ class Assignment {
         });
     }
 
+    // Validate the dueDate filter value (expects YYYY-MM-DD from the date input)
+    static _dueDateCondition(dueDate) {
+        if (!dueDate || typeof dueDate !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(dueDate)) {
+            return null;
+        }
+        const d = new Date(`${dueDate}T00:00:00Z`);
+        return isNaN(d.getTime()) ? null : dueDate;
+    }
+
+    static async findAllWithFilters({ search, status, dueDate, limit = 20, offset = 0 } = {}) {
+        const conditions = [];
+        const params = [];
+
+        if (search && search.trim()) {
+            conditions.push('(a.title LIKE ? OR a.courseCode LIKE ? OR a.courseName LIKE ? OR a.description LIKE ?)');
+            params.push(
+                `%${search.trim()}%`,
+                `${search.trim()}%`,
+                `%${search.trim()}%`,
+                `%${search.trim()}%`
+            );
+        }
+
+        if (status && status !== 'all') {
+            conditions.push('a.status = ?');
+            params.push(status);
+        }
+
+        const dueDateFilter = this._dueDateCondition(dueDate);
+        if (dueDateFilter) {
+            conditions.push('DATE(a.dueDate) = ?');
+            params.push(dueDateFilter);
+        }
+
+        const whereClause = conditions.length ? 'WHERE ' + conditions.join(' AND ') : '';
+        const cacheKey = `assignments:filtered:${search}:${status}:${dueDate}:${limit}:${offset}`;
+
+        return cache.remember(cacheKey, TTL.ASSIGNMENTS, async () => {
+            const [rows] = await db.query(
+                `SELECT a.*, c.courseId
+                 FROM assignments a
+                 LEFT JOIN courses c ON CONVERT(a.courseCode USING utf8mb4) COLLATE utf8mb4_0900_ai_ci = CONVERT(c.courseCode USING utf8mb4) COLLATE utf8mb4_0900_ai_ci
+                 ${whereClause}
+                 ORDER BY a.createdAt DESC
+                 LIMIT ? OFFSET ?`,
+                [...params, parseInt(limit), parseInt(offset)]
+            );
+            return rows;
+        });
+    }
+
+    static async countAllWithFilters({ search, status, dueDate } = {}) {
+        const conditions = [];
+        const params = [];
+
+        if (search && search.trim()) {
+            conditions.push('(a.title LIKE ? OR a.courseCode LIKE ? OR a.courseName LIKE ? OR a.description LIKE ?)');
+            params.push(
+                `%${search.trim()}%`,
+                `${search.trim()}%`,
+                `%${search.trim()}%`,
+                `%${search.trim()}%`
+            );
+        }
+
+        if (status && status !== 'all') {
+            conditions.push('a.status = ?');
+            params.push(status);
+        }
+
+        const dueDateCountFilter = this._dueDateCondition(dueDate);
+        if (dueDateCountFilter) {
+            conditions.push('DATE(a.dueDate) = ?');
+            params.push(dueDateCountFilter);
+        }
+
+        const whereClause = conditions.length ? 'WHERE ' + conditions.join(' AND ') : '';
+        const cacheKey = `assignments:count:${search}:${status}:${dueDate}`;
+
+        return cache.remember(cacheKey, TTL.ASSIGNMENTS, async () => {
+            const [[{ total }]] = await db.query(
+                `SELECT COUNT(*) as total
+                 FROM assignments a
+                 LEFT JOIN courses c ON CONVERT(a.courseCode USING utf8mb4) COLLATE utf8mb4_0900_ai_ci = CONVERT(c.courseCode USING utf8mb4) COLLATE utf8mb4_0900_ai_ci
+                 ${whereClause}`,
+                params
+            );
+            return total;
+        });
+    }
+
     static async countAll() {
         const cacheKey = 'assignments:count';
         return cache.remember(cacheKey, TTL.ASSIGNMENTS, async () => {

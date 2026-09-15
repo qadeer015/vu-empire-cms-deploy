@@ -63,6 +63,66 @@ class GdbSolution {
         });
     }
 
+    static async findAllWithFilters({ search, limit = 20, offset = 0 } = {}) {
+        const conditions = [];
+        const params = [];
+
+        if (search && search.trim()) {
+            conditions.push('(gs.gdbTitle LIKE ? OR gs.courseCode LIKE ? OR gs.courseName LIKE ? OR gs.solution LIKE ?)');
+            params.push(
+                `%${search.trim()}%`,
+                `${search.trim()}%`,
+                `%${search.trim()}%`,
+                `%${search.trim()}%`
+            );
+        }
+
+        const whereClause = conditions.length ? 'WHERE ' + conditions.join(' AND ') : '';
+        const cacheKey = `gdbSolutions:filtered:${search}:${limit}:${offset}`;
+
+        return cache.remember(cacheKey, TTL.GDB_SOLUTIONS, async () => {
+            const [rows] = await db.query(
+                `SELECT gs.*, c.courseId
+                 FROM gdb_solutions gs
+                 LEFT JOIN courses c ON CONVERT(gs.courseCode USING utf8mb4) COLLATE utf8mb4_0900_ai_ci = CONVERT(c.courseCode USING utf8mb4) COLLATE utf8mb4_0900_ai_ci
+                 ${whereClause}
+                 ORDER BY gs.createdAt DESC
+                 LIMIT ? OFFSET ?`,
+                [...params, parseInt(limit), parseInt(offset)]
+            );
+            return rows;
+        });
+    }
+
+    static async countAllWithFilters({ search } = {}) {
+        const conditions = [];
+        const params = [];
+
+        if (search && search.trim()) {
+            conditions.push('(gs.gdbTitle LIKE ? OR gs.courseCode LIKE ? OR gs.courseName LIKE ? OR gs.solution LIKE ?)');
+            params.push(
+                `%${search.trim()}%`,
+                `${search.trim()}%`,
+                `%${search.trim()}%`,
+                `%${search.trim()}%`
+            );
+        }
+
+        const whereClause = conditions.length ? 'WHERE ' + conditions.join(' AND ') : '';
+        const cacheKey = `gdbSolutions:count:${search}`;
+
+        return cache.remember(cacheKey, TTL.GDB_SOLUTIONS, async () => {
+            const [[{ total }]] = await db.query(
+                `SELECT COUNT(*) as total
+                 FROM gdb_solutions gs
+                 LEFT JOIN courses c ON CONVERT(gs.courseCode USING utf8mb4) COLLATE utf8mb4_0900_ai_ci = CONVERT(c.courseCode USING utf8mb4) COLLATE utf8mb4_0900_ai_ci
+                 ${whereClause}`,
+                params
+            );
+            return total;
+        });
+    }
+
     static async countAll() {
         const cacheKey = 'gdbSolutions:count';
         return cache.remember(cacheKey, TTL.GDB_SOLUTIONS, async () => {

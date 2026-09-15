@@ -11,6 +11,49 @@
   </div>
   <%- include('../partials/_breadcrumb') %>
 
+  <!-- Search & Filter -->
+  <div class="row">
+    <div class="col-12">
+      <button class="btn btn-outline-secondary my-3 filter-btn" type="button">
+        <i class="bi bi-funnel"></i>
+        Filters
+      </button>
+      <form method="GET" action="/assignments" class="mb-3 filter-area d-none">
+        <div class="d-flex flex-column g-2 align-items-start">
+          <div class="col-sm-3 col-md-3">
+            <label for="assignmentSearch" class="form-label small text-muted">Search</label>
+            <input type="text" class="form-control form-control-sm" id="assignmentSearch" name="q" placeholder="Search by title or course..." value="<%= typeof q !== 'undefined' ? q : '' %>">
+          </div>
+          <div class="col-sm-3 col-md-3">
+            <label for="statusFilter" class="form-label small text-muted">Status</label>
+            <select class="form-select form-select-sm" id="statusFilter" name="status">
+              <option value="all" <%= (typeof status === 'undefined' || status === 'all') ? 'selected' : '' %>>All</option>
+              <option value="draft" <%= typeof status !== 'undefined' && status === 'draft' ? 'selected' : '' %>>Draft</option>
+              <option value="publish" <%= typeof status !== 'undefined' && status === 'publish' ? 'selected' : '' %>>Published</option>
+              <option value="pending" <%= typeof status !== 'undefined' && status === 'pending' ? 'selected' : '' %>>Pending</option>
+            </select>
+          </div>
+          <div class="col-sm-3 col-md-3">
+            <label for="dueDateFilter" class="form-label small text-muted">Due Date</label>
+            <input type="date" class="form-control form-control-sm" id="dueDateFilter" name="dueDate" value="<%= typeof dueDate !== 'undefined' && dueDate !== 'all' ? dueDate : '' %>">
+          </div>
+          <div class="col-sm-2 mt-3">
+            <div class="d-flex gap-2">
+              <a href="/assignments" class="btn btn-outline-secondary btn-sm w-100">
+                <i class="bi bi-x-lg"></i>
+                <span>Reset</span>
+              </a>
+              <button type="submit" class="btn btn-primary btn-sm w-100">
+                <i class="bi bi-check-lg"></i>
+                <span>Apply</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <% if (typeof assignments !== 'undefined' && assignments.length > 0) { %>
   <table class="table table-hover align-middle">
     <thead>
@@ -63,16 +106,17 @@
 
   <!-- Pagination -->
   <% if (typeof pagination !== 'undefined' && pagination.pages > 1) { %>
+  <% const qs = []; if (typeof q !== 'undefined' && q) qs.push('q=' + encodeURIComponent(q)); if (typeof status !== 'undefined' && status && status !== 'all') qs.push('status=' + encodeURIComponent(status)); if (typeof dueDate !== 'undefined' && dueDate && dueDate !== 'all') qs.push('dueDate=' + encodeURIComponent(dueDate)); const qsStr = qs.length ? '&' + qs.join('&') : ''; %>
   <nav>
     <ul class="pagination justify-content-center">
       <li class="page-item <%= pagination.page <= 1 ? 'disabled' : '' %>">
-        <a class="page-link" href="?page=<%= pagination.page - 1 %>">Previous</a>
+        <a class="page-link" href="?page=<%= pagination.page - 1 %><%= qsStr %>">Previous</a>
       </li>
       <li class="page-item disabled">
         <span class="page-link">Page <%= pagination.page %> of <%= pagination.pages %></span>
       </li>
       <li class="page-item <%= pagination.page >= pagination.pages ? 'disabled' : '' %>">
-        <a class="page-link" href="?page=<%= pagination.page + 1 %>">Next</a>
+        <a class="page-link" href="?page=<%= pagination.page + 1 %><%= qsStr %>">Next</a>
       </li>
     </ul>
   </nav>

@@ -6,6 +6,73 @@
   </div>
   <%- include('../partials/_breadcrumb') %>
 
+  <!-- Search & Filter -->
+  <div class="row">
+    <div class="col-12">
+      <button class="btn btn-outline-secondary my-3 filter-btn" type="button">
+        <i class="bi bi-funnel"></i>
+        Filters
+      </button>
+      <form method="GET" action="/feedback" class="mb-3 filter-area d-none">
+        <input type="hidden" name="tab" value="<%= activeTab %>">
+        <div class="d-flex flex-column g-2 align-items-start">
+          <div class="col-sm-3 col-md-3">
+            <label for="feedbackSearch" class="form-label small text-muted">
+              Search <%= activeTab === 'subscribers' ? '(subscriber email)' : '(title, description or email)' %>
+            </label>
+            <input type="text" class="form-control form-control-sm" id="feedbackSearch" name="q" placeholder="<%= activeTab === 'subscribers' ? 'Search by email...' : 'Search requests...' %>" value="<%= typeof q !== 'undefined' ? q : '' %>">
+          </div>
+          <% if (activeTab !== 'subscribers') { %>
+          <div class="col-sm-3 col-md-3 fr-only">
+            <label for="statusFilter" class="form-label small text-muted">Status</label>
+            <select class="form-select form-select-sm" id="statusFilter" name="status">
+              <option value="all" <%= (typeof status === 'undefined' || status === 'all') ? 'selected' : '' %>>All</option>
+              <option value="new" <%= typeof status !== 'undefined' && status === 'new' ? 'selected' : '' %>>New</option>
+              <option value="in progress" <%= typeof status !== 'undefined' && status === 'in progress' ? 'selected' : '' %>>In Progress</option>
+              <option value="completed" <%= typeof status !== 'undefined' && status === 'completed' ? 'selected' : '' %>>Completed</option>
+              <option value="done" <%= typeof status !== 'undefined' && status === 'done' ? 'selected' : '' %>>Done</option>
+              <option value="rejected" <%= typeof status !== 'undefined' && status === 'rejected' ? 'selected' : '' %>>Rejected</option>
+            </select>
+          </div>
+          <div class="col-sm-3 col-md-3 fr-only">
+            <label for="typeFilter" class="form-label small text-muted">Type</label>
+            <select class="form-select form-select-sm" id="typeFilter" name="type">
+              <option value="all" <%= (typeof type === 'undefined' || type === 'all') ? 'selected' : '' %>>All</option>
+              <option value="bug" <%= typeof type !== 'undefined' && type === 'bug' ? 'selected' : '' %>>Bug</option>
+              <option value="improvement" <%= typeof type !== 'undefined' && type === 'improvement' ? 'selected' : '' %>>Improvement</option>
+              <option value="enhancement" <%= typeof type !== 'undefined' && type === 'enhancement' ? 'selected' : '' %>>Enhancement</option>
+            </select>
+          </div>
+          <div class="col-sm-3 col-md-3 sub-only <%= activeTab === 'subscribers' ? '' : 'd-none' %>">
+            <label for="subStatusFilter" class="form-label small text-muted">Status</label>
+            <select class="form-select form-select-sm" id="subStatusFilter" name="subStatus">
+              <option value="all" <%= (typeof subStatus === 'undefined' || subStatus === 'all') ? 'selected' : '' %>>All</option>
+              <option value="active" <%= typeof subStatus !== 'undefined' && subStatus === 'active' ? 'selected' : '' %>>Active</option>
+              <option value="inactive" <%= typeof subStatus !== 'undefined' && subStatus === 'inactive' ? 'selected' : '' %>>Inactive</option>
+            </select>
+          </div>
+          <div class="col-sm-3 col-md-3 sub-only <%= activeTab === 'subscribers' ? '' : 'd-none' %>">
+            <label for="subscribedDateFilter" class="form-label small text-muted">Subscribed Date</label>
+            <input type="date" class="form-control form-control-sm" id="subscribedDateFilter" name="subscribedDate" value="<%= typeof subscribedDate !== 'undefined' ? subscribedDate : '' %>">
+          </div>
+          <% } %>
+          <div class="col-sm-2 mt-3">
+            <div class="d-flex gap-2">
+              <a href="/feedback?tab=<%= activeTab %>" class="btn btn-outline-secondary btn-sm w-100">
+                <i class="bi bi-x-lg"></i>
+                <span>Reset</span>
+              </a>
+              <button type="submit" class="btn btn-primary btn-sm w-100">
+                <i class="bi bi-check-lg"></i>
+                <span>Apply</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <ul class="nav nav-tabs mb-3" role="tablist" id="feedbackTabs">
     <li class="nav-item" role="presentation">
       <button class="nav-link <%= activeTab === 'requests' ? 'active' : '' %>" data-bs-toggle="tab" data-bs-target="#featureRequests" type="button" role="tab">
@@ -134,17 +201,103 @@
 
 <script>
   (function () {
-    // Sync ?tab= query param with the active tab (without reload)
+    // Tab <-> URL <-> filter-form synchronization for the feedback page.
+    // Canonical tab values are 'requests' and 'subscribers' (the #featureRequests
+    // pane id must NOT leak into the URL as tab=featureRequests).
     var tabs = document.querySelectorAll('#feedbackTabs button[data-bs-toggle="tab"]');
     if (!tabs.length) return;
 
+    var tabInput = document.querySelector('.filter-area input[name="tab"]');
+    var searchLabel = document.querySelector('label[for="feedbackSearch"]');
+    var searchInput = document.getElementById('feedbackSearch');
+    var filterArea = document.querySelector('.filter-area');
+
+    // Field groups per tab: fr-only = feature requests, sub-only = subscribers
+    var frGroups = Array.prototype.slice.call(document.querySelectorAll('.filter-area .fr-only'));
+    var subGroups = Array.prototype.slice.call(document.querySelectorAll('.filter-area .sub-only'));
+
+    // Map a tab pane target (e.g. "#featureRequests") to its canonical tab param
+    function targetToTab(target) {
+      return target === '#subscribers' ? 'subscribers' : 'requests';
+    }
+
+    function setGroupState(groups, show) {
+      groups.forEach(function (group) {
+        group.classList.toggle('d-none', !show);
+        group.querySelectorAll('input, select').forEach(function (el) {
+          if (show) el.removeAttribute('disabled');
+          else el.setAttribute('disabled', 'disabled');
+        });
+      });
+    }
+
+    function syncFilterForm(tabName) {
+      var isSubscribers = tabName === 'subscribers';
+
+      // Keep the form submitting to the active tab
+      if (tabInput) tabInput.value = tabName;
+
+      // Show/hide (and enable/disable) the per-tab filter fields
+      setGroupState(frGroups, !isSubscribers);
+      setGroupState(subGroups, isSubscribers);
+
+      // Adjust search labels/placeholders per tab
+      if (searchLabel) {
+        searchLabel.innerHTML = 'Search ' + (isSubscribers ? '(subscriber email)' : '(title, description or email)');
+      }
+      if (searchInput) {
+        searchInput.placeholder = isSubscribers ? 'Search by email...' : 'Search requests...';
+      }
+
+      // Reset link should point at the active tab
+      var resetLink = document.querySelector('.filter-area a[href^="/feedback"]');
+      if (resetLink) resetLink.setAttribute('href', '/feedback?tab=' + tabName);
+    }
+
+    // Write the canonical tab value into the URL, preserving filter params
+    function updateUrlTab(tabName) {
+      var url = new URL(window.location.href);
+      url.searchParams.set('tab', tabName);
+      window.history.replaceState(null, '', url);
+    }
+
+    // ── On page load ─────────────────────────────────────────────
+    var initialTab;
+    var url = new URL(window.location.href);
+    var urlTab = url.searchParams.get('tab');
+
+    if (urlTab === 'featureRequests' || urlTab === 'requests') {
+      initialTab = 'requests';
+      // Normalize legacy/mismatched value so the URL is always canonical
+      if (urlTab === 'featureRequests') updateUrlTab('requests');
+    } else if (urlTab === 'subscribers') {
+      initialTab = 'subscribers';
+    } else {
+      // No tab in URL — derive it from the tab button marked active server-side
+      var activeBtn = document.querySelector('#feedbackTabs button.active');
+      initialTab = activeBtn ? targetToTab(activeBtn.getAttribute('data-bs-target')) : 'requests';
+      updateUrlTab(initialTab);
+    }
+    syncFilterForm(initialTab);
+
+    // Re-open the filter panel automatically when a filter is applied,
+    // so all options are visible without needing a hard refresh.
+    var hasActiveFilter = ['q', 'status', 'type', 'subStatus', 'subscribedDate']
+      .some(function (p) { return url.searchParams.get(p); });
+    if (hasActiveFilter && filterArea) {
+      filterArea.classList.remove('d-none');
+    }
+
+    // ── On tab switch ────────────────────────────────────────────
     tabs.forEach(function (tab) {
       tab.addEventListener('shown.bs.tab', function (event) {
-        var target = event.target.getAttribute('data-bs-target'); // e.g. "#subscribers"
-        var tabName = target.replace('#', '');
-        var url = new URL(window.location.href);
-        url.searchParams.set('tab', tabName);
-        window.history.replaceState(null, '', url);
+        var tabName = targetToTab(event.target.getAttribute('data-bs-target'));
+
+        // Update ?tab= in the URL, preserving other filter params
+        updateUrlTab(tabName);
+
+        // Keep the filter form in sync with the now-active tab
+        syncFilterForm(tabName);
       });
     });
   })();
