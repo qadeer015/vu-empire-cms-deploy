@@ -89,6 +89,12 @@ router.get('/pastpapers/:id/edit', authenticate, authorize('admin'), AppControll
 router.post('/pastpapers/:id', authenticate, authorize('admin'), AppController.adminPastPaperUpdate);
 router.post('/pastpapers/:id/delete', authenticate, authorize('admin'), AppController.adminPastPaperDelete);
 
+// ── Posts (user-submitted content moderation & analytics) ──────────
+router.get('/posts', authenticate, authorize('admin'), AppController.adminPosts);
+router.get('/posts/:id', authenticate, authorize('admin'), AppController.adminPostShow);
+router.post('/posts/:id/review', authenticate, authorize('admin'), AppController.adminPostReview);
+router.post('/posts/:id/delete', authenticate, authorize('admin'), AppController.adminPostDelete);
+
 // ── Feedback (Firestore: featureRequests + newsletterSubscribers) ──
 router.get('/feedback', authenticate, authorize('admin'), AppController.adminFeedback);
 

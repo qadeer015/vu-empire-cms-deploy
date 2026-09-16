@@ -8,6 +8,10 @@ const Option = require('../models/Option');
 const Assignment = require('../models/Assignment');
 const GdbSolution = require('../models/GdbSolution');
 const PastPaper = require('../models/PastPaper');
+const Post = require('../models/Post');
+const Comment = require('../models/Comment');
+const sanitizeHtml = require('../utils/sanitizeHtml');
+const { sendPostStatusNotification } = require('../services/post.service');
 const cache = require('../services/cacheService');
 const TTL = require('../config/cacheTTL');
 const { db } = require('../config/firebase');
@@ -33,6 +37,7 @@ function buildBreadcrumbs(data = {}) {
         'past-papers': 'Past Papers',
         'users': 'Users',
         'tasks': 'Task Center',
+        'posts': 'Posts',
         'feedback': 'Feedback'
     };
     
@@ -45,6 +50,7 @@ function buildBreadcrumbs(data = {}) {
         'past-papers': '/pastpapers',
         'users': '/users',
         'tasks': '/tasks',
+        'posts': '/posts',
         'feedback': '/feedback'
     };
     
@@ -103,6 +109,9 @@ function buildBreadcrumbs(data = {}) {
             if (data.subPage === 'questions') {
                 crumbs.push({ label: 'Questions', href: '/quizzes/' + data.quiz.quizId + '/questions' });
             }
+        } else if (mode === 'show' && data.post) {
+            crumbs.push(parentCrumb);
+            crumbs.push({ label: data.post.title, href: '/posts/' + data.post.id });
         } else if (page === 'courses' && data.course) {
             crumbs.push(parentCrumb);
             crumbs.push({ label: data.course.courseCode, href: '/courses/' + data.course.courseId });
@@ -143,6 +152,108 @@ class AppController {
         } catch (err) {
             console.error('DASHBOARD ERROR:', err);
             res.status(500).render('error', { title: 'Server Error', message: err.message, error: null, redirect_url: '/', header: false, footer: false });
+        }
+    }
+
+    // ================= POSTS =================
+    static async adminPosts(req, res) {
+        try {
+            const page = parseInt(req.query.page) || 1;
+            const limit = 20;
+            const search = req.query.q || '';
+            const status = req.query.status || 'all';
+            const type = req.query.type || 'all';
+
+            const result = await Post.getAll({
+                page,
+                limit,
+                search,
+                status: status === 'all' ? null : status,
+                contentType: type === 'all' ? null : type,
+                includeAllStatuses: true
+            });
+            const stats = await Post.getAggregatedStats();
+
+            renderAdmin(res, 'posts/index', {
+                page: 'posts',
+                posts: result.posts,
+                total: result.pagination.total,
+                q: search,
+                status,
+                type,
+                stats,
+                pagination: result.pagination
+            });
+        } catch (err) {
+            res.status(500).render('error', { title: 'Server Error', message: err.message, error: null, redirect_url: '/posts', header: false, footer: false });
+        }
+    }
+
+    static async adminPostShow(req, res) {
+        try {
+            const post = await Post.findById(req.params.id);
+            if (!post) return res.redirect('/posts');
+
+            const [stats, reactions, commentResult] = await Promise.all([
+                Post.getStats(post.id),
+                Post.getReactionCounts(post.id),
+                Comment.getByPostId(post.id, { page: 1, limit: 5 })
+            ]);
+
+            renderAdmin(res, 'posts/show', {
+                page: 'posts',
+                mode: 'show',
+                post,
+                sanitizeHtml,
+                stats,
+                reactions,
+                comments: commentResult.comments || [],
+                publicPostUrl: `${SITE_URL}/posts/${post.slug}`
+            });
+        } catch (err) {
+            res.status(500).render('error', { title: 'Server Error', message: err.message, error: null, redirect_url: '/posts', header: false, footer: false });
+        }
+    }
+
+    // Admin review: approve (publish) or reject a post.
+    // Mirrors the existing API review flow (Post.updateStatus + author email notification)
+    // so the pending -> publish approval workflow is preserved.
+    static async adminPostReview(req, res) {
+        try {
+            const { id } = req.params;
+            const { status, rejectReason } = req.body;
+            const post = await Post.findById(id);
+            if (!post) return res.redirect('/posts');
+
+            if (!['publish', 'reject'].includes(status)) {
+                return res.redirect('/posts/' + id);
+            }
+
+            const updated = await Post.updateStatus(id, {
+                status,
+                rejectReason: status === 'reject' ? (rejectReason || null) : null,
+                reviewedBy: req.user.id
+            });
+
+            // Notify the author of the decision (non-blocking, same as API flow)
+            sendPostStatusNotification(updated, status).catch(err =>
+                console.error('Status notification error:', err.message)
+            );
+
+            res.redirect('/posts/' + id);
+        } catch (err) {
+            res.status(500).render('error', { title: 'Error', message: err.message, error: null, redirect_url: '/posts', header: false, footer: false });
+        }
+    }
+
+    static async adminPostDelete(req, res) {
+        try {
+            const post = await Post.findById(req.params.id);
+            if (!post) return res.redirect('/posts');
+            await Post.softDelete(post.id);
+            res.redirect('/posts');
+        } catch (err) {
+            res.status(500).render('error', { title: 'Error', message: err.message, error: null, redirect_url: '/posts', header: false, footer: false });
         }
     }
 

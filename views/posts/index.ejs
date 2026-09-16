@@ -1,0 +1,169 @@
+<!-- posts/index.ejs -->
+<div class="container-fluid">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">Posts</h1>
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+      <span class="badge bg-warning text-dark" title="Pending review"><i class="bi bi-hourglass-split me-1"></i>Pending: <%= Number(stats && stats.pendingPosts) || 0 %></span>
+      <span class="badge bg-success" title="Published"><i class="bi bi-check-circle me-1"></i>Published: <%= Number(stats && stats.publishedPosts) || 0 %></span>
+      <span class="badge bg-danger" title="Rejected"><i class="bi bi-x-circle me-1"></i>Rejected: <%= Number(stats && stats.rejectedPosts) || 0 %></span>
+      <span class="badge bg-primary" title="Total posts"><%= typeof total !== 'undefined' ? total : 0 %> posts</span>
+    </div>
+  </div>
+  <%- include('../partials/_breadcrumb') %>
+
+  <!-- Search & Filter -->
+  <div class="row">
+    <div class="col-12">
+      <button class="btn btn-outline-secondary my-3 filter-btn" type="button">
+        <i class="bi bi-funnel"></i>
+        Filters
+      </button>
+      <form method="GET" action="/posts" class="mb-3 filter-area d-none">
+        <div class="d-flex flex-column g-2 align-items-start">
+          <div class="col-sm-3 col-md-3">
+            <label for="postSearch" class="form-label small text-muted">Search</label>
+            <input type="text" class="form-control form-control-sm" id="postSearch" name="q" placeholder="Search by title or content..." value="<%= typeof q !== 'undefined' ? q : '' %>">
+          </div>
+          <div class="col-sm-3 col-md-3">
+            <label for="statusFilter" class="form-label small text-muted">Status</label>
+            <select class="form-select form-select-sm" id="statusFilter" name="status">
+              <option value="all" <%= (typeof status === 'undefined' || status === 'all') ? 'selected' : '' %>>All</option>
+              <option value="pending" <%= typeof status !== 'undefined' && status === 'pending' ? 'selected' : '' %>>Pending</option>
+              <option value="publish" <%= typeof status !== 'undefined' && status === 'publish' ? 'selected' : '' %>>Published</option>
+              <option value="reject" <%= typeof status !== 'undefined' && status === 'reject' ? 'selected' : '' %>>Rejected</option>
+              <option value="delete" <%= typeof status !== 'undefined' && status === 'delete' ? 'selected' : '' %>>Deleted</option>
+            </select>
+          </div>
+          <div class="col-sm-3 col-md-3">
+            <label for="typeFilter" class="form-label small text-muted">Content Type</label>
+            <select class="form-select form-select-sm" id="typeFilter" name="type">
+              <option value="all" <%= (typeof type === 'undefined' || type === 'all') ? 'selected' : '' %>>All</option>
+              <option value="post" <%= typeof type !== 'undefined' && type === 'post' ? 'selected' : '' %>>Post</option>
+              <option value="event" <%= typeof type !== 'undefined' && type === 'event' ? 'selected' : '' %>>Event</option>
+              <option value="poll" <%= typeof type !== 'undefined' && type === 'poll' ? 'selected' : '' %>>Poll</option>
+              <option value="document" <%= typeof type !== 'undefined' && type === 'document' ? 'selected' : '' %>>Document</option>
+            </select>
+          </div>
+          <div class="col-sm-2 mt-3">
+            <div class="d-flex gap-2">
+              <a href="/posts" class="btn btn-outline-secondary btn-sm w-100">
+                <i class="bi bi-x-lg"></i>
+                <span>Reset</span>
+              </a>
+              <button type="submit" class="btn btn-primary btn-sm w-100">
+                <i class="bi bi-check-lg"></i>
+                <span>Apply</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+  <% if (typeof posts !== 'undefined' && posts.length > 0) { %>
+  <table class="table table-hover align-middle">
+    <thead>
+      <tr class="sticky-table-header">
+        <th>Title</th>
+        <th>Author</th>
+        <th>Type</th>
+        <th>Status</th>
+        <th class="text-end">Views</th>
+        <th class="text-end">Reactions</th>
+        <th class="text-end">Comments</th>
+        <th>Created</th>
+        <th class="text-end">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% posts.forEach(function(p) { %>
+      <% let preview = '';
+         if (p.content) {
+           try {
+             const pc = JSON.parse(p.content);
+             preview = (typeof pc === 'string') ? pc : (pc.content || pc.original || pc.text || pc.description || JSON.stringify(pc));
+           } catch (e) { preview = p.content; }
+           preview = String(preview).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+         } %>
+      <tr>
+        <td class="fw-medium">
+          <a href="/posts/<%= p.id %>" class="text-decoration-none fw-medium" title="View <%= p.title %>">
+            <%= p.title %>
+          </a>
+          <small class="d-block text-muted text-truncate" style="max-width: 320px;"><%= preview.slice(0, 80) %></small>
+        </td>
+        <td>
+          <div class="d-flex align-items-center gap-2">
+            <% if (p.avatar && p.avatar !== '/avatars/default.png') { %>
+            <img src="<%= p.avatar %>" class="rounded-circle" style="width:28px;height:28px;object-fit:cover;" alt="">
+            <% } else { %>
+            <span class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center text-primary fw-medium" style="width:28px;height:28px;font-size:11px;"><%= p.authorName ? p.authorName[0].toUpperCase() : '?' %></span>
+            <% } %>
+            <span class="small"><%= p.authorName || '-' %></span>
+          </div>
+        </td>
+        <td>
+          <span class="badge bg-<%= p.content_type === 'event' ? 'info' : p.content_type === 'poll' ? 'warning text-dark' : p.content_type === 'document' ? 'secondary' : 'primary' %>">
+            <%= p.content_type || 'post' %>
+          </span>
+        </td>
+        <td>
+          <span class="badge bg-<%= p.status === 'publish' ? 'success' : p.status === 'pending' ? 'warning text-dark' : p.status === 'reject' ? 'danger' : 'secondary' %>">
+            <%= p.status %>
+          </span>
+        </td>
+        <td class="text-end small"><i class="bi bi-eye me-1 text-muted"></i><%= p.viewCount || 0 %></td>
+        <td class="text-end small"><i class="bi bi-emoji-smile me-1 text-muted"></i><%= p.reactionCount || 0 %></td>
+        <td class="text-end small"><i class="bi bi-chat me-1 text-muted"></i><%= p.commentCount || 0 %></td>
+        <td class="text-muted small"><%= p.createdAt ? new Date(p.createdAt).toLocaleDateString() : '-' %></td>
+        <td class="text-end">
+          <a href="/posts/<%= p.id %>" class="btn btn-sm btn-outline-primary" title="View details">
+            <i class="bi bi-eye"></i>
+          </a>
+          <% if (['pending', 'reject'].includes(p.status)) { %>
+          <form action="/posts/<%= p.id %>/review" method="POST" class="d-inline" onsubmit="return confirm('Approve and publish this post?')">
+            <input type="hidden" name="status" value="publish">
+            <button type="submit" class="btn btn-sm btn-outline-success" title="Approve &amp; Publish">
+              <i class="bi bi-check-lg"></i>
+            </button>
+          </form>
+          <% } %>
+          <% if (p.status !== 'delete') { %>
+          <form action="/posts/<%= p.id %>/delete" method="POST" class="d-inline" onsubmit="return confirm('Delete this post?')">
+            <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
+              <i class="bi bi-trash"></i>
+            </button>
+          </form>
+          <% } %>
+        </td>
+      </tr>
+      <% }); %>
+    </tbody>
+  </table>
+
+  <!-- Pagination -->
+  <% if (typeof pagination !== 'undefined' && pagination.pages > 1) { %>
+  <% const qsStr = ((typeof q !== 'undefined' && q) ? '&q=' + encodeURIComponent(q) : '') + ((typeof status !== 'undefined' && status !== 'all') ? '&status=' + encodeURIComponent(status) : '') + ((typeof type !== 'undefined' && type !== 'all') ? '&type=' + encodeURIComponent(type) : ''); %>
+  <nav>
+    <ul class="pagination justify-content-center">
+      <li class="page-item <%= pagination.page <= 1 ? 'disabled' : '' %>">
+        <a class="page-link" href="?page=<%= pagination.page - 1 %><%= qsStr %>">Previous</a>
+      </li>
+      <li class="page-item disabled">
+        <span class="page-link">Page <%= pagination.page %> of <%= pagination.pages %></span>
+      </li>
+      <li class="page-item <%= pagination.page >= pagination.pages ? 'disabled' : '' %>">
+        <a class="page-link" href="?page=<%= pagination.page + 1 %><%= qsStr %>">Next</a>
+      </li>
+    </ul>
+  </nav>
+  <% } %>
+  <% } else { %>
+  <div class="text-center py-5">
+    <i class="bi bi-newspaper display-1 text-muted mb-3"></i>
+    <h5 class="text-muted">No posts found</h5>
+    <p class="text-muted mb-0">Posts created by users on the site will appear here for review.</p>
+  </div>
+  <% } %>
+</div>
+
