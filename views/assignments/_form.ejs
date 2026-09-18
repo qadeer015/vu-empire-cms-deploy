@@ -15,17 +15,18 @@
 
           <div class="row g-3">
             <div class="col-md-6">
-              <label class="form-label fw-bold">Course Code <span class="text-danger">*</span></label>
-              <input type="text" class="form-control" name="courseCode" list="courseCodes" value="<%= assignment ? assignment.courseCode : (selectedCourseCode || '') %>" placeholder="e.g. CS201" required>
-              <datalist id="courseCodes">
+              <label class="form-label fw-bold">Course <span class="text-danger">*</span></label>
+              <select name="courseId" class="form-select" required>
+                <option value="">Select Course</option>
                 <% courses.forEach(function(c) { %>
-                <option value="<%= c.courseCode %>"><%= c.courseName %></option>
+                <option value="<%= c.courseId %>" <%= (assignment && assignment.courseId == c.courseId) || (!assignment && selectedCourseId && selectedCourseId == c.courseId) ? 'selected' : '' %>>
+                  <%= c.courseCode %> - <%= c.courseName %>
+                </option>
                 <% }); %>
-              </datalist>
+              </select>
             </div>
-            <div class="col-md-6">
-              <label class="form-label fw-bold">Course Name</label>
-              <input type="text" class="form-control" name="courseName" value="<%= assignment ? assignment.courseName : (selectedCourseName || '') %>" placeholder="Auto-filled from course code">
+            <div class="col-md-6 d-flex align-items-end text-muted small pb-2">
+              <span><i class="bi bi-info-circle me-1"></i>Course code and name are managed in the Courses section.</span>
             </div>
             <div class="col-12">
               <label class="form-label fw-bold">Assignment Title <span class="text-danger">*</span></label>
@@ -64,34 +65,6 @@
             <a href="/assignments" class="btn btn-outline-secondary">Cancel</a>
           </div>
         </form>
-
-        <script>
-          (function() {
-            const courseCodeInput = document.querySelector('input[name="courseCode"]');
-            const courseNameInput = document.querySelector('input[name="courseName"]');
-            const datalist = document.getElementById('courseCodes');
-            const map = {};
-
-            if (datalist) {
-              Array.from(datalist.options).forEach(function(opt) {
-                map[opt.value] = opt.textContent || '';
-              });
-            }
-
-            function updateCourseName() {
-              if (!courseCodeInput || !courseNameInput) return;
-              const val = courseCodeInput.value.trim();
-              if (val && map[val]) {
-                courseNameInput.value = map[val];
-              }
-            }
-
-            if (courseCodeInput) {
-              courseCodeInput.addEventListener('change', updateCourseName);
-              courseCodeInput.addEventListener('input', updateCourseName);
-            }
-          })();
-        </script>
     </div>
   </div>
 </div>

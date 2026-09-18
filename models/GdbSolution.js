@@ -3,46 +3,46 @@ const cache = require('../services/cacheService');
 const TTL = require('../config/cacheTTL');
 
 class GdbSolution {
-    static async _invalidateCaches(courseCode) {
-        if (courseCode) await cache.del(`gdbSolution:course:${courseCode}`);
+    static async _invalidateCaches(courseId) {
+        if (courseId) await cache.del(`gdbSolution:course:${courseId}`);
         await cache.delByPattern('gdbSolutions:*');
         await cache.delByPattern('dashboard:*');
     }
 
     static async create(data) {
-        const { courseCode, courseName, gdbTitle, solution, authorId } = data;
+        const { courseId, gdbTitle, solution, authorId } = data;
 
         const [result] = await db.query(
-            `INSERT INTO gdb_solutions (courseCode, courseName, gdbTitle, solution, authorId)
-             VALUES (?, ?, ?, ?, ?)`,
-            [courseCode, courseName, gdbTitle, solution, authorId]
+            `INSERT INTO gdb_solutions (courseId, gdbTitle, solution, authorId)
+             VALUES (?, ?, ?, ?)`,
+            [courseId, gdbTitle, solution, authorId]
         );
 
-        await this._invalidateCaches(courseCode);
+        await this._invalidateCaches(courseId);
         return this.findById(result.insertId);
     }
 
     static async findById(id) {
         const [rows] = await db.query(
-            `SELECT gs.*, c.courseId
+            `SELECT gs.*, c.courseCode, c.courseName
              FROM gdb_solutions gs
-             LEFT JOIN courses c ON CONVERT(gs.courseCode USING utf8mb4) COLLATE utf8mb4_0900_ai_ci = CONVERT(c.courseCode USING utf8mb4) COLLATE utf8mb4_0900_ai_ci
+             LEFT JOIN courses c ON gs.courseId = c.courseId
              WHERE gs.id = ?`,
             [id]
         );
         return rows[0] || null;
     }
 
-    static async getByCourse(courseCode) {
-        const cacheKey = `gdbSolution:course:${courseCode}`;
+    static async getByCourse(courseId) {
+        const cacheKey = `gdbSolution:course:${courseId}`;
         return cache.remember(cacheKey, TTL.GDB_SOLUTIONS, async () => {
             const [rows] = await db.query(
-                `SELECT gs.*, c.courseId
+                `SELECT gs.*, c.courseCode, c.courseName
                  FROM gdb_solutions gs
-                 LEFT JOIN courses c ON CONVERT(gs.courseCode USING utf8mb4) COLLATE utf8mb4_0900_ai_ci = CONVERT(c.courseCode USING utf8mb4) COLLATE utf8mb4_0900_ai_ci
-                 WHERE CONVERT(gs.courseCode USING utf8mb4) COLLATE utf8mb4_0900_ai_ci = CONVERT(? USING utf8mb4) COLLATE utf8mb4_0900_ai_ci
+                 LEFT JOIN courses c ON gs.courseId = c.courseId
+                 WHERE gs.courseId = ?
                  ORDER BY gs.createdAt DESC`,
-                [courseCode]
+                [courseId]
             );
             return rows;
         });
@@ -52,9 +52,9 @@ class GdbSolution {
         const cacheKey = `gdbSolutions:list:${limit}:${offset}`;
         return cache.remember(cacheKey, TTL.GDB_SOLUTIONS, async () => {
             const [rows] = await db.query(
-                `SELECT gs.*, c.courseId
+                `SELECT gs.*, c.courseCode, c.courseName
                  FROM gdb_solutions gs
-                 LEFT JOIN courses c ON CONVERT(gs.courseCode USING utf8mb4) COLLATE utf8mb4_0900_ai_ci = CONVERT(c.courseCode USING utf8mb4) COLLATE utf8mb4_0900_ai_ci
+                 LEFT JOIN courses c ON gs.courseId = c.courseId
                  ORDER BY gs.createdAt DESC
                  LIMIT ? OFFSET ?`,
                 [parseInt(limit), parseInt(offset)]
@@ -68,10 +68,10 @@ class GdbSolution {
         const params = [];
 
         if (search && search.trim()) {
-            conditions.push('(gs.gdbTitle LIKE ? OR gs.courseCode LIKE ? OR gs.courseName LIKE ? OR gs.solution LIKE ?)');
+            conditions.push('(gs.gdbTitle LIKE ? OR c.courseCode LIKE ? OR c.courseName LIKE ? OR gs.solution LIKE ?)');
             params.push(
                 `%${search.trim()}%`,
-                `${search.trim()}%`,
+                `%${search.trim()}%`,
                 `%${search.trim()}%`,
                 `%${search.trim()}%`
             );
@@ -82,9 +82,9 @@ class GdbSolution {
 
         return cache.remember(cacheKey, TTL.GDB_SOLUTIONS, async () => {
             const [rows] = await db.query(
-                `SELECT gs.*, c.courseId
+                `SELECT gs.*, c.courseCode, c.courseName
                  FROM gdb_solutions gs
-                 LEFT JOIN courses c ON CONVERT(gs.courseCode USING utf8mb4) COLLATE utf8mb4_0900_ai_ci = CONVERT(c.courseCode USING utf8mb4) COLLATE utf8mb4_0900_ai_ci
+                 LEFT JOIN courses c ON gs.courseId = c.courseId
                  ${whereClause}
                  ORDER BY gs.createdAt DESC
                  LIMIT ? OFFSET ?`,
@@ -99,10 +99,10 @@ class GdbSolution {
         const params = [];
 
         if (search && search.trim()) {
-            conditions.push('(gs.gdbTitle LIKE ? OR gs.courseCode LIKE ? OR gs.courseName LIKE ? OR gs.solution LIKE ?)');
+            conditions.push('(gs.gdbTitle LIKE ? OR c.courseCode LIKE ? OR c.courseName LIKE ? OR gs.solution LIKE ?)');
             params.push(
                 `%${search.trim()}%`,
-                `${search.trim()}%`,
+                `%${search.trim()}%`,
                 `%${search.trim()}%`,
                 `%${search.trim()}%`
             );
@@ -115,7 +115,7 @@ class GdbSolution {
             const [[{ total }]] = await db.query(
                 `SELECT COUNT(*) as total
                  FROM gdb_solutions gs
-                 LEFT JOIN courses c ON CONVERT(gs.courseCode USING utf8mb4) COLLATE utf8mb4_0900_ai_ci = CONVERT(c.courseCode USING utf8mb4) COLLATE utf8mb4_0900_ai_ci
+                 LEFT JOIN courses c ON gs.courseId = c.courseId
                  ${whereClause}`,
                 params
             );
@@ -132,7 +132,7 @@ class GdbSolution {
     }
 
     static async update(id, updates) {
-        const allowed = ['courseCode', 'courseName', 'gdbTitle', 'solution', 'authorId'];
+        const allowed = ['courseId', 'gdbTitle', 'solution', 'authorId'];
         const fields = [];
         const values = [];
 
@@ -149,7 +149,7 @@ class GdbSolution {
         await db.query(`UPDATE gdb_solutions SET ${fields.join(', ')} WHERE id = ?`, values);
 
         const solution = await this.findById(id);
-        await this._invalidateCaches(solution.courseCode);
+        await this._invalidateCaches(solution.courseId);
         return solution;
     }
 
@@ -158,16 +158,16 @@ class GdbSolution {
         if (!solution) return false;
 
         await db.query('DELETE FROM gdb_solutions WHERE id = ?', [id]);
-        await this._invalidateCaches(solution.courseCode);
+        await this._invalidateCaches(solution.courseId);
         return true;
     }
 
     static async search(query, limit = 20) {
         const [rows] = await db.query(
-            `SELECT gs.*, c.courseId
+            `SELECT gs.*, c.courseCode, c.courseName
              FROM gdb_solutions gs
-             LEFT JOIN courses c ON CONVERT(gs.courseCode USING utf8mb4) COLLATE utf8mb4_0900_ai_ci = CONVERT(c.courseCode USING utf8mb4) COLLATE utf8mb4_0900_ai_ci
-             WHERE gs.gdbTitle LIKE ? OR gs.courseCode LIKE ? OR gs.solution LIKE ?
+             LEFT JOIN courses c ON gs.courseId = c.courseId
+             WHERE gs.gdbTitle LIKE ? OR c.courseCode LIKE ? OR gs.solution LIKE ?
              ORDER BY gs.createdAt DESC
              LIMIT ?`,
             [`%${query}%`, `%${query}%`, `%${query}%`, parseInt(limit)]

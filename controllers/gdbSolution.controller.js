@@ -6,11 +6,11 @@ class GdbSolutionController {
         try {
             const page = parseInt(req.query.page) || 1;
             const limit = parseInt(req.query.limit) || 20;
-            const courseCode = req.query.courseCode || null;
+            const courseId = req.query.courseId || null;
 
             let result;
-            if (courseCode) {
-                const solutions = await GdbSolution.getByCourse(courseCode);
+            if (courseId) {
+                const solutions = await GdbSolution.getByCourse(courseId);
                 result = { solutions, pagination: { page, limit, total: solutions.length, pages: 1 } };
             } else {
                 const offset = (page - 1) * limit;
@@ -39,14 +39,14 @@ class GdbSolutionController {
 
     static async create(req, res) {
         try {
-            const { courseCode, courseName, gdbTitle, solution } = req.body;
+            const { courseId, gdbTitle, solution } = req.body;
 
-            if (!courseCode || !gdbTitle || !solution) {
-                throw AppError.badRequest('Course code, GDB title, and solution are required');
+            if (!courseId || !gdbTitle || !solution) {
+                throw AppError.badRequest('Course, GDB title, and solution are required');
             }
 
             const gdbSolution = await GdbSolution.create({
-                courseCode, courseName, gdbTitle, solution,
+                courseId, gdbTitle, solution,
                 authorId: req.user.id
             });
 

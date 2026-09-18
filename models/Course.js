@@ -215,8 +215,8 @@ class Course {
                 LEFT JOIN questions   q  ON c.courseId = q.courseId
                 LEFT JOIN quizzes     qz ON c.courseId = qz.courseId
                 LEFT JOIN past_papers pp ON c.courseId = pp.courseId
-                LEFT JOIN assignments a  ON CONVERT(c.courseCode USING utf8mb4) COLLATE utf8mb4_0900_ai_ci = CONVERT(a.courseCode USING utf8mb4) COLLATE utf8mb4_0900_ai_ci
-                LEFT JOIN gdb_solutions gs ON CONVERT(c.courseCode USING utf8mb4) COLLATE utf8mb4_0900_ai_ci = CONVERT(gs.courseCode USING utf8mb4) COLLATE utf8mb4_0900_ai_ci
+                LEFT JOIN assignments a  ON c.courseId = a.courseId
+                LEFT JOIN gdb_solutions gs ON c.courseId = gs.courseId
                 WHERE c.courseId = ?
                 GROUP BY c.courseId
             `, [courseId]);
@@ -251,8 +251,8 @@ class Course {
                 LEFT JOIN questions   q  ON c.courseId = q.courseId
                 LEFT JOIN quizzes     qz ON c.courseId = qz.courseId
                 LEFT JOIN past_papers pp ON c.courseId = pp.courseId
-                LEFT JOIN assignments a  ON CONVERT(c.courseCode USING utf8mb4) COLLATE utf8mb4_0900_ai_ci = CONVERT(a.courseCode USING utf8mb4) COLLATE utf8mb4_0900_ai_ci
-                LEFT JOIN gdb_solutions gs ON CONVERT(c.courseCode USING utf8mb4) COLLATE utf8mb4_0900_ai_ci = CONVERT(gs.courseCode USING utf8mb4) COLLATE utf8mb4_0900_ai_ci
+                LEFT JOIN assignments a  ON c.courseId = a.courseId
+                LEFT JOIN gdb_solutions gs ON c.courseId = gs.courseId
                 ${whereClause}
                 GROUP BY c.courseId
                 ORDER BY question_count DESC, c.courseCode

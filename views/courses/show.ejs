@@ -139,7 +139,7 @@
       <div class="card border-0 shadow-sm h-100">
         <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center">
           <h5 class="mb-0"><i class="bi bi-pencil-square me-2"></i>Assignments</h5>
-          <a href="/assignments/new?courseCode=<%= course.courseCode %>" class="btn btn-sm btn-outline-primary">
+          <a href="/assignments/new?courseId=<%= course.courseId %>" class="btn btn-sm btn-outline-primary">
             <i class="bi bi-plus-lg"></i> New
           </a>
         </div>
@@ -173,7 +173,7 @@
           <% } else { %>
           <div class="text-center py-4 text-muted">
             <div>No assignments found for this course.</div>
-            <a href="/assignments/new?courseCode=<%= course.courseCode %>" class="btn btn-primary btn-sm mt-3">
+            <a href="/assignments/new?courseId=<%= course.courseId %>" class="btn btn-primary btn-sm mt-3">
               <i class="bi bi-plus-lg"></i> Add Assignment
             </a>
           </div>
@@ -186,7 +186,7 @@
       <div class="card border-0 shadow-sm h-100">
         <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center">
           <h5 class="mb-0"><i class="bi bi-chat-dots me-2"></i>GDB Solutions</h5>
-          <a href="/gdb-solutions/new?courseCode=<%= course.courseCode %>" class="btn btn-sm btn-outline-primary">
+          <a href="/gdb-solutions/new?courseId=<%= course.courseId %>" class="btn btn-sm btn-outline-primary">
             <i class="bi bi-plus-lg"></i> New
           </a>
         </div>
@@ -220,7 +220,7 @@
           <% } else { %>
           <div class="text-center py-4 text-muted">
             <div>No GDB solutions found for this course.</div>
-            <a href="/gdb-solutions/new?courseCode=<%= course.courseCode %>" class="btn btn-primary btn-sm mt-3">
+            <a href="/gdb-solutions/new?courseId=<%= course.courseId %>" class="btn btn-primary btn-sm mt-3">
               <i class="bi bi-plus-lg"></i> Add GDB Solution
             </a>
           </div>

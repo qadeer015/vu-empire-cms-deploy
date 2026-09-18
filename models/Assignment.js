@@ -3,46 +3,46 @@ const cache = require('../services/cacheService');
 const TTL = require('../config/cacheTTL');
 
 class Assignment {
-    static async _invalidateCaches(courseCode) {
-        if (courseCode) await cache.del(`assignment:course:${courseCode}`);
+    static async _invalidateCaches(courseId) {
+        if (courseId) await cache.del(`assignment:course:${courseId}`);
         await cache.delByPattern('assignments:*');
         await cache.delByPattern('dashboard:*');
     }
 
     static async create(data) {
-        const { courseCode, courseName, title, description, dueDate, filePath, originalFilename, status = 'publish', authorId } = data;
+        const { courseId, title, description, dueDate, filePath, originalFilename, status = 'publish', authorId } = data;
 
         const [result] = await db.query(
-            `INSERT INTO assignments (courseCode, courseName, title, description, dueDate, filePath, originalFilename, status, authorId)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [courseCode, courseName, title, description, dueDate, filePath, originalFilename, status, authorId]
+            `INSERT INTO assignments (courseId, title, description, dueDate, filePath, originalFilename, status, authorId)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            [courseId, title, description, dueDate, filePath, originalFilename, status, authorId]
         );
 
-        await this._invalidateCaches(courseCode);
+        await this._invalidateCaches(courseId);
         return this.findById(result.insertId);
     }
 
     static async findById(id) {
         const [rows] = await db.query(
-            `SELECT a.*, c.courseId
+            `SELECT a.*, c.courseCode, c.courseName
              FROM assignments a
-             LEFT JOIN courses c ON CONVERT(a.courseCode USING utf8mb4) COLLATE utf8mb4_0900_ai_ci = CONVERT(c.courseCode USING utf8mb4) COLLATE utf8mb4_0900_ai_ci
+             LEFT JOIN courses c ON a.courseId = c.courseId
              WHERE a.id = ?`,
             [id]
         );
         return rows[0] || null;
     }
 
-    static async getByCourse(courseCode) {
-        const cacheKey = `assignment:course:${courseCode}`;
+    static async getByCourse(courseId) {
+        const cacheKey = `assignment:course:${courseId}`;
         return cache.remember(cacheKey, TTL.ASSIGNMENTS, async () => {
             const [rows] = await db.query(
-                `SELECT a.*, c.courseId
+                `SELECT a.*, c.courseCode, c.courseName
                  FROM assignments a
-                 LEFT JOIN courses c ON CONVERT(a.courseCode USING utf8mb4) COLLATE utf8mb4_0900_ai_ci = CONVERT(c.courseCode USING utf8mb4) COLLATE utf8mb4_0900_ai_ci
-                 WHERE CONVERT(a.courseCode USING utf8mb4) COLLATE utf8mb4_0900_ai_ci = CONVERT(? USING utf8mb4) COLLATE utf8mb4_0900_ai_ci
+                 LEFT JOIN courses c ON a.courseId = c.courseId
+                 WHERE a.courseId = ?
                  ORDER BY a.createdAt DESC`,
-                [courseCode]
+                [courseId]
             );
             return rows;
         });
@@ -52,9 +52,9 @@ class Assignment {
         const cacheKey = `assignments:list:${limit}:${offset}`;
         return cache.remember(cacheKey, TTL.ASSIGNMENTS, async () => {
             const [rows] = await db.query(
-                `SELECT a.*, c.courseId
+                `SELECT a.*, c.courseCode, c.courseName
                  FROM assignments a
-                 LEFT JOIN courses c ON CONVERT(a.courseCode USING utf8mb4) COLLATE utf8mb4_0900_ai_ci = CONVERT(c.courseCode USING utf8mb4) COLLATE utf8mb4_0900_ai_ci
+                 LEFT JOIN courses c ON a.courseId = c.courseId
                  ORDER BY a.createdAt DESC
                  LIMIT ? OFFSET ?`,
                 [parseInt(limit), parseInt(offset)]
@@ -77,10 +77,10 @@ class Assignment {
         const params = [];
 
         if (search && search.trim()) {
-            conditions.push('(a.title LIKE ? OR a.courseCode LIKE ? OR a.courseName LIKE ? OR a.description LIKE ?)');
+            conditions.push('(a.title LIKE ? OR c.courseCode LIKE ? OR c.courseName LIKE ? OR a.description LIKE ?)');
             params.push(
                 `%${search.trim()}%`,
-                `${search.trim()}%`,
+                `%${search.trim()}%`,
                 `%${search.trim()}%`,
                 `%${search.trim()}%`
             );
@@ -102,9 +102,9 @@ class Assignment {
 
         return cache.remember(cacheKey, TTL.ASSIGNMENTS, async () => {
             const [rows] = await db.query(
-                `SELECT a.*, c.courseId
+                `SELECT a.*, c.courseCode, c.courseName
                  FROM assignments a
-                 LEFT JOIN courses c ON CONVERT(a.courseCode USING utf8mb4) COLLATE utf8mb4_0900_ai_ci = CONVERT(c.courseCode USING utf8mb4) COLLATE utf8mb4_0900_ai_ci
+                 LEFT JOIN courses c ON a.courseId = c.courseId
                  ${whereClause}
                  ORDER BY a.createdAt DESC
                  LIMIT ? OFFSET ?`,
@@ -119,10 +119,10 @@ class Assignment {
         const params = [];
 
         if (search && search.trim()) {
-            conditions.push('(a.title LIKE ? OR a.courseCode LIKE ? OR a.courseName LIKE ? OR a.description LIKE ?)');
+            conditions.push('(a.title LIKE ? OR c.courseCode LIKE ? OR c.courseName LIKE ? OR a.description LIKE ?)');
             params.push(
                 `%${search.trim()}%`,
-                `${search.trim()}%`,
+                `%${search.trim()}%`,
                 `%${search.trim()}%`,
                 `%${search.trim()}%`
             );
@@ -146,7 +146,7 @@ class Assignment {
             const [[{ total }]] = await db.query(
                 `SELECT COUNT(*) as total
                  FROM assignments a
-                 LEFT JOIN courses c ON CONVERT(a.courseCode USING utf8mb4) COLLATE utf8mb4_0900_ai_ci = CONVERT(c.courseCode USING utf8mb4) COLLATE utf8mb4_0900_ai_ci
+                 LEFT JOIN courses c ON a.courseId = c.courseId
                  ${whereClause}`,
                 params
             );
@@ -163,7 +163,7 @@ class Assignment {
     }
 
     static async update(id, updates) {
-        const allowed = ['courseCode', 'courseName', 'title', 'description', 'dueDate', 'filePath', 'originalFilename', 'status', 'authorId'];
+        const allowed = ['courseId', 'title', 'description', 'dueDate', 'filePath', 'originalFilename', 'status', 'authorId'];
         const fields = [];
         const values = [];
 
@@ -180,7 +180,7 @@ class Assignment {
         await db.query(`UPDATE assignments SET ${fields.join(', ')} WHERE id = ?`, values);
 
         const assignment = await this.findById(id);
-        await this._invalidateCaches(assignment.courseCode);
+        await this._invalidateCaches(assignment.courseId);
         return assignment;
     }
 
@@ -189,16 +189,16 @@ class Assignment {
         if (!assignment) return false;
 
         await db.query('DELETE FROM assignments WHERE id = ?', [id]);
-        await this._invalidateCaches(assignment.courseCode);
+        await this._invalidateCaches(assignment.courseId);
         return true;
     }
 
     static async search(query, limit = 20) {
         const [rows] = await db.query(
-            `SELECT a.*, c.courseId
+            `SELECT a.*, c.courseCode, c.courseName
              FROM assignments a
-             LEFT JOIN courses c ON CONVERT(a.courseCode USING utf8mb4) COLLATE utf8mb4_0900_ai_ci = CONVERT(c.courseCode USING utf8mb4) COLLATE utf8mb4_0900_ai_ci
-             WHERE a.title LIKE ? OR a.courseCode LIKE ? OR a.description LIKE ?
+             LEFT JOIN courses c ON a.courseId = c.courseId
+             WHERE a.title LIKE ? OR c.courseCode LIKE ? OR a.description LIKE ?
              ORDER BY a.createdAt DESC
              LIMIT ?`,
             [`%${query}%`, `%${query}%`, `%${query}%`, parseInt(limit)]

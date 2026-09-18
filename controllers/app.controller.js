@@ -396,8 +396,8 @@ class AppController {
             const [quizzes, pastPapers, assignments, gdbSolutions] = await Promise.all([
                 Quiz.findByCourse(course.courseId),
                 PastPaper.getByCourse(course.courseId),
-                Assignment.getByCourse(course.courseCode),
-                GdbSolution.getByCourse(course.courseCode)
+                Assignment.getByCourse(course.courseId),
+                GdbSolution.getByCourse(course.courseId)
             ]);
 
             renderAdmin(res, 'courses/show', {
@@ -1080,15 +1080,13 @@ class AppController {
     static async adminAssignmentNew(req, res) {
         try {
             const courses = await Course.findAll({ limit: 500 });
-            const selectedCourseCode = req.query.courseCode ? String(req.query.courseCode).trim() : '';
-            const selectedCourse = selectedCourseCode ? await Course.findByCode(selectedCourseCode) : null;
+            const selectedCourseId = req.query.courseId ? String(req.query.courseId).trim() : '';
             renderAdmin(res, 'assignments/new', {
                 page: 'assignments',
                 mode: 'new',
                 courses,
                 assignment: '',
-                selectedCourseCode: selectedCourse ? selectedCourse.courseCode : selectedCourseCode,
-                selectedCourseName: selectedCourse ? selectedCourse.courseName : ''
+                selectedCourseId
             });
         } catch (err) {
             res.status(500).render('error', { title: 'Server Error', message: err.message, error: null, redirect_url: '/assignments', header: false, footer: false });
@@ -1097,14 +1095,14 @@ class AppController {
 
     static async adminAssignmentCreate(req, res) {
         try {
-            const { courseCode, courseName, title, description, dueDate, filePath, originalFilename, status } = req.body;
+            const { courseId, title, description, dueDate, filePath, originalFilename, status } = req.body;
 
-            const course = await Course.findByCode(courseCode);
-            const resolvedCourseName = courseName || (course ? course.courseName : courseCode);
+            if (!courseId) {
+                return res.redirect('/assignments/new');
+            }
 
             const assignment = await Assignment.create({
-                courseCode,
-                courseName: resolvedCourseName,
+                courseId,
                 title: title.trim(),
                 description: description || '',
                 dueDate: dueDate || null,
@@ -1191,15 +1189,13 @@ class AppController {
     static async adminGdbSolutionNew(req, res) {
         try {
             const courses = await Course.findAll({ limit: 500 });
-            const selectedCourseCode = req.query.courseCode ? String(req.query.courseCode).trim() : '';
-            const selectedCourse = selectedCourseCode ? await Course.findByCode(selectedCourseCode) : null;
+            const selectedCourseId = req.query.courseId ? String(req.query.courseId).trim() : '';
             renderAdmin(res, 'gdbs/new', {
                 page: 'gdb-solutions',
                 mode: 'new',
                 courses,
                 solution: '',
-                selectedCourseCode: selectedCourse ? selectedCourse.courseCode : selectedCourseCode,
-                selectedCourseName: selectedCourse ? selectedCourse.courseName : ''
+                selectedCourseId
             });
         } catch (err) {
             res.status(500).render('error', { title: 'Server Error', message: err.message, error: null, redirect_url: '/gdb-solutions', header: false, footer: false });
@@ -1208,14 +1204,14 @@ class AppController {
 
     static async adminGdbSolutionCreate(req, res) {
         try {
-            const { courseCode, courseName, gdbTitle, solution } = req.body;
+            const { courseId, gdbTitle, solution } = req.body;
 
-            const course = await Course.findByCode(courseCode);
-            const resolvedCourseName = courseName || (course ? course.courseName : courseCode);
+            if (!courseId) {
+                return res.redirect('/gdb-solutions/new');
+            }
 
             const gdbSolution = await GdbSolution.create({
-                courseCode,
-                courseName: resolvedCourseName,
+                courseId,
                 gdbTitle: gdbTitle.trim(),
                 solution: solution.trim(),
                 authorId: req.user.id

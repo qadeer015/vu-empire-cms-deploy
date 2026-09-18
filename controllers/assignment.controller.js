@@ -6,11 +6,11 @@ class AssignmentController {
         try {
             const page = parseInt(req.query.page) || 1;
             const limit = parseInt(req.query.limit) || 20;
-            const courseCode = req.query.courseCode || null;
+            const courseId = req.query.courseId || null;
 
             let result;
-            if (courseCode) {
-                const assignments = await Assignment.getByCourse(courseCode);
+            if (courseId) {
+                const assignments = await Assignment.getByCourse(courseId);
                 result = { assignments, pagination: { page, limit, total: assignments.length, pages: 1 } };
             } else {
                 const offset = (page - 1) * limit;
@@ -39,14 +39,14 @@ class AssignmentController {
 
     static async create(req, res) {
         try {
-            const { courseCode, courseName, title, description, dueDate, filePath, originalFilename, status = 'publish' } = req.body;
+            const { courseId, title, description, dueDate, filePath, originalFilename, status = 'publish' } = req.body;
 
-            if (!courseCode || !title) {
-                throw AppError.badRequest('Course code and title are required');
+            if (!courseId || !title) {
+                throw AppError.badRequest('Course and title are required');
             }
 
             const assignment = await Assignment.create({
-                courseCode, courseName, title, description, dueDate, filePath, originalFilename, status,
+                courseId, title, description, dueDate, filePath, originalFilename, status,
                 authorId: req.user.id
             });
 
