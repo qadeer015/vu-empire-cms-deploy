@@ -43,6 +43,10 @@
               <label class="form-label fw-bold">Question Description <span class="text-danger">*</span></label>
               <textarea id="gdbDescriptionInput" class="form-control" name="questionDescription" rows="4" placeholder="Paste or write the full GDB question here..." required><%= solution ? (solution.questionDescription || '') : '' %></textarea>
             </div>
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Due Date</label>
+              <input type="datetime-local" class="form-control" name="dueDate" value="<%= solution && solution.dueDate ? new Date(solution.dueDate).toISOString().slice(0, 16) : '' %>">
+            </div>
             <div class="col-12">
               <label class="form-label fw-bold">Solution <span class="text-danger">*</span></label>
               <textarea class="form-control" name="solution" rows="8" placeholder="Write the GDB solution here..." required><%= solution ? solution.solution : '' %></textarea>

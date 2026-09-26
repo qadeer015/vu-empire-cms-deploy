@@ -10,12 +10,12 @@ class GdbSolution {
     }
 
     static async create(data) {
-        const { courseId, questionTitle, questionDescription, solution, authorId } = data;
+        const { courseId, questionTitle, questionDescription, solution, dueDate, authorId } = data;
 
         const [result] = await db.query(
-            `INSERT INTO gdb_solutions (courseId, questionTitle, questionDescription, solution, authorId)
-             VALUES (?, ?, ?, ?, ?)`,
-            [courseId, questionTitle, questionDescription || null, solution, authorId]
+            `INSERT INTO gdb_solutions (courseId, questionTitle, questionDescription, solution, dueDate, authorId)
+             VALUES (?, ?, ?, ?, ?, ?)`,
+            [courseId, questionTitle, questionDescription || null, solution, dueDate || null, authorId]
         );
 
         await this._invalidateCaches(courseId);
@@ -63,7 +63,16 @@ class GdbSolution {
         });
     }
 
-    static async findAllWithFilters({ search, createdDate, limit = 20, offset = 0 } = {}) {
+    // Validate a YYYY-MM-DD filter value coming from a date input
+    static _dueDateCondition(dueDate) {
+        if (!dueDate || typeof dueDate !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(dueDate)) {
+            return null;
+        }
+        const d = new Date(`${dueDate}T00:00:00Z`);
+        return isNaN(d.getTime()) ? null : dueDate;
+    }
+
+    static async findAllWithFilters({ search, createdDate, dueDate, limit = 20, offset = 0 } = {}) {
         const conditions = [];
         const params = [];
 
@@ -82,8 +91,14 @@ class GdbSolution {
             params.push(createdDate);
         }
 
+        const dueDateFilter = this._dueDateCondition(dueDate);
+        if (dueDateFilter) {
+            conditions.push('DATE(gs.dueDate) = ?');
+            params.push(dueDateFilter);
+        }
+
         const whereClause = conditions.length ? 'WHERE ' + conditions.join(' AND ') : '';
-        const cacheKey = `gdbSolutions:filtered:${search}:${createdDate || ''}:${limit}:${offset}`;
+        const cacheKey = `gdbSolutions:filtered:${search}:${createdDate || ''}:${dueDate || ''}:${limit}:${offset}`;
 
         return cache.remember(cacheKey, TTL.GDB_SOLUTIONS, async () => {
             const [rows] = await db.query(
@@ -99,7 +114,7 @@ class GdbSolution {
         });
     }
 
-    static async countAllWithFilters({ search, createdDate } = {}) {
+    static async countAllWithFilters({ search, createdDate, dueDate } = {}) {
         const conditions = [];
         const params = [];
 
@@ -118,8 +133,14 @@ class GdbSolution {
             params.push(createdDate);
         }
 
+        const dueDateCountFilter = this._dueDateCondition(dueDate);
+        if (dueDateCountFilter) {
+            conditions.push('DATE(gs.dueDate) = ?');
+            params.push(dueDateCountFilter);
+        }
+
         const whereClause = conditions.length ? 'WHERE ' + conditions.join(' AND ') : '';
-        const cacheKey = `gdbSolutions:count:${search}:${createdDate || ''}`;
+        const cacheKey = `gdbSolutions:count:${search}:${createdDate || ''}:${dueDate || ''}`;
 
         return cache.remember(cacheKey, TTL.GDB_SOLUTIONS, async () => {
             const [[{ total }]] = await db.query(
@@ -142,7 +163,7 @@ class GdbSolution {
     }
 
     static async update(id, updates) {
-        const allowed = ['courseId', 'questionTitle', 'questionDescription', 'solution', 'authorId'];
+        const allowed = ['courseId', 'questionTitle', 'questionDescription', 'solution', 'dueDate', 'authorId'];
         const fields = [];
         const values = [];
 

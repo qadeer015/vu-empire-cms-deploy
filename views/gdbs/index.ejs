@@ -28,6 +28,10 @@
             <label for="gdbCreatedDate" class="form-label small text-muted">Created On</label>
             <input type="date" class="form-control form-control-sm" id="gdbCreatedDate" name="createdDate" value="<%= typeof createdDate !== 'undefined' ? createdDate : '' %>">
           </div>
+          <div class="col-sm-3 col-md-3">
+            <label for="gdbDueDate" class="form-label small text-muted">Due On</label>
+            <input type="date" class="form-control form-control-sm" id="gdbDueDate" name="dueDate" value="<%= typeof dueDate !== 'undefined' ? dueDate : '' %>">
+          </div>
           <div class="col-sm-2 mt-3">
             <div class="d-flex gap-2">
               <a href="/gdb-solutions" class="btn btn-outline-secondary btn-sm w-100">
@@ -52,6 +56,7 @@
         <th>Question Title</th>
         <th>Question Description</th>
         <th>Course</th>
+        <th>Due Date</th>
         <th>Created</th>
         <th class="text-end">Actions</th>
       </tr>
@@ -73,6 +78,7 @@
             <small class="d-block text-muted"><%= s.courseName %></small>
           </a>
         </td>
+        <td class="text-muted small"><%= s.dueDate ? new Date(s.dueDate).toLocaleDateString() : '-' %></td>
         <td class="text-muted small"><%= s.createdAt ? new Date(s.createdAt).toLocaleDateString() : '-' %></td>
         <td class="text-end">
           <a href="/gdb-solutions/<%= s.id %>/edit" class="btn btn-sm btn-outline-primary">
@@ -91,7 +97,7 @@
 
   <!-- Pagination -->
   <% if (typeof pagination !== 'undefined' && pagination.pages > 1) { %>
-  <% const qsStr = ((typeof q !== 'undefined' && q) ? '&q=' + encodeURIComponent(q) : '') + ((typeof createdDate !== 'undefined' && createdDate) ? '&createdDate=' + encodeURIComponent(createdDate) : ''); %>
+  <% const qsParts = []; if (typeof q !== 'undefined' && q) qsParts.push('q=' + encodeURIComponent(q)); if (typeof createdDate !== 'undefined' && createdDate) qsParts.push('createdDate=' + encodeURIComponent(createdDate)); if (typeof dueDate !== 'undefined' && dueDate) qsParts.push('dueDate=' + encodeURIComponent(dueDate)); const qsStr = qsParts.length ? '&' + qsParts.join('&') : ''; %>
   <nav>
     <ul class="pagination justify-content-center">
       <li class="page-item <%= pagination.page <= 1 ? 'disabled' : '' %>">

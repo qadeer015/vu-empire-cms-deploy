@@ -43,6 +43,10 @@
               <p class="small text-muted mb-0">Created</p>
               <p class="fw-medium mb-0"><%= solution.createdAt ? new Date(solution.createdAt).toLocaleDateString() : '-' %></p>
             </div>
+            <div class="col-md-4">
+              <p class="small text-muted mb-0">Due Date</p>
+              <p class="fw-medium mb-0"><%= solution.dueDate ? new Date(solution.dueDate).toLocaleDateString() : '-' %></p>
+            </div>
           </div>
         </div>
       </div>

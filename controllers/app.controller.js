@@ -1163,10 +1163,11 @@ class AppController {
             const offset = (page - 1) * limit;
             const search = req.query.q || '';
             const createdDate = /^\d{4}-\d{2}-\d{2}$/.test(req.query.createdDate || '') ? req.query.createdDate : '';
+            const dueDate = req.query.dueDate || '';
 
             const [solutions, total] = await Promise.all([
-                GdbSolution.findAllWithFilters({ search, createdDate, limit, offset }),
-                GdbSolution.countAllWithFilters({ search, createdDate })
+                GdbSolution.findAllWithFilters({ search, createdDate, dueDate, limit, offset }),
+                GdbSolution.countAllWithFilters({ search, createdDate, dueDate })
             ]);
 
             renderAdmin(res, 'gdbs/index', {
@@ -1175,6 +1176,7 @@ class AppController {
                 total,
                 q: search,
                 createdDate,
+                dueDate,
                 pagination: { page, limit, total, pages: Math.ceil(total / limit) }
             });
         } catch (err) {
@@ -1199,7 +1201,7 @@ class AppController {
 
     static async adminGdbSolutionCreate(req, res) {
         try {
-            const { courseId, questionTitle, questionDescription, solution } = req.body;
+            const { courseId, questionTitle, questionDescription, solution, dueDate } = req.body;
 
             if (!courseId) {
                 return res.redirect('/gdb-solutions/new');
@@ -1210,6 +1212,7 @@ class AppController {
                 questionTitle: questionTitle.trim(),
                 questionDescription: questionDescription || null,
                 solution: solution.trim(),
+                dueDate: dueDate || null,
                 authorId: req.user.id
             });
             res.redirect('/gdb-solutions/' + gdbSolution.id);
@@ -1231,7 +1234,9 @@ class AppController {
 
     static async adminGdbSolutionUpdate(req, res) {
         try {
-            await GdbSolution.update(req.params.id, req.body);
+            const updates = { ...req.body };
+            if ('dueDate' in updates && !updates.dueDate) updates.dueDate = null;
+            await GdbSolution.update(req.params.id, updates);
             res.redirect('/gdb-solutions/' + req.params.id);
         } catch (err) {
             res.status(400).render('error', { title: 'Error', message: err.message, error: null, redirect_url: '/gdb-solutions', header: false, footer: false });
