@@ -7,7 +7,11 @@ class AnalyticsController {
                 title: 'Analytics Dashboard',
                 sidebar: true,
                 isGenie: true,
-                page: 'admin-analytics',
+                page: 'analytics',
+                breadcrumbs: [
+                    { label: 'Home', href: '/' },
+                    { label: 'Analytics', href: '/analytics' }
+                ],
                 user: req.user
             });
         } catch (err) {

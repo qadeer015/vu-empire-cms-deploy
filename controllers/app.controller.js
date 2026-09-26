@@ -38,7 +38,8 @@ function buildBreadcrumbs(data = {}) {
         'users': 'Users',
         'tasks': 'Task Center',
         'posts': 'Posts',
-        'feedback': 'Feedback'
+        'feedback': 'Feedback',
+        "analytics": "Analytics"
     };
     
     const pageUrls = {
@@ -51,7 +52,8 @@ function buildBreadcrumbs(data = {}) {
         'users': '/users',
         'tasks': '/tasks',
         'posts': '/posts',
-        'feedback': '/feedback'
+        'feedback': '/feedback',
+        "analytics": "/analytics"
     };
     
     const crumbs = [
