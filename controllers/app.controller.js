@@ -1190,12 +1190,11 @@ class AppController {
 
     static async adminGdbSolutionNew(req, res) {
         try {
-            const courses = await Course.findAll({ limit: 500 });
             const selectedCourseId = req.query.courseId ? String(req.query.courseId).trim() : '';
             renderAdmin(res, 'gdbs/new', {
                 page: 'gdb-solutions',
                 mode: 'new',
-                courses,
+                courses: [],
                 solution: '',
                 selectedCourseId
             });
@@ -1226,13 +1225,10 @@ class AppController {
 
     static async adminGdbSolutionEdit(req, res) {
         try {
-            const [solution, courses] = await Promise.all([
-                GdbSolution.findById(req.params.id),
-                Course.findAll({ limit: 500 })
-            ]);
+            const solution = await GdbSolution.findById(req.params.id);
             if (!solution) return res.redirect('/gdb-solutions');
 
-            renderAdmin(res, 'gdbs/edit', { page: 'gdb-solutions', mode: 'edit', solution, courses });
+            renderAdmin(res, 'gdbs/edit', { page: 'gdb-solutions', mode: 'edit', solution, courses: [] });
         } catch (err) {
             res.status(500).render('error', { title: 'Server Error', message: err.message, error: null, redirect_url: '/gdb-solutions', header: false, footer: false });
         }
