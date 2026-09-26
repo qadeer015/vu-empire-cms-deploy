@@ -1296,13 +1296,12 @@ class AppController {
 
     static async adminPastPaperNew(req, res) {
         try {
-            const courses = await Course.findAll({ limit: 500 });
             const selectedCourseCode = req.query.courseCode ? String(req.query.courseCode).trim() : '';
             const selectedCourse = selectedCourseCode ? await Course.findByCode(selectedCourseCode) : null;
             renderAdmin(res, 'pastpapers/new', {
                 page: 'past-papers',
                 mode: 'new',
-                courses,
+                courses: [],
                 paper: '',
                 selectedCourseId: selectedCourse ? selectedCourse.courseId : null,
                 selectedCourseCode
@@ -1341,13 +1340,10 @@ class AppController {
 
     static async adminPastPaperEdit(req, res) {
         try {
-            const [paper, courses] = await Promise.all([
-                PastPaper.findById(req.params.id),
-                Course.findAll({ limit: 500 })
-            ]);
+            const paper = await PastPaper.findById(req.params.id);
             if (!paper) return res.redirect('/pastpapers');
 
-            renderAdmin(res, 'pastpapers/edit', { page: 'past-papers', mode: 'edit', paper, courses });
+            renderAdmin(res, 'pastpapers/edit', { page: 'past-papers', mode: 'edit', paper, courses: [] });
         } catch (err) {
             res.status(500).render('error', { title: 'Server Error', message: err.message, error: null, redirect_url: '/pastpapers', header: false, footer: false });
         }
