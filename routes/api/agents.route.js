@@ -4,10 +4,10 @@ const router = express.Router();
 const { run } = require("../../utils/ai");
 const gdbAgent = require("../../utils/agents/gdb.agent");
 
-// const { authenticate } = require('../../middlewares/authenticate');
-// const { authorize } = require('../../middlewares/authorize');
+const { authenticate } = require('../../middlewares/authenticate');
+const { authorize } = require('../../middlewares/authorize');
 
-// router.use(authenticate, authorize('admin'));
+router.use(authenticate, authorize('admin'));
 
 router.post("/ask", async (req, res) => {
     try {
