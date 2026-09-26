@@ -15,14 +15,14 @@
 
           <div class="row g-3">
             <div class="col-md-6">
+              <label class="form-label fw-bold">Question Title <span class="text-danger">*</span></label>
+              <input type="text" id="gdbTopicInput" class="form-control" name="questionTitle" value="<%= solution ? solution.questionTitle : '' %>" placeholder="e.g. Impact of AI on education" required>
+            </div>
+            <div class="col-md-6">
               <label class="form-label fw-bold">Course <span class="text-danger">*</span></label>
-              <input type="hidden" name="courseId" id="courseIdInput"
-                value="<%= solution ? solution.courseId : (selectedCourseId || '') %>">
+              <input type="hidden" name="courseId" id="courseIdInput" value="<%= solution ? solution.courseId : (selectedCourseId || '') %>">
               <div class="course-search-wrapper position-relative">
-                <input type="text" id="courseSearchInput" class="form-control"
-                  placeholder="Type course code or name…"
-                  autocomplete="off"
-                  value="<%= solution ? (solution.courseCode + ' \u2013 ' + solution.courseName) : '' %>">
+                <input type="text" id="courseSearchInput" class="form-control" placeholder="Type course code or name…" autocomplete="off" value="<%= solution ? (solution.courseCode + ' \u2013 ' + solution.courseName) : '' %>">
                 <button type="button" id="courseSearchClear" class="btn btn-sm btn-outline-secondary position-absolute course-search-clear" title="Clear selection">
                   <i class="bi bi-x-lg"></i>
                 </button>
@@ -33,25 +33,15 @@
               </div>
               <div class="invalid-feedback d-block" id="courseSearchError" style="display:none;">Please select a course.</div>
             </div>
-            <div class="col-md-6 d-flex align-items-end text-muted small pb-2">
-            </div>
-            <div class="col-12">
-              <label class="form-label fw-bold">Question Title <span class="text-danger">*</span></label>
-              <input type="text" id="gdbTopicInput" class="form-control" name="questionTitle" value="<%= solution ? solution.questionTitle : '' %>" placeholder="e.g. Impact of AI on education" required>
-            </div>
-            <div class="col-12">
-              <label class="form-label fw-bold">Question Description <span class="text-danger">*</span></label>
-              <textarea id="gdbDescriptionInput" class="form-control" name="questionDescription" rows="4" placeholder="Paste or write the full GDB question here..." required><%= solution ? (solution.questionDescription || '') : '' %></textarea>
-            </div>
-            <div class="col-md-6">
+            <div class="col-md-4">
               <label class="form-label fw-bold">Start Date</label>
               <input type="datetime-local" class="form-control" name="startDate" value="<%= solution && solution.startDate ? new Date(solution.startDate).toISOString().slice(0, 16) : '' %>">
             </div>
-            <div class="col-md-6">
+            <div class="col-md-4">
               <label class="form-label fw-bold">End Date</label>
               <input type="datetime-local" class="form-control" name="endDate" value="<%= solution && solution.endDate ? new Date(solution.endDate).toISOString().slice(0, 16) : '' %>">
             </div>
-            <div class="col-md-6">
+            <div class="col-md-4">
               <label class="form-label fw-bold">Status</label>
               <select name="status" class="form-select">
                 <option value="open" <%= !solution || solution.status === 'open' ? 'selected' : '' %>>Open</option>
@@ -59,14 +49,8 @@
               </select>
             </div>
             <div class="col-12">
-              <div class="d-flex justify-content-between align-items-center mb-1">
-                <label class="form-label fw-bold mb-0">Solution <span class="text-danger">*</span></label>
-                <button type="button" id="aiGenerateBtn" class="btn btn-sm btn-outline-success" title="Generate solution using AI">
-                  <i class="bi bi-stars"></i> AI Generate
-                </button>
-              </div>
-              <textarea id="solutionTextarea" class="form-control" name="solution" rows="8" placeholder="Write the GDB solution here..." required><%= solution ? solution.solution : '' %></textarea>
-              <div id="aiGenerateError" class="form-text text-danger" style="display:none;"></div>
+              <label class="form-label fw-bold">Question Description <span class="text-danger">*</span></label>
+              <textarea id="gdbDescriptionInput" class="form-control" name="questionDescription" rows="4" placeholder="Paste or write the full GDB question here..." required><%= solution ? (solution.questionDescription || '') : '' %></textarea>
             </div>
             <div class="col-12">
               <div class="d-flex justify-content-between align-items-center mb-1">
