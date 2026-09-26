@@ -36,8 +36,12 @@
             <div class="col-md-6 d-flex align-items-end text-muted small pb-2">
             </div>
             <div class="col-12">
-              <label class="form-label fw-bold">GDB Topic <span class="text-danger">*</span></label>
-              <input type="text" class="form-control" name="gdbTitle" value="<%= solution ? solution.gdbTitle : '' %>" placeholder="e.g. Discuss the impact of AI on education" required>
+              <label class="form-label fw-bold">Question Title <span class="text-danger">*</span></label>
+              <input type="text" id="gdbTopicInput" class="form-control" name="questionTitle" value="<%= solution ? solution.questionTitle : '' %>" placeholder="e.g. Impact of AI on education" required>
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-bold">Question Description <span class="text-danger">*</span></label>
+              <textarea id="gdbDescriptionInput" class="form-control" name="questionDescription" rows="4" placeholder="Paste or write the full GDB question here..." required><%= solution ? (solution.questionDescription || '') : '' %></textarea>
             </div>
             <div class="col-12">
               <label class="form-label fw-bold">Solution <span class="text-danger">*</span></label>
@@ -210,6 +214,80 @@
       errorEl.style.display = 'none';
       searchInput.classList.remove('is-invalid');
     }
+  });
+})();
+</script>
+
+<script>
+(function () {
+  var gdbTopicInput = document.getElementById('gdbTopicInput');
+  var gdbDescriptionInput = document.getElementById('gdbDescriptionInput');
+  var solutionTextarea = document.getElementById('solutionTextarea');
+  var aiGenerateBtn = document.getElementById('aiGenerateBtn');
+  var aiGenerateStatus = aiGenerateBtn.innerHTML;
+  var aiGenerateError = document.getElementById('aiGenerateError');
+  var courseSearchInput = document.getElementById('courseSearchInput');
+
+  aiGenerateBtn.addEventListener('click', function () {
+    var title = gdbTopicInput.value.trim();
+    var description = gdbDescriptionInput.value.trim();
+
+    if (!title) {
+      gdbTopicInput.classList.add('is-invalid');
+      gdbTopicInput.focus();
+      return;
+    }
+    if (!description) {
+      gdbDescriptionInput.classList.add('is-invalid');
+      gdbDescriptionInput.focus();
+      return;
+    }
+    gdbTopicInput.classList.remove('is-invalid');
+    gdbDescriptionInput.classList.remove('is-invalid');
+
+    // Extract course code from the search input display (e.g. "CS301 – Data Structures")
+    var courseDisplay = courseSearchInput ? courseSearchInput.value.trim() : '';
+    var courseCode = '';
+    var dashIndex = courseDisplay.indexOf(' - ');
+    if (dashIndex === -1) dashIndex = courseDisplay.indexOf(' – ');
+    if (dashIndex > 0) {
+      courseCode = courseDisplay.substring(0, dashIndex).trim();
+    }
+
+    // Build the message for the agent using title + full description
+    var message = (courseCode ? 'Course ' + courseCode + '. ' : '')
+      + 'GDB Title: ' + title + '. '
+      + 'GDB Question: ' + description;
+
+    // Set loading state
+    aiGenerateBtn.disabled = true;
+    aiGenerateBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> Generating solution...`;
+    aiGenerateError.style.display = 'none';
+
+    fetch('/api/agents/ask', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ message: message })
+    })
+      .then(function (res) { return res.json(); })
+      .then(function (json) {
+        aiGenerateBtn.disabled = false;
+        aiGenerateBtn.innerHTML = aiGenerateStatus;
+        if (json.success && json.response) {
+          solutionTextarea.value = json.response;
+          solutionTextarea.dispatchEvent(new Event('input', { bubbles: true }));
+        } else {
+          aiGenerateError.textContent = json.error || 'Failed to generate solution.';
+          aiGenerateError.style.display = 'block';
+        }
+      })
+      .catch(function (err) {
+        aiGenerateBtn.disabled = false;
+        aiGenerateBtn.innerHTML = aiGenerateStatus;
+        aiGenerateError.textContent = 'Network error: ' + err.message;
+        aiGenerateError.style.display = 'block';
+      });
   });
 })();
 </script>

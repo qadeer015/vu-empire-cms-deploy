@@ -22,7 +22,11 @@
         <div class="d-flex flex-column g-2 align-items-start">
           <div class="col-sm-3 col-md-3">
             <label for="gdbSearch" class="form-label small text-muted">Search</label>
-            <input type="text" class="form-control form-control-sm" id="gdbSearch" name="q" placeholder="Search by topic, course or solution..." value="<%= typeof q !== 'undefined' ? q : '' %>">
+            <input type="text" class="form-control form-control-sm" id="gdbSearch" name="q" placeholder="Search by title, description or course..." value="<%= typeof q !== 'undefined' ? q : '' %>">
+          </div>
+          <div class="col-sm-3 col-md-3">
+            <label for="gdbCreatedDate" class="form-label small text-muted">Created On</label>
+            <input type="date" class="form-control form-control-sm" id="gdbCreatedDate" name="createdDate" value="<%= typeof createdDate !== 'undefined' ? createdDate : '' %>">
           </div>
           <div class="col-sm-2 mt-3">
             <div class="d-flex gap-2">
@@ -45,9 +49,9 @@
   <table class="table table-hover align-middle">
     <thead>
       <tr class="sticky-table-header">
-        <th>GDB Topic</th>
+        <th>Question Title</th>
+        <th>Question Description</th>
         <th>Course</th>
-        <th>Solution Preview</th>
         <th>Created</th>
         <th class="text-end">Actions</th>
       </tr>
@@ -56,10 +60,11 @@
       <% solutions.forEach(function(s) { %>
       <tr>
         <td class="fw-medium">
-          <a href="/gdb-solutions/<%= s.id %>" class="text-decoration-none fw-medium" title="View <%= s.gdbTitle %>">
-            <%= s.gdbTitle %>
+          <a href="/gdb-solutions/<%= s.id %>" class="text-decoration-none fw-medium" title="View <%= s.questionTitle %>">
+            <%= s.questionTitle %>
           </a>
         </td>
+        <td class="text-muted small text-truncate" style="max-width: 320px;" title="<%= s.questionDescription || '' %>"><%= s.questionDescription || '-' %></td>
         <td>
           <a href="/courses/<%= s.courseId %>" class="text-decoration-none fw-medium" title="View <%= s.courseCode %> course">
             <span class="fw-semibold"><%= s.courseCode %></span>
@@ -68,7 +73,6 @@
             <small class="d-block text-muted"><%= s.courseName %></small>
           </a>
         </td>
-        <td class="text-muted small text-truncate" style="max-width: 300px;"><%= s.solution %></td>
         <td class="text-muted small"><%= s.createdAt ? new Date(s.createdAt).toLocaleDateString() : '-' %></td>
         <td class="text-end">
           <a href="/gdb-solutions/<%= s.id %>/edit" class="btn btn-sm btn-outline-primary">
@@ -87,7 +91,7 @@
 
   <!-- Pagination -->
   <% if (typeof pagination !== 'undefined' && pagination.pages > 1) { %>
-  <% const qsStr = (typeof q !== 'undefined' && q) ? '&q=' + encodeURIComponent(q) : ''; %>
+  <% const qsStr = ((typeof q !== 'undefined' && q) ? '&q=' + encodeURIComponent(q) : '') + ((typeof createdDate !== 'undefined' && createdDate) ? '&createdDate=' + encodeURIComponent(createdDate) : ''); %>
   <nav>
     <ul class="pagination justify-content-center">
       <li class="page-item <%= pagination.page <= 1 ? 'disabled' : '' %>">

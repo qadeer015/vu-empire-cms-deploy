@@ -1162,10 +1162,11 @@ class AppController {
             const limit = 20;
             const offset = (page - 1) * limit;
             const search = req.query.q || '';
+            const createdDate = /^\d{4}-\d{2}-\d{2}$/.test(req.query.createdDate || '') ? req.query.createdDate : '';
 
             const [solutions, total] = await Promise.all([
-                GdbSolution.findAllWithFilters({ search, limit, offset }),
-                GdbSolution.countAllWithFilters({ search })
+                GdbSolution.findAllWithFilters({ search, createdDate, limit, offset }),
+                GdbSolution.countAllWithFilters({ search, createdDate })
             ]);
 
             renderAdmin(res, 'gdbs/index', {
@@ -1173,6 +1174,7 @@ class AppController {
                 solutions,
                 total,
                 q: search,
+                createdDate,
                 pagination: { page, limit, total, pages: Math.ceil(total / limit) }
             });
         } catch (err) {
@@ -1197,7 +1199,7 @@ class AppController {
 
     static async adminGdbSolutionCreate(req, res) {
         try {
-            const { courseId, gdbTitle, solution } = req.body;
+            const { courseId, questionTitle, questionDescription, solution } = req.body;
 
             if (!courseId) {
                 return res.redirect('/gdb-solutions/new');
@@ -1205,7 +1207,8 @@ class AppController {
 
             const gdbSolution = await GdbSolution.create({
                 courseId,
-                gdbTitle: gdbTitle.trim(),
+                questionTitle: questionTitle.trim(),
+                questionDescription: questionDescription || null,
                 solution: solution.trim(),
                 authorId: req.user.id
             });
