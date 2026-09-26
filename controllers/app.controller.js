@@ -472,13 +472,12 @@ class AppController {
 
     static async adminQuizNew(req, res) {
         try {
-            const courses = await Course.findAll({ limit: 500 });
             const selectedCourseCode = req.query.courseCode ? String(req.query.courseCode).trim() : '';
             const selectedCourse = selectedCourseCode ? await Course.findByCode(selectedCourseCode) : null;
             renderAdmin(res, 'quizzes/new', {
                 page: 'quizzes',
                 mode: 'new',
-                courses,
+                courses: [],
                 quiz: '',
                 selectedCourseId: selectedCourse ? selectedCourse.courseId : null,
                 selectedCourseCode
@@ -516,15 +515,12 @@ class AppController {
 
     static async adminQuizEdit(req, res) {
         try {
-            const [quiz, courses] = await Promise.all([
-                Quiz.findById(req.params.id),
-                Course.findAll({ limit: 500 })
-            ]);
+            const quiz = await Quiz.findById(req.params.id);
             if (!quiz) return res.redirect('/quizzes');
 
             const questions = await Question.findByQuizId(quiz.quizId);
 
-            renderAdmin(res, 'quizzes/edit', { page: 'quizzes', mode: 'edit', quiz, courses, questions });
+            renderAdmin(res, 'quizzes/edit', { page: 'quizzes', mode: 'edit', quiz, courses: [], questions });
         } catch (err) {
             res.status(500).render('error', { title: 'Server Error', message: err.message, error: null, redirect_url: '/quizzes', header: false, footer: false });
         }
