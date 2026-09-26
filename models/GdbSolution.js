@@ -10,12 +10,12 @@ class GdbSolution {
     }
 
     static async create(data) {
-        const { courseId, questionTitle, questionDescription, solution, dueDate, authorId } = data;
+        const { courseId, questionTitle, questionDescription, solution, startDate, endDate, status, authorId } = data;
 
         const [result] = await db.query(
-            `INSERT INTO gdb_solutions (courseId, questionTitle, questionDescription, solution, dueDate, authorId)
-             VALUES (?, ?, ?, ?, ?, ?)`,
-            [courseId, questionTitle, questionDescription || null, solution, dueDate || null, authorId]
+            `INSERT INTO gdb_solutions (courseId, questionTitle, questionDescription, solution, startDate, endDate, status, authorId)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            [courseId, questionTitle, questionDescription || null, solution, startDate || null, endDate || null, status || 'open', authorId]
         );
 
         await this._invalidateCaches(courseId);
@@ -64,15 +64,15 @@ class GdbSolution {
     }
 
     // Validate a YYYY-MM-DD filter value coming from a date input
-    static _dueDateCondition(dueDate) {
-        if (!dueDate || typeof dueDate !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(dueDate)) {
+    static _dateCondition(value) {
+        if (!value || value === 'all' || typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
             return null;
         }
-        const d = new Date(`${dueDate}T00:00:00Z`);
-        return isNaN(d.getTime()) ? null : dueDate;
+        const d = new Date(`${value}T00:00:00Z`);
+        return isNaN(d.getTime()) ? null : value;
     }
 
-    static async findAllWithFilters({ search, createdDate, dueDate, limit = 20, offset = 0 } = {}) {
+    static async findAllWithFilters({ search, createdDate, startDate, endDate, status, limit = 20, offset = 0 } = {}) {
         const conditions = [];
         const params = [];
 
@@ -91,14 +91,25 @@ class GdbSolution {
             params.push(createdDate);
         }
 
-        const dueDateFilter = this._dueDateCondition(dueDate);
-        if (dueDateFilter) {
-            conditions.push('DATE(gs.dueDate) = ?');
-            params.push(dueDateFilter);
+        const startDateFilter = this._dateCondition(startDate);
+        if (startDateFilter) {
+            conditions.push('DATE(gs.startDate) = ?');
+            params.push(startDateFilter);
+        }
+
+        const endDateFilter = this._dateCondition(endDate);
+        if (endDateFilter) {
+            conditions.push('DATE(gs.endDate) = ?');
+            params.push(endDateFilter);
+        }
+
+        if (status && status !== 'all') {
+            conditions.push('gs.status = ?');
+            params.push(status);
         }
 
         const whereClause = conditions.length ? 'WHERE ' + conditions.join(' AND ') : '';
-        const cacheKey = `gdbSolutions:filtered:${search}:${createdDate || ''}:${dueDate || ''}:${limit}:${offset}`;
+        const cacheKey = `gdbSolutions:filtered:${search}:${createdDate || ''}:${startDate || ''}:${endDate || ''}:${status || ''}:${limit}:${offset}`;
 
         return cache.remember(cacheKey, TTL.GDB_SOLUTIONS, async () => {
             const [rows] = await db.query(
@@ -114,7 +125,7 @@ class GdbSolution {
         });
     }
 
-    static async countAllWithFilters({ search, createdDate, dueDate } = {}) {
+    static async countAllWithFilters({ search, createdDate, startDate, endDate, status } = {}) {
         const conditions = [];
         const params = [];
 
@@ -133,14 +144,25 @@ class GdbSolution {
             params.push(createdDate);
         }
 
-        const dueDateCountFilter = this._dueDateCondition(dueDate);
-        if (dueDateCountFilter) {
-            conditions.push('DATE(gs.dueDate) = ?');
-            params.push(dueDateCountFilter);
+        const startDateCountFilter = this._dateCondition(startDate);
+        if (startDateCountFilter) {
+            conditions.push('DATE(gs.startDate) = ?');
+            params.push(startDateCountFilter);
+        }
+
+        const endDateCountFilter = this._dateCondition(endDate);
+        if (endDateCountFilter) {
+            conditions.push('DATE(gs.endDate) = ?');
+            params.push(endDateCountFilter);
+        }
+
+        if (status && status !== 'all') {
+            conditions.push('gs.status = ?');
+            params.push(status);
         }
 
         const whereClause = conditions.length ? 'WHERE ' + conditions.join(' AND ') : '';
-        const cacheKey = `gdbSolutions:count:${search}:${createdDate || ''}:${dueDate || ''}`;
+        const cacheKey = `gdbSolutions:count:${search}:${createdDate || ''}:${startDate || ''}:${endDate || ''}:${status || ''}`;
 
         return cache.remember(cacheKey, TTL.GDB_SOLUTIONS, async () => {
             const [[{ total }]] = await db.query(
@@ -163,7 +185,7 @@ class GdbSolution {
     }
 
     static async update(id, updates) {
-        const allowed = ['courseId', 'questionTitle', 'questionDescription', 'solution', 'dueDate', 'authorId'];
+        const allowed = ['courseId', 'questionTitle', 'questionDescription', 'solution', 'startDate', 'endDate', 'status', 'authorId'];
         const fields = [];
         const values = [];
 

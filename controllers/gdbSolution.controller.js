@@ -39,7 +39,7 @@ class GdbSolutionController {
 
     static async create(req, res) {
         try {
-            const { courseId, questionTitle, questionDescription, solution, dueDate } = req.body;
+            const { courseId, questionTitle, questionDescription, solution, startDate, endDate, status } = req.body;
 
             if (!courseId || !questionTitle || !solution) {
                 throw AppError.badRequest('Course, question title, and solution are required');
@@ -47,7 +47,9 @@ class GdbSolutionController {
 
             const gdbSolution = await GdbSolution.create({
                 courseId, questionTitle, questionDescription, solution,
-                dueDate: dueDate || null,
+                startDate: startDate || null,
+                endDate: endDate || null,
+                status: status || 'open',
                 authorId: req.user.id
             });
 

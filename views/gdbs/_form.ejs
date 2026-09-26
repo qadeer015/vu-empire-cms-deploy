@@ -44,12 +44,33 @@
               <textarea id="gdbDescriptionInput" class="form-control" name="questionDescription" rows="4" placeholder="Paste or write the full GDB question here..." required><%= solution ? (solution.questionDescription || '') : '' %></textarea>
             </div>
             <div class="col-md-6">
-              <label class="form-label fw-bold">Due Date</label>
-              <input type="datetime-local" class="form-control" name="dueDate" value="<%= solution && solution.dueDate ? new Date(solution.dueDate).toISOString().slice(0, 16) : '' %>">
+              <label class="form-label fw-bold">Start Date</label>
+              <input type="datetime-local" class="form-control" name="startDate" value="<%= solution && solution.startDate ? new Date(solution.startDate).toISOString().slice(0, 16) : '' %>">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-bold">End Date</label>
+              <input type="datetime-local" class="form-control" name="endDate" value="<%= solution && solution.endDate ? new Date(solution.endDate).toISOString().slice(0, 16) : '' %>">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Status</label>
+              <select name="status" class="form-select">
+                <option value="open" <%= !solution || solution.status === 'open' ? 'selected' : '' %>>Open</option>
+                <option value="close" <%= solution && solution.status === 'close' ? 'selected' : '' %>>Close</option>
+              </select>
             </div>
             <div class="col-12">
               <label class="form-label fw-bold">Solution <span class="text-danger">*</span></label>
               <textarea class="form-control" name="solution" rows="8" placeholder="Write the GDB solution here..." required><%= solution ? solution.solution : '' %></textarea>
+            </div>
+            <div class="col-12">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <label class="form-label fw-bold mb-0">Solution <span class="text-danger">*</span></label>
+                <button type="button" id="aiGenerateBtn" class="btn btn-sm btn-outline-success" title="Generate solution using AI">
+                  <i class="bi bi-stars"></i> AI Generate
+                </button>
+              </div>
+              <textarea id="solutionTextarea" class="form-control" name="solution" rows="8" placeholder="Write the GDB solution here..." required><%= solution ? solution.solution : '' %></textarea>
+              <div id="aiGenerateError" class="form-text text-danger" style="display:none;"></div>
             </div>
           </div>
 

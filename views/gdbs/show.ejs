@@ -39,13 +39,23 @@
               <p class="small text-muted mb-1">Solution</p>
               <p class="fw-medium mb-0" style="white-space: pre-wrap;"><%= solution.solution %></p>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
               <p class="small text-muted mb-0">Created</p>
               <p class="fw-medium mb-0"><%= solution.createdAt ? new Date(solution.createdAt).toLocaleDateString() : '-' %></p>
             </div>
-            <div class="col-md-4">
-              <p class="small text-muted mb-0">Due Date</p>
-              <p class="fw-medium mb-0"><%= solution.dueDate ? new Date(solution.dueDate).toLocaleDateString() : '-' %></p>
+            <div class="col-md-3">
+              <p class="small text-muted mb-0">Start Date</p>
+              <p class="fw-medium mb-0"><%= solution.startDate ? new Date(solution.startDate).toLocaleDateString() : '-' %></p>
+            </div>
+            <div class="col-md-3">
+              <p class="small text-muted mb-0">End Date</p>
+              <p class="fw-medium mb-0"><%= solution.endDate ? new Date(solution.endDate).toLocaleDateString() : '-' %></p>
+            </div>
+            <div class="col-md-3">
+              <p class="small text-muted mb-0">Status</p>
+              <span class="badge bg-<%= solution.status === 'close' ? 'secondary' : 'success' %>">
+                <%= solution.status || 'open' %>
+              </span>
             </div>
           </div>
         </div>
