@@ -1081,12 +1081,11 @@ class AppController {
 
     static async adminAssignmentNew(req, res) {
         try {
-            const courses = await Course.findAll({ limit: 500 });
             const selectedCourseId = req.query.courseId ? String(req.query.courseId).trim() : '';
             renderAdmin(res, 'assignments/new', {
                 page: 'assignments',
                 mode: 'new',
-                courses,
+                courses: [],
                 assignment: '',
                 selectedCourseId
             });
@@ -1121,13 +1120,10 @@ class AppController {
 
     static async adminAssignmentEdit(req, res) {
         try {
-            const [assignment, courses] = await Promise.all([
-                Assignment.findById(req.params.id),
-                Course.findAll({ limit: 500 })
-            ]);
+            const assignment = await Assignment.findById(req.params.id);
             if (!assignment) return res.redirect('/assignments');
 
-            renderAdmin(res, 'assignments/edit', { page: 'assignments', mode: 'edit', assignment, courses });
+            renderAdmin(res, 'assignments/edit', { page: 'assignments', mode: 'edit', assignment, courses: [] });
         } catch (err) {
             res.status(500).render('error', { title: 'Server Error', message: err.message, error: null, redirect_url: '/assignments', header: false, footer: false });
         }

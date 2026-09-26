@@ -16,17 +16,25 @@
           <div class="row g-3">
             <div class="col-md-6">
               <label class="form-label fw-bold">Course <span class="text-danger">*</span></label>
-              <select name="courseId" class="form-select" required>
-                <option value="">Select Course</option>
-                <% courses.forEach(function(c) { %>
-                <option value="<%= c.courseId %>" <%= (assignment && assignment.courseId == c.courseId) || (!assignment && selectedCourseId && selectedCourseId == c.courseId) ? 'selected' : '' %>>
-                  <%= c.courseCode %> - <%= c.courseName %>
-                </option>
-                <% }); %>
-              </select>
+              <input type="hidden" name="courseId" id="courseIdInput"
+                value="<%= assignment ? assignment.courseId : (selectedCourseId || '') %>">
+              <div class="course-search-wrapper position-relative">
+                <input type="text" id="courseSearchInput" class="form-control"
+                  placeholder="Type course code or name..."
+                  autocomplete="off"
+                  value="<%= assignment ? (assignment.courseCode + ' - ' + assignment.courseName) : '' %>">
+                <button type="button" id="courseSearchClear" class="btn btn-sm btn-outline-secondary position-absolute course-search-clear" title="Clear selection">
+                  <i class="bi bi-x-lg"></i>
+                </button>
+                <div id="courseSearchDropdown" class="list-group position-absolute w-100 course-search-dropdown shadow-sm" style="display:none; z-index:1050; max-height:220px; overflow-y:auto;"></div>
+                <div id="courseSearchSpinner" class="position-absolute course-search-spinner" style="display:none;">
+                  <span class="spinner-border spinner-border-sm text-primary"></span>
+                </div>
+              </div>
+              <div class="invalid-feedback d-block" id="courseSearchError" style="display:none;">Please select a course.</div>
             </div>
             <div class="col-md-6 d-flex align-items-end text-muted small pb-2">
-              <span><i class="bi bi-info-circle me-1"></i>Course code and name are managed in the Courses section.</span>
+              <span><i class="bi bi-info-circle me-1"></i>Type to search by course code (e.g. CS201) or course name.</span>
             </div>
             <div class="col-12">
               <label class="form-label fw-bold">Assignment Title <span class="text-danger">*</span></label>
@@ -67,4 +75,152 @@
         </form>
     </div>
   </div>
+
+<style>
+  .course-search-wrapper .course-search-clear {
+    top: 50%; right: 8px; transform: translateY(-50%);
+    border: none; background: none; padding: 2px 6px; line-height: 1;
+    display: none;
+  }
+  .course-search-wrapper .course-search-clear.visible { display: block; }
+  .course-search-wrapper .course-search-spinner {
+    top: 50%; right: 34px; transform: translateY(-50%);
+  }
+  .course-search-dropdown {
+    top: 100%; left: 0; border-top: 0; border-radius: 0 0 .375rem .375rem;
+  }
+  .course-search-dropdown .list-group-item {
+    cursor: pointer; border-left: 0; border-right: 0;
+  }
+  .course-search-dropdown .list-group-item:first-child { border-top: 0; }
+  .course-search-dropdown .list-group-item:hover,
+  .course-search-dropdown .list-group-item.active {
+    background-color: var(--bs-primary); color: #fff;
+  }
+</style>
+
+<script>
+(function () {
+  var searchInput = document.getElementById('courseSearchInput');
+  var courseIdInput = document.getElementById('courseIdInput');
+  var dropdown = document.getElementById('courseSearchDropdown');
+  var spinner = document.getElementById('courseSearchSpinner');
+  var clearBtn = document.getElementById('courseSearchClear');
+  var errorEl = document.getElementById('courseSearchError');
+  var debounceTimer = null;
+  var selectedIndex = -1;
+
+  function showDropdown(items) {
+    if (!items || items.length === 0) {
+      dropdown.innerHTML = '<div class="list-group-item text-muted">No courses found</div>';
+    } else {
+      dropdown.innerHTML = items.map(function (c, i) {
+        return '<button type="button" class="list-group-item list-group-item-action" data-id="' + c.courseId + '" data-label="' + c.courseCode + ' - ' + c.courseName + '" data-index="' + i + '">'
+          + '<span class="fw-bold">' + c.courseCode + '</span> - ' + c.courseName
+          + '</button>';
+      }).join('');
+    }
+    dropdown.style.display = 'block';
+    selectedIndex = -1;
+  }
+
+  function hideDropdown() {
+    dropdown.style.display = 'none';
+    selectedIndex = -1;
+  }
+
+  function selectCourse(id, label) {
+    courseIdInput.value = id;
+    searchInput.value = label;
+    clearBtn.classList.add('visible');
+    errorEl.style.display = 'none';
+    searchInput.classList.remove('is-invalid');
+    hideDropdown();
+  }
+
+  function clearSelection() {
+    courseIdInput.value = '';
+    searchInput.value = '';
+    clearBtn.classList.remove('visible');
+    searchInput.focus();
+  }
+
+  function doSearch() {
+    var q = searchInput.value.trim();
+    if (q.length < 2) { hideDropdown(); return; }
+    spinner.style.display = 'block';
+    fetch('/api/courses/search?q=' + encodeURIComponent(q) + '&limit=15', { credentials: 'same-origin' })
+      .then(function (res) { return res.json(); })
+      .then(function (json) {
+        spinner.style.display = 'none';
+        if (json.success) showDropdown(json.data);
+        else showDropdown([]);
+      })
+      .catch(function () { spinner.style.display = 'none'; showDropdown([]); });
+  }
+
+  searchInput.addEventListener('input', function () {
+    courseIdInput.value = '';
+    clearBtn.classList.add('visible');
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(doSearch, 300);
+  });
+
+  searchInput.addEventListener('focus', function () {
+    var q = searchInput.value.trim();
+    if (q.length >= 2 && !courseIdInput.value) doSearch();
+  });
+
+  searchInput.addEventListener('keydown', function (e) {
+    var items = dropdown.querySelectorAll('.list-group-item[data-id]');
+    if (!items.length) return;
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
+      updateHighlight(items);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      selectedIndex = Math.max(selectedIndex - 1, 0);
+      updateHighlight(items);
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (selectedIndex >= 0 && items[selectedIndex]) {
+        selectCourse(items[selectedIndex].dataset.id, items[selectedIndex].dataset.label);
+      }
+    } else if (e.key === 'Escape') {
+      hideDropdown();
+    }
+  });
+
+  function updateHighlight(items) {
+    items.forEach(function (el, i) { el.classList.toggle('active', i === selectedIndex); });
+  }
+
+  dropdown.addEventListener('click', function (e) {
+    var btn = e.target.closest('[data-id]');
+    if (btn) selectCourse(btn.dataset.id, btn.dataset.label);
+  });
+
+  clearBtn.addEventListener('click', clearSelection);
+
+  document.addEventListener('click', function (e) {
+    if (!e.target.closest('.course-search-wrapper')) hideDropdown();
+  });
+
+  if (courseIdInput.value) clearBtn.classList.add('visible');
+
+  searchInput.closest('form').addEventListener('submit', function (e) {
+    if (!courseIdInput.value) {
+      e.preventDefault();
+      errorEl.style.display = 'block';
+      searchInput.classList.add('is-invalid');
+      searchInput.focus();
+    } else {
+      errorEl.style.display = 'none';
+      searchInput.classList.remove('is-invalid');
+    }
+  });
+})();
+</script>
+
 </div>
