@@ -13,6 +13,7 @@ const pastPaperRoutes = require('../routes/api/pastPaper.route');
 const assignmentRoutes = require('../routes/api/assignment.route');
 const gdbSolutionRoutes = require('../routes/api/gdbSolution.route');
 const analyticsRoutes = require('../routes/api/analytics.route');
+const agentsRoutes = require('../routes/api/agents.route');
 
 //web routes
 const webAppRoutes = require('../routes/web/app.route');
@@ -59,6 +60,7 @@ app.use(optionalAuthenticate); // Set req.user if authenticated, but don't block
 app.use(express.static(path.join(__dirname, '../public')));
 
 // API Routes
+app.use('/api/agents', agentsRoutes);
 app.use('/api/courses', courseRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/quiz', quizRoutes);
