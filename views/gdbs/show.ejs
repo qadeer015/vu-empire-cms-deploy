@@ -26,16 +26,36 @@
         <div class="card-body">
           <div class="row g-3">
             <div class="col-12">
-              <p class="small text-muted mb-0">GDB Topic</p>
-              <p class="fw-medium mb-0"><%= solution.gdbTitle %></p>
+              <p class="small text-muted mb-0">Question Title</p>
+              <p class="fw-medium mb-0"><%= solution.questionTitle %></p>
             </div>
+            <% if (solution.questionDescription) { %>
+            <div class="col-12">
+              <p class="small text-muted mb-1">Question Description</p>
+              <p class="fw-medium mb-0" style="white-space: pre-wrap;"><%= solution.questionDescription %></p>
+            </div>
+            <% } %>
             <div class="col-12">
               <p class="small text-muted mb-1">Solution</p>
               <p class="fw-medium mb-0" style="white-space: pre-wrap;"><%= solution.solution %></p>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
               <p class="small text-muted mb-0">Created</p>
               <p class="fw-medium mb-0"><%= solution.createdAt ? new Date(solution.createdAt).toLocaleDateString() : '-' %></p>
+            </div>
+            <div class="col-md-3">
+              <p class="small text-muted mb-0">Start Date</p>
+              <p class="fw-medium mb-0"><%= solution.startDate ? new Date(solution.startDate).toLocaleDateString() : '-' %></p>
+            </div>
+            <div class="col-md-3">
+              <p class="small text-muted mb-0">End Date</p>
+              <p class="fw-medium mb-0"><%= solution.endDate ? new Date(solution.endDate).toLocaleDateString() : '-' %></p>
+            </div>
+            <div class="col-md-3">
+              <p class="small text-muted mb-0">Status</p>
+              <span class="badge bg-<%= solution.status === 'close' ? 'secondary' : 'success' %>">
+                <%= solution.status || 'open' %>
+              </span>
             </div>
           </div>
         </div>

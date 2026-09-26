@@ -1162,10 +1162,14 @@ class AppController {
             const limit = 20;
             const offset = (page - 1) * limit;
             const search = req.query.q || '';
+            const createdDate = /^\d{4}-\d{2}-\d{2}$/.test(req.query.createdDate || '') ? req.query.createdDate : '';
+            const startDate = req.query.startDate || '';
+            const endDate = req.query.endDate || '';
+            const status = req.query.status || 'all';
 
             const [solutions, total] = await Promise.all([
-                GdbSolution.findAllWithFilters({ search, limit, offset }),
-                GdbSolution.countAllWithFilters({ search })
+                GdbSolution.findAllWithFilters({ search, createdDate, startDate, endDate, status, limit, offset }),
+                GdbSolution.countAllWithFilters({ search, createdDate, startDate, endDate, status })
             ]);
 
             renderAdmin(res, 'gdbs/index', {
@@ -1173,6 +1177,10 @@ class AppController {
                 solutions,
                 total,
                 q: search,
+                createdDate,
+                startDate,
+                endDate,
+                status,
                 pagination: { page, limit, total, pages: Math.ceil(total / limit) }
             });
         } catch (err) {
@@ -1197,7 +1205,7 @@ class AppController {
 
     static async adminGdbSolutionCreate(req, res) {
         try {
-            const { courseId, gdbTitle, solution } = req.body;
+            const { courseId, questionTitle, questionDescription, solution, startDate, endDate, status } = req.body;
 
             if (!courseId) {
                 return res.redirect('/gdb-solutions/new');
@@ -1205,8 +1213,12 @@ class AppController {
 
             const gdbSolution = await GdbSolution.create({
                 courseId,
-                gdbTitle: gdbTitle.trim(),
+                questionTitle: questionTitle.trim(),
+                questionDescription: questionDescription || null,
                 solution: solution.trim(),
+                startDate: startDate || null,
+                endDate: endDate || null,
+                status: status || 'open',
                 authorId: req.user.id
             });
             res.redirect('/gdb-solutions/' + gdbSolution.id);
@@ -1228,7 +1240,11 @@ class AppController {
 
     static async adminGdbSolutionUpdate(req, res) {
         try {
-            await GdbSolution.update(req.params.id, req.body);
+            const updates = { ...req.body };
+            if ('startDate' in updates && !updates.startDate) updates.startDate = null;
+            if ('endDate' in updates && !updates.endDate) updates.endDate = null;
+            if (!updates.status) updates.status = 'open';
+            await GdbSolution.update(req.params.id, updates);
             res.redirect('/gdb-solutions/' + req.params.id);
         } catch (err) {
             res.status(400).render('error', { title: 'Error', message: err.message, error: null, redirect_url: '/gdb-solutions', header: false, footer: false });

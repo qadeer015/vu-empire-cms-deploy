@@ -10,12 +10,12 @@ class GdbSolution {
     }
 
     static async create(data) {
-        const { courseId, gdbTitle, solution, authorId } = data;
+        const { courseId, questionTitle, questionDescription, solution, startDate, endDate, status, authorId } = data;
 
         const [result] = await db.query(
-            `INSERT INTO gdb_solutions (courseId, gdbTitle, solution, authorId)
-             VALUES (?, ?, ?, ?)`,
-            [courseId, gdbTitle, solution, authorId]
+            `INSERT INTO gdb_solutions (courseId, questionTitle, questionDescription, solution, startDate, endDate, status, authorId)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            [courseId, questionTitle, questionDescription || null, solution, startDate || null, endDate || null, status || 'open', authorId]
         );
 
         await this._invalidateCaches(courseId);
@@ -63,12 +63,21 @@ class GdbSolution {
         });
     }
 
-    static async findAllWithFilters({ search, limit = 20, offset = 0 } = {}) {
+    // Validate a YYYY-MM-DD filter value coming from a date input
+    static _dateCondition(value) {
+        if (!value || value === 'all' || typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+            return null;
+        }
+        const d = new Date(`${value}T00:00:00Z`);
+        return isNaN(d.getTime()) ? null : value;
+    }
+
+    static async findAllWithFilters({ search, createdDate, startDate, endDate, status, limit = 20, offset = 0 } = {}) {
         const conditions = [];
         const params = [];
 
         if (search && search.trim()) {
-            conditions.push('(gs.gdbTitle LIKE ? OR c.courseCode LIKE ? OR c.courseName LIKE ? OR gs.solution LIKE ?)');
+            conditions.push('(gs.questionTitle LIKE ? OR gs.questionDescription LIKE ? OR c.courseCode LIKE ? OR c.courseName LIKE ?)');
             params.push(
                 `%${search.trim()}%`,
                 `%${search.trim()}%`,
@@ -77,8 +86,30 @@ class GdbSolution {
             );
         }
 
+        if (createdDate) {
+            conditions.push('DATE(gs.createdAt) = ?');
+            params.push(createdDate);
+        }
+
+        const startDateFilter = this._dateCondition(startDate);
+        if (startDateFilter) {
+            conditions.push('DATE(gs.startDate) = ?');
+            params.push(startDateFilter);
+        }
+
+        const endDateFilter = this._dateCondition(endDate);
+        if (endDateFilter) {
+            conditions.push('DATE(gs.endDate) = ?');
+            params.push(endDateFilter);
+        }
+
+        if (status && status !== 'all') {
+            conditions.push('gs.status = ?');
+            params.push(status);
+        }
+
         const whereClause = conditions.length ? 'WHERE ' + conditions.join(' AND ') : '';
-        const cacheKey = `gdbSolutions:filtered:${search}:${limit}:${offset}`;
+        const cacheKey = `gdbSolutions:filtered:${search}:${createdDate || ''}:${startDate || ''}:${endDate || ''}:${status || ''}:${limit}:${offset}`;
 
         return cache.remember(cacheKey, TTL.GDB_SOLUTIONS, async () => {
             const [rows] = await db.query(
@@ -94,12 +125,12 @@ class GdbSolution {
         });
     }
 
-    static async countAllWithFilters({ search } = {}) {
+    static async countAllWithFilters({ search, createdDate, startDate, endDate, status } = {}) {
         const conditions = [];
         const params = [];
 
         if (search && search.trim()) {
-            conditions.push('(gs.gdbTitle LIKE ? OR c.courseCode LIKE ? OR c.courseName LIKE ? OR gs.solution LIKE ?)');
+            conditions.push('(gs.questionTitle LIKE ? OR gs.questionDescription LIKE ? OR c.courseCode LIKE ? OR c.courseName LIKE ?)');
             params.push(
                 `%${search.trim()}%`,
                 `%${search.trim()}%`,
@@ -108,8 +139,30 @@ class GdbSolution {
             );
         }
 
+        if (createdDate) {
+            conditions.push('DATE(gs.createdAt) = ?');
+            params.push(createdDate);
+        }
+
+        const startDateCountFilter = this._dateCondition(startDate);
+        if (startDateCountFilter) {
+            conditions.push('DATE(gs.startDate) = ?');
+            params.push(startDateCountFilter);
+        }
+
+        const endDateCountFilter = this._dateCondition(endDate);
+        if (endDateCountFilter) {
+            conditions.push('DATE(gs.endDate) = ?');
+            params.push(endDateCountFilter);
+        }
+
+        if (status && status !== 'all') {
+            conditions.push('gs.status = ?');
+            params.push(status);
+        }
+
         const whereClause = conditions.length ? 'WHERE ' + conditions.join(' AND ') : '';
-        const cacheKey = `gdbSolutions:count:${search}`;
+        const cacheKey = `gdbSolutions:count:${search}:${createdDate || ''}:${startDate || ''}:${endDate || ''}:${status || ''}`;
 
         return cache.remember(cacheKey, TTL.GDB_SOLUTIONS, async () => {
             const [[{ total }]] = await db.query(
@@ -132,7 +185,7 @@ class GdbSolution {
     }
 
     static async update(id, updates) {
-        const allowed = ['courseId', 'gdbTitle', 'solution', 'authorId'];
+        const allowed = ['courseId', 'questionTitle', 'questionDescription', 'solution', 'startDate', 'endDate', 'status', 'authorId'];
         const fields = [];
         const values = [];
 
@@ -167,10 +220,10 @@ class GdbSolution {
             `SELECT gs.*, c.courseCode, c.courseName
              FROM gdb_solutions gs
              LEFT JOIN courses c ON gs.courseId = c.courseId
-             WHERE gs.gdbTitle LIKE ? OR c.courseCode LIKE ? OR gs.solution LIKE ?
+             WHERE gs.questionTitle LIKE ? OR gs.questionDescription LIKE ? OR c.courseCode LIKE ? OR gs.solution LIKE ?
              ORDER BY gs.createdAt DESC
              LIMIT ?`,
-            [`%${query}%`, `%${query}%`, `%${query}%`, parseInt(limit)]
+            [`%${query}%`, `%${query}%`, `%${query}%`, `%${query}%`, parseInt(limit)]
         );
         return rows;
     }

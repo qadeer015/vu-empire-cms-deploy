@@ -36,8 +36,37 @@
             <div class="col-md-6 d-flex align-items-end text-muted small pb-2">
             </div>
             <div class="col-12">
-              <label class="form-label fw-bold">GDB Topic <span class="text-danger">*</span></label>
-              <input type="text" id="gdbTopicInput" class="form-control" name="gdbTitle" value="<%= solution ? solution.gdbTitle : '' %>" placeholder="e.g. Discuss the impact of AI on education" required>
+              <label class="form-label fw-bold">Question Title <span class="text-danger">*</span></label>
+              <input type="text" id="gdbTopicInput" class="form-control" name="questionTitle" value="<%= solution ? solution.questionTitle : '' %>" placeholder="e.g. Impact of AI on education" required>
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-bold">Question Description <span class="text-danger">*</span></label>
+              <textarea id="gdbDescriptionInput" class="form-control" name="questionDescription" rows="4" placeholder="Paste or write the full GDB question here..." required><%= solution ? (solution.questionDescription || '') : '' %></textarea>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Start Date</label>
+              <input type="datetime-local" class="form-control" name="startDate" value="<%= solution && solution.startDate ? new Date(solution.startDate).toISOString().slice(0, 16) : '' %>">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-bold">End Date</label>
+              <input type="datetime-local" class="form-control" name="endDate" value="<%= solution && solution.endDate ? new Date(solution.endDate).toISOString().slice(0, 16) : '' %>">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Status</label>
+              <select name="status" class="form-select">
+                <option value="open" <%= !solution || solution.status === 'open' ? 'selected' : '' %>>Open</option>
+                <option value="close" <%= solution && solution.status === 'close' ? 'selected' : '' %>>Close</option>
+              </select>
+            </div>
+            <div class="col-12">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <label class="form-label fw-bold mb-0">Solution <span class="text-danger">*</span></label>
+                <button type="button" id="aiGenerateBtn" class="btn btn-sm btn-outline-success" title="Generate solution using AI">
+                  <i class="bi bi-stars"></i> AI Generate
+                </button>
+              </div>
+              <textarea id="solutionTextarea" class="form-control" name="solution" rows="8" placeholder="Write the GDB solution here..." required><%= solution ? solution.solution : '' %></textarea>
+              <div id="aiGenerateError" class="form-text text-danger" style="display:none;"></div>
             </div>
             <div class="col-12">
               <div class="d-flex justify-content-between align-items-center mb-1">
@@ -223,6 +252,7 @@
 <script>
 (function () {
   var gdbTopicInput = document.getElementById('gdbTopicInput');
+  var gdbDescriptionInput = document.getElementById('gdbDescriptionInput');
   var solutionTextarea = document.getElementById('solutionTextarea');
   var aiGenerateBtn = document.getElementById('aiGenerateBtn');
   var aiGenerateStatus = aiGenerateBtn.innerHTML;
@@ -230,13 +260,21 @@
   var courseSearchInput = document.getElementById('courseSearchInput');
 
   aiGenerateBtn.addEventListener('click', function () {
-    var topic = gdbTopicInput.value.trim();
-    if (!topic) {
+    var title = gdbTopicInput.value.trim();
+    var description = gdbDescriptionInput.value.trim();
+
+    if (!title) {
       gdbTopicInput.classList.add('is-invalid');
       gdbTopicInput.focus();
       return;
     }
+    if (!description) {
+      gdbDescriptionInput.classList.add('is-invalid');
+      gdbDescriptionInput.focus();
+      return;
+    }
     gdbTopicInput.classList.remove('is-invalid');
+    gdbDescriptionInput.classList.remove('is-invalid');
 
     // Extract course code from the search input display (e.g. "CS301 – Data Structures")
     var courseDisplay = courseSearchInput ? courseSearchInput.value.trim() : '';
@@ -247,8 +285,10 @@
       courseCode = courseDisplay.substring(0, dashIndex).trim();
     }
 
-    // Build the message for the agent
-    var message = 'Generate a GDB solution for ' + (courseCode ? 'course ' + courseCode + '. ' : '') + 'GDB Question: ' + topic;
+    // Build the message for the agent using title + full description
+    var message = (courseCode ? 'Course ' + courseCode + '. ' : '')
+      + 'GDB Title: ' + title + '. '
+      + 'GDB Question: ' + description;
 
     // Set loading state
     aiGenerateBtn.disabled = true;
