@@ -39,6 +39,7 @@ function buildBreadcrumbs(data = {}) {
         'tasks': 'Task Center',
         'posts': 'Posts',
         'feedback': 'Feedback',
+        'ext-installations': 'Extension Installations',
         "analytics": "Analytics"
     };
     
@@ -53,6 +54,7 @@ function buildBreadcrumbs(data = {}) {
         'tasks': '/tasks',
         'posts': '/posts',
         'feedback': '/feedback',
+        'ext-installations': '/ext-installations',
         "analytics": "/analytics"
     };
     

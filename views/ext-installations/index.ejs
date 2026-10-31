@@ -1,0 +1,187 @@
+<!-- ext-installations/index.ejs -->
+<%
+  const fmt = (v) => v ? new Date(v).toLocaleString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true, month: 'short', day: 'numeric', year: 'numeric' }) : '—';
+  const a = analytics || { summary: {}, daily: [], byStatus: [] };
+  const s = a.summary || {};
+  const maxDaily = Math.max(1, ...(a.daily || []).map(d => Math.max(d.registrations || 0, d.activity || 0)));
+  const relSeen = (v) => {
+    if (!v) return { label: 'Never seen', cls: 'secondary' };
+    const diffH = (Date.now() - new Date(v).getTime()) / 36e5;
+    if (diffH <= 24) return { label: 'Online (< 24h)', cls: 'success' };
+    if (diffH <= 24 * 7) return { label: 'Active (< 7d)', cls: 'info' };
+    return { label: 'Dormant', cls: 'warning' };
+  };
+%>
+<div class="container-fluid">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">Extension Installations</h1>
+    <span class="badge bg-primary"><%= (typeof total !== 'undefined' && total) ? total : 0 %> installs</span>
+  </div>
+  <%- include('../partials/_breadcrumb') %>
+
+  <!-- Summary cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-3 col-lg-2">
+      <div class="card border-0 shadow-sm h-100"><div class="card-body text-center">
+        <i class="bi bi-puzzle display-6 text-primary"></i>
+        <h2 class="mt-2 mb-0"><%= s.total ?? 0 %></h2>
+        <small class="text-muted">Total</small>
+      </div></div>
+    </div>
+    <div class="col-md-3 col-lg-2">
+      <div class="card border-0 shadow-sm h-100"><div class="card-body text-center">
+        <i class="bi bi-heart-pulse display-6 text-success"></i>
+        <h2 class="mt-2 mb-0"><%= s.onlineLast24h ?? 0 %></h2>
+        <small class="text-muted">Online (24h)</small>
+      </div></div>
+    </div>
+    <div class="col-md-3 col-lg-2">
+      <div class="card border-0 shadow-sm h-100"><div class="card-body text-center">
+        <i class="bi bi-activity display-6 text-info"></i>
+        <h2 class="mt-2 mb-0"><%= s.activeLast7d ?? 0 %></h2>
+        <small class="text-muted">Active (7d)</small>
+      </div></div>
+    </div>
+    <div class="col-md-3 col-lg-2">
+      <div class="card border-0 shadow-sm h-100"><div class="card-body text-center">
+        <i class="bi bi-box-arrow-in-right display-6 text-warning"></i>
+        <h2 class="mt-2 mb-0"><%= s.newLast30d ?? 0 %></h2>
+        <small class="text-muted">New (30d)</small>
+      </div></div>
+    </div>
+    <div class="col-md-3 col-lg-2">
+      <div class="card border-0 shadow-sm h-100"><div class="card-body text-center">
+        <i class="bi bi-eye-slash display-6 text-secondary"></i>
+        <h2 class="mt-2 mb-0"><%= s.neverSeen ?? 0 %></h2>
+        <small class="text-muted">Never seen</small>
+      </div></div>
+    </div>
+  </div>
+
+  <!-- Registrations / activity trend (last 30 days) -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-header bg-transparent border-bottom">
+      <h5 class="mb-0"><i class="bi bi-graph-up me-2"></i>Installations &amp; activity (last 30 days)</h5>
+    </div>
+    <div class="card-body">
+      <div class="d-flex align-items-end gap-1" style="height: 160px;">
+        <% (a.daily || []).forEach(function(d) { %>
+          <div class="d-flex justify-content-end align-items-center flex-grow-1 h-100"
+               title="<%= d.date %>: <%= d.registrations %> new, <%= d.activity %> active"
+               style="min-width: 6px;">
+            <div class="d-flex align-items-end gap-1 w-100 justify-content-center" style="height: 100%;">
+              <div class="bg-primary rounded-top" style="width: 40%; height: <%= Math.round((d.registrations / maxDaily) * 100) %>%;"></div>
+              <div class="bg-success rounded-top" style="width: 40%; height: <%= Math.round((d.activity / maxDaily) * 100) %>%;"></div>
+            </div>
+          </div>
+        <% }); %>
+        <% if (!a.daily || !a.daily.length) { %>
+          <div class="text-muted w-100 text-center py-5">No data yet</div>
+        <% } %>
+      </div>
+      <div class="mt-2 small text-muted text-center">
+        <span class="badge bg-primary">&nbsp;</span> New installations
+        <span class="badge bg-success ms-2">&nbsp;</span> Last-seen activity
+      </div>
+    </div>
+  </div>
+
+  <!-- Search & Filter -->
+  <div class="row">
+    <div class="col-12">
+      <button class="btn btn-outline-secondary my-3 filter-btn" type="button">
+        <i class="bi bi-funnel"></i> Filters
+      </button>
+      <form method="GET" action="/ext-installations" class="mb-3 filter-area d-none">
+        <div class="d-flex flex-column g-2 align-items-start">
+          <div class="col-sm-4 col-md-3">
+            <label for="instSearch" class="form-label small text-muted">Search</label>
+            <input type="text" class="form-control form-control-sm" id="instSearch" name="q" placeholder="Search by installation ID..." value="<%= typeof q !== 'undefined' ? q : '' %>">
+          </div>
+          <div class="col-sm-3 col-md-2">
+            <label for="statusFilter" class="form-label small text-muted">Status</label>
+            <select class="form-select form-select-sm" id="statusFilter" name="status">
+              <option value="all" <%= (typeof status === 'undefined' || status === 'all') ? 'selected' : '' %>>All</option>
+              <option value="active" <%= typeof status !== 'undefined' && status === 'active' ? 'selected' : '' %>>Active</option>
+              <option value="inactive" <%= typeof status !== 'undefined' && status === 'inactive' ? 'selected' : '' %>>Inactive</option>
+            </select>
+          </div>
+          <div class="col-sm-3 col-md-2">
+            <label for="activityFilter" class="form-label small text-muted">Activity</label>
+            <select class="form-select form-select-sm" id="activityFilter" name="activity">
+              <option value="all" <%= (typeof activity === 'undefined' || activity === 'all') ? 'selected' : '' %>>All</option>
+              <option value="online" <%= typeof activity !== 'undefined' && activity === 'online' ? 'selected' : '' %>>Online (&lt; 24h)</option>
+              <option value="dormant" <%= typeof activity !== 'undefined' && activity === 'dormant' ? 'selected' : '' %>>Dormant (&gt; 7d)</option>
+              <option value="never" <%= typeof activity !== 'undefined' && activity === 'never' ? 'selected' : '' %>>Never seen</option>
+            </select>
+          </div>
+          <div class="col-sm-2 mt-3">
+            <div class="d-flex gap-2">
+              <a href="/ext-installations" class="btn btn-outline-secondary btn-sm w-100"><i class="bi bi-x-lg"></i> Reset</a>
+              <button type="submit" class="btn btn-primary btn-sm w-100"><i class="bi bi-check-lg"></i> Apply</button>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+  <% if (typeof installations !== 'undefined' && installations.length > 0) { %>
+  <table class="table table-hover align-middle">
+    <thead>
+      <tr class="sticky-table-header">
+        <th>Installation ID</th>
+        <th>Status</th>
+        <th>Activity</th>
+        <th class="text-center">Key v</th>
+        <th>Last seen</th>
+        <th>Registered</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% installations.forEach(function(inst) { %>
+        <% const seen = relSeen(inst.last_seen_at); %>
+        <tr>
+          <td class="text-break"><code><%= inst.installation_id %></code></td>
+          <td><span class="badge bg-<%= inst.status === 'active' ? 'success' : 'secondary' %> text-uppercase"><%= inst.status || 'active' %></span></td>
+          <td><span class="badge bg-<%= seen.cls %>"><%= seen.label %></span></td>
+          <td class="text-center"><%= inst.key_version ?? 1 %></td>
+          <td class="text-muted small"><%= fmt(inst.last_seen_at) %></td>
+          <td class="text-muted small"><%= fmt(inst.created_at) %></td>
+        </tr>
+      <% }); %>
+    </tbody>
+  </table>
+
+  <% if (typeof pagination !== 'undefined' && pagination.pages > 1) { %>
+  <nav>
+    <ul class="pagination justify-content-center">
+      <% const qs = []; if (typeof q !== 'undefined' && q) qs.push('q=' + encodeURIComponent(q)); if (typeof status !== 'undefined' && status && status !== 'all') qs.push('status=' + encodeURIComponent(status)); if (typeof activity !== 'undefined' && activity && activity !== 'all') qs.push('activity=' + encodeURIComponent(activity)); const qsStr = qs.length ? '&' + qs.join('&') : ''; %>
+      <li class="page-item <%= pagination.page <= 1 ? 'disabled' : '' %>">
+        <a class="page-link" href="?page=<%= pagination.page - 1 %><%= qsStr %>">Previous</a>
+      </li>
+      <li class="page-item disabled"><span class="page-link">Page <%= pagination.page %> of <%= pagination.pages %></span></li>
+      <li class="page-item <%= pagination.page >= pagination.pages ? 'disabled' : '' %>">
+        <a class="page-link" href="?page=<%= pagination.page + 1 %><%= qsStr %>">Next</a>
+      </li>
+    </ul>
+  </nav>
+  <% } %>
+  <% } else { %>
+  <div class="text-center py-5">
+    <i class="bi bi-puzzle display-1 text-muted mb-3"></i>
+    <h5 class="text-muted">No installations found</h5>
+  </div>
+  <% } %>
+</div>
+
+<script>
+  document.querySelectorAll('.filter-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var area = btn.parentElement.querySelector('.filter-area');
+      if (area) area.classList.toggle('d-none');
+    });
+  });
+</script>
+

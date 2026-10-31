@@ -3,6 +3,7 @@ const express = require('express');
 const router = express.Router();
 const AppController = require('../../controllers/app.controller');
 const AnalyticsController = require('../../controllers/analytics.controller');
+const ExtInstallationController = require('../../controllers/extInstallationController');
 const { authenticate } = require('../../middlewares/authenticate');
 const { authorize } = require('../../middlewares/authorize');
 const multer = require('multer');
@@ -97,6 +98,9 @@ router.post('/posts/:id/delete', authenticate, authorize('admin'), AppController
 
 // ── Feedback (Firestore: featureRequests + newsletterSubscribers) ──
 router.get('/feedback', authenticate, authorize('admin'), AppController.adminFeedback);
+
+// ── Extension Installations (list + analytics) ─────────────────────
+router.get('/ext-installations', authenticate, authorize('admin'), ExtInstallationController.page);
 
 // ── Analytics (Google Analytics 4 dashboard) ───────────────────────
 router.get('/analytics', authenticate, authorize('admin'), AnalyticsController.analyticsPage);
