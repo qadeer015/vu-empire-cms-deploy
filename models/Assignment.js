@@ -10,12 +10,12 @@ class Assignment {
     }
 
     static async create(data) {
-        const { courseId, title, description, dueDate, filePath, originalFilename, status = 'publish', authorId } = data;
+        const { courseId, title, assignment, dueDate, solution, status = 'publish', authorId } = data;
 
         const [result] = await db.query(
-            `INSERT INTO assignments (courseId, title, description, dueDate, filePath, originalFilename, status, authorId)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-            [courseId, title, description, dueDate, filePath, originalFilename, status, authorId]
+            `INSERT INTO assignments (courseId, title, assignment, dueDate, solution, status, authorId)
+             VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            [courseId, title, assignment, dueDate, solution, status, authorId]
         );
 
         await this._invalidateCaches(courseId);
@@ -77,7 +77,7 @@ class Assignment {
         const params = [];
 
         if (search && search.trim()) {
-            conditions.push('(a.title LIKE ? OR c.courseCode LIKE ? OR c.courseName LIKE ? OR a.description LIKE ?)');
+            conditions.push('(a.title LIKE ? OR c.courseCode LIKE ? OR c.courseName LIKE ? OR a.assignment LIKE ?)');
             params.push(
                 `%${search.trim()}%`,
                 `%${search.trim()}%`,
@@ -119,7 +119,7 @@ class Assignment {
         const params = [];
 
         if (search && search.trim()) {
-            conditions.push('(a.title LIKE ? OR c.courseCode LIKE ? OR c.courseName LIKE ? OR a.description LIKE ?)');
+            conditions.push('(a.title LIKE ? OR c.courseCode LIKE ? OR c.courseName LIKE ? OR a.assignment LIKE ?)');
             params.push(
                 `%${search.trim()}%`,
                 `%${search.trim()}%`,
@@ -163,7 +163,7 @@ class Assignment {
     }
 
     static async update(id, updates) {
-        const allowed = ['courseId', 'title', 'description', 'dueDate', 'filePath', 'originalFilename', 'status', 'authorId'];
+        const allowed = ['courseId', 'title', 'assignment', 'dueDate', 'solution', 'status', 'authorId'];
         const fields = [];
         const values = [];
 
@@ -198,7 +198,7 @@ class Assignment {
             `SELECT a.*, c.courseCode, c.courseName
              FROM assignments a
              LEFT JOIN courses c ON a.courseId = c.courseId
-             WHERE a.title LIKE ? OR c.courseCode LIKE ? OR a.description LIKE ?
+             WHERE a.title LIKE ? OR c.courseCode LIKE ? OR a.assignment LIKE ?
              ORDER BY a.createdAt DESC
              LIMIT ?`,
             [`%${query}%`, `%${query}%`, `%${query}%`, parseInt(limit)]

@@ -33,18 +33,12 @@
               </div>
               <div class="invalid-feedback d-block" id="courseSearchError" style="display:none;">Please select a course.</div>
             </div>
-            <div class="col-md-6 d-flex align-items-end text-muted small pb-2">
-            </div>
-            <div class="col-12">
+            <div class="col-md-6">
               <label class="form-label fw-bold">Assignment Title <span class="text-danger">*</span></label>
               <input type="text" class="form-control" name="title" value="<%= assignment ? assignment.title : '' %>" required>
             </div>
-            <div class="col-12">
-              <label class="form-label fw-bold">Description</label>
-              <textarea class="form-control" name="description" rows="3" placeholder="Assignment description or instructions..."><%= assignment ? assignment.description : '' %></textarea>
-            </div>
             <div class="col-md-6">
-              <label class="form-label fw-bold">Due Date</label>
+              <label class="form-label fw-bold">Due Date <span class="text-danger">*</span></label>
               <input type="datetime-local" class="form-control" name="dueDate" value="<%= assignment && assignment.dueDate ? new Date(assignment.dueDate).toISOString().slice(0, 16) : '' %>">
             </div>
             <div class="col-md-6">
@@ -55,14 +49,31 @@
                 <option value="pending" <%= assignment && assignment.status === 'pending' ? 'selected' : '' %>>Pending</option>
               </select>
             </div>
-            <div class="col-md-6">
-              <label class="form-label fw-bold">File Path / URL</label>
-              <input type="text" class="form-control" name="filePath" value="<%= assignment && assignment.filePath ? assignment.filePath : '' %>" placeholder="URL to assignment file">
+            <div class="col-12">
+              <label class="form-label fw-bold">Assignment <span class="text-danger">*</span></label>
+              <textarea class="form-control" name="assignment" rows="3" placeholder="Assignment content (link or plain text)..." id="assignmentText"><%= assignment ? assignment.assignment : '' %></textarea>
+              <div class="mt-2 d-flex align-items-center gap-2">
+                <label class="form-label fw-bold small text-secondary mb-0">Or upload file</label>
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-target="assignmentFile" id="btnAssignmentFile">
+                  <i class="bi bi-paperclip"></i>
+                </button>
+                <input type="file" class="d-none" id="assignmentFile" data-target="assignmentText">
+                <div id="assignmentFileStatus" class="small mt-1"></div>
+              </div>
             </div>
-            <div class="col-md-6">
-              <label class="form-label fw-bold">Original Filename</label>
-              <input type="text" class="form-control" name="originalFilename" value="<%= assignment && assignment.originalFilename ? assignment.originalFilename : '' %>" placeholder="e.g. CS201-Assignment1.pdf">
+            <div class="col-12">
+              <label class="form-label fw-bold">Solution</label>
+              <textarea class="form-control" name="solution" id="solutionText" rows="2" placeholder="File path or text-based solution..."><%= assignment && assignment.solution ? assignment.solution : '' %></textarea>
+              <div class="mt-2 d-flex align-items-center gap-2">
+                <label class="form-label fw-bold small text-secondary mb-0">Or upload file</label>
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-target="solutionFile" id="btnSolutionFile">
+                  <i class="bi bi-paperclip"></i>
+                </button>
+                <input type="file" class="d-none" id="solutionFile" data-target="solutionText">
+                <div id="solutionFileStatus" class="small mt-1"></div>
+              </div>
             </div>
+
           </div>
 
           <div class="mt-4 d-flex gap-2">
@@ -206,7 +217,11 @@
     if (!e.target.closest('.course-search-wrapper')) hideDropdown();
   });
 
-  if (courseIdInput.value) clearBtn.classList.add('visible');
+  if (courseIdInput.value) {
+        clearBtn.classList.add('visible');
+        errorEl.style.display = 'none';
+        searchInput.classList.remove('is-invalid');
+    }
 
   searchInput.closest('form').addEventListener('submit', function (e) {
     if (!courseIdInput.value) {
@@ -219,6 +234,64 @@
       searchInput.classList.remove('is-invalid');
     }
   });
+})();
+</script>
+
+<script>
+(function () {
+  var API_BASE = '/api/assignments';
+
+  function setupFileUpload(btnId, fileInputId, statusId, textInputId) {
+    var btn = document.getElementById(btnId);
+    var fileInput = document.getElementById(fileInputId);
+    var statusEl = document.getElementById(statusId);
+    var textInput = document.getElementById(textInputId);
+    if (!btn || !fileInput || !statusEl || !textInput) return;
+
+    // Open file picker when clip icon is clicked
+    btn.addEventListener('click', function () {
+      fileInput.click();
+    });
+
+    fileInput.addEventListener('change', function () {
+      var file = fileInput.files[0];
+      if (!file) return;
+
+      statusEl.textContent = 'Uploading to Cloudinary…';
+      statusEl.className = 'small mt-1 text-info';
+
+      var formData = new FormData();
+      formData.append('file', file);
+
+      fetch(API_BASE + '/upload', {
+        method: 'POST',
+        credentials: 'same-origin',
+        body: formData
+      })
+        .then(function (res) {
+          if (!res.ok) return res.json().then(function (err) { throw new Error(err.message || 'Upload failed'); });
+          return res.json();
+        })
+        .then(function (data) {
+          if (data.success && data.url) {
+            textInput.value = data.url;
+            statusEl.textContent = 'Uploaded: ' + file.name;
+            statusEl.className = 'small mt-1 text-success';
+            fileInput.value = '';
+          } else {
+            throw new Error(data.message || 'Upload failed');
+          }
+        })
+        .catch(function (err) {
+          statusEl.textContent = 'Error: ' + err.message;
+          statusEl.className = 'small mt-1 text-danger';
+          console.error('Assignment file upload error:', err);
+        });
+    });
+  }
+
+  setupFileUpload('btnAssignmentFile', 'assignmentFile', 'assignmentFileStatus', 'assignmentText');
+  setupFileUpload('btnSolutionFile', 'solutionFile', 'solutionFileStatus', 'solutionText');
 })();
 </script>
 

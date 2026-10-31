@@ -39,18 +39,18 @@ class AssignmentController {
 
     static async create(req, res) {
         try {
-            const { courseId, title, description, dueDate, filePath, originalFilename, status = 'publish' } = req.body;
+            const { courseId, title, assignment, dueDate, solution, status = 'publish' } = req.body;
 
             if (!courseId || !title) {
                 throw AppError.badRequest('Course and title are required');
             }
 
-            const assignment = await Assignment.create({
-                courseId, title, description, dueDate, filePath, originalFilename, status,
+            const createdAssignment = await Assignment.create({
+                courseId, title, assignment, dueDate, solution, status,
                 authorId: req.user.id
             });
 
-            res.status(201).json({ success: true, data: { assignment } });
+            res.status(201).json({ success: true, data: { assignment: createdAssignment } });
         } catch (err) {
             res.status(err.statusCode || 500).json({ success: false, message: err.message });
         }
@@ -84,6 +84,39 @@ class AssignmentController {
             res.status(200).json({ success: true, data: { results } });
         } catch (err) {
             res.status(500).json({ success: false, message: err.message });
+        }
+    }
+
+    /**
+     * Upload an assignment/solution file to Cloudinary and return its URL.
+     * The caller (frontend) puts the returned URL into the corresponding text field.
+     */
+    static async upload(req, res) {
+        try {
+            if (!req.file) {
+                return res.status(400).json({ success: false, message: 'No file uploaded' });
+            }
+
+            const cloudinary = require('cloudinary').v2;
+            if (!cloudinary.config().cloud_name) {
+                return res.status(500).json({ success: false, message: 'Cloudinary is not configured' });
+            }
+
+            const result = await new Promise((resolve, reject) => {
+                cloudinary.uploader.upload_stream(
+                    { resource_type: 'auto', folder: 'vu-empire-cms/assignments' },
+                    (err, uploadRes) => (err ? reject(err) : resolve(uploadRes))
+                ).end(req.file.buffer);
+            });
+
+            return res.status(200).json({
+                success: true,
+                message: 'File uploaded successfully',
+                url: result.secure_url,
+                publicId: result.public_id
+            });
+        } catch (err) {
+            return res.status(500).json({ success: false, message: err.message || 'File upload failed' });
         }
     }
 }

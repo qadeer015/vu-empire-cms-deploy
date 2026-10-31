@@ -1094,23 +1094,22 @@ class AppController {
 
     static async adminAssignmentCreate(req, res) {
         try {
-            const { courseId, title, description, dueDate, filePath, originalFilename, status } = req.body;
+            const { courseId, title, assignment, dueDate, solution, status } = req.body;
 
             if (!courseId) {
                 return res.redirect('/assignments/new');
             }
 
-            const assignment = await Assignment.create({
+            const createdAssignment = await Assignment.create({
                 courseId,
                 title: title.trim(),
-                description: description || '',
+                assignment: assignment || '',
                 dueDate: dueDate || null,
-                filePath: filePath || null,
-                originalFilename: originalFilename || null,
+                solution: solution || null,
                 status: status || 'draft',
                 authorId: req.user.id
             });
-            res.redirect('/assignments/' + assignment.id);
+            res.redirect('/assignments/' + createdAssignment.id);
         } catch (err) {
             res.status(400).render('error', { title: 'Error', message: err.message, error: null, redirect_url: '/assignments', header: false, footer: false });
         }

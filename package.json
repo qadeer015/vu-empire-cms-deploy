@@ -6,7 +6,9 @@
   "scripts": {
     "start": "node server.js",
     "dev": "npx nodemon server.js",
-    "migrate": "mysql -u root -p < db_schema/migration_gdb_question.sql"
+    "db:create": "node scripts/db-create.js",
+    "db:migrate": "node scripts/db-migrate.js",
+    "db:seed": "node scripts/db-seed.js"
   },
   "keywords": [],
   "author": "",

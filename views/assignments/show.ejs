@@ -30,8 +30,8 @@
               <p class="fw-medium mb-0"><%= assignment.title %></p>
             </div>
             <div class="col-12">
-              <p class="small text-muted mb-1">Description</p>
-              <p class="fw-medium mb-0"><%= assignment.description || '-' %></p>
+              <p class="small text-muted mb-1">Assignment</p>
+              <p class="fw-medium mb-0"><%= assignment.assignment || '-' %></p>
             </div>
             <div class="col-md-4">
               <p class="small text-muted mb-0">Due Date</p>
@@ -48,19 +48,16 @@
               <p class="fw-medium mb-0"><%= assignment.createdAt ? new Date(assignment.createdAt).toLocaleDateString() : '-' %></p>
             </div>
             <div class="col-12">
-              <p class="small text-muted mb-1">File Path / URL</p>
-              <% if (assignment.filePath) { %>
-                <a href="<%= assignment.filePath %>" target="_blank" class="btn btn-primary btn-sm">
+              <p class="small text-muted mb-1">Solution</p>
+              <% if (assignment.solution) { %>
+                <a href="<%= assignment.solution %>" target="_blank" class="btn btn-primary btn-sm">
                   <i class="bi bi-file-earmark-pdf me-1"></i> View File
                 </a>
               <% } else { %>
-                <span class="text-muted">No file attached</span>
+                <span class="text-muted">No solution attached</span>
               <% } %>
             </div>
-            <div class="col-12">
-              <p class="small text-muted mb-1">Original Filename</p>
-              <p class="fw-medium mb-0"><%= assignment.originalFilename || '-' %></p>
-            </div>
+
           </div>
         </div>
       </div>
