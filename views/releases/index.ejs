@@ -1,0 +1,68 @@
+<div class="container-fluid">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="h3 mb-1">Release Changelog</h1>
+      <p class="text-muted mb-0">Manage published release versions and their changes.</p>
+    </div>
+    <a href="/releases/new" class="btn btn-primary">
+      <i class="bi bi-plus-lg"></i> New Release
+    </a>
+  </div>
+  <%- include('../partials/_breadcrumb') %>
+
+  <% if (releases.length) { %>
+    <div class="row g-3">
+      <% releases.forEach((release, index) => { %>
+        <div class="col-12">
+          <div class="card border-0 shadow-sm">
+            <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+              <div>
+                <h2 class="h5 mb-1">
+                  v<%= release.version %>
+                  <% if (index === 0) { %><span class="badge bg-success ms-2">Latest</span><% } %>
+                </h2>
+                <span class="text-muted small">Released <%= release.releasedAt %></span>
+              </div>
+              <div class="d-flex gap-2">
+                <a href="/releases/<%= release.id %>/edit" class="btn btn-sm btn-outline-primary">
+                  <i class="bi bi-pencil"></i> Edit
+                </a>
+                <form action="/releases/<%= release.id %>/delete" method="POST"
+                  onsubmit="return confirm('Delete release v<%= release.version %> and all its changelog entries?')">
+                  <button type="submit" class="btn btn-sm btn-outline-danger">
+                    <i class="bi bi-trash"></i> Delete
+                  </button>
+                </form>
+              </div>
+            </div>
+            <div class="card-body">
+              <% if (release.changes.length) { %>
+                <ul class="list-group list-group-flush">
+                  <% release.changes.forEach((change) => { %>
+                    <li class="list-group-item px-0 d-flex gap-2 align-items-start">
+                      <span class="badge <%= change.type === 'feature' ? 'bg-primary' : change.type === 'fix' ? 'bg-danger' : 'bg-info text-dark' %>">
+                        <%= change.type %>
+                      </span>
+                      <span><%= change.description %></span>
+                    </li>
+                  <% }); %>
+                </ul>
+              <% } else { %>
+                <p class="text-muted mb-0">No changelog entries.</p>
+              <% } %>
+            </div>
+          </div>
+        </div>
+      <% }); %>
+    </div>
+  <% } else { %>
+    <div class="card border-0 shadow-sm">
+      <div class="card-body text-center py-5">
+        <i class="bi bi-journal-text display-4 text-muted"></i>
+        <h2 class="h5 mt-3">No releases yet</h2>
+        <p class="text-muted">Create a release to start the changelog.</p>
+        <a href="/releases/new" class="btn btn-primary">Create release</a>
+      </div>
+    </div>
+  <% } %>
+</div>

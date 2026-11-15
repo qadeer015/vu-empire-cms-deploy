@@ -1,0 +1,117 @@
+<div class="container-fluid">
+  <div class="mb-4">
+    <h1 class="h3 mb-1"><%= mode === 'new' ? 'New Release' : `Edit v${release.version}` %></h1>
+    <p class="text-muted mb-0">Set release details and manage its changelog entries.</p>
+  </div>
+  <%- include('../partials/_breadcrumb') %>
+
+  <% if (errors.length) { %>
+    <div class="alert alert-danger" role="alert">
+      <ul class="mb-0">
+        <% errors.forEach((error) => { %><li><%= error %></li><% }); %>
+      </ul>
+    </div>
+  <% } %>
+
+  <div class="card border-0 shadow-sm">
+    <div class="card-body">
+      <form action="<%= mode === 'new' ? '/releases' : `/releases/${release.id}` %>" method="POST">
+        <div class="row g-3 mb-4">
+          <div class="col-md-6">
+            <label for="version" class="form-label fw-semibold">Version</label>
+            <div class="input-group">
+              <span class="input-group-text">v</span>
+              <input id="version" name="version" class="form-control" value="<%= release.version || '' %>"
+                placeholder="1.0.9" maxlength="32" required>
+            </div>
+            <div class="form-text">Use a version such as 1.0.9 (without the leading v).</div>
+          </div>
+          <div class="col-md-6">
+            <label for="releasedAt" class="form-label fw-semibold">Release date</label>
+            <input id="releasedAt" name="releasedAt" type="date" class="form-control"
+              value="<%= release.releasedAt || '' %>" required>
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <h2 class="h5 mb-1">Changelog entries</h2>
+            <p class="small text-muted mb-0">Entries are shown in the order listed.</p>
+          </div>
+          <button type="button" class="btn btn-sm btn-outline-primary" id="addChange">
+            <i class="bi bi-plus-lg"></i> Add change
+          </button>
+        </div>
+
+        <div id="changeList" class="d-flex flex-column gap-2">
+          <% const changes = release.changes && release.changes.length ? release.changes : [{ type: 'feature', description: '' }]; %>
+          <% changes.forEach((change) => { %>
+            <div class="row g-2 align-items-start change-row">
+              <div class="col-md-3">
+                <label class="visually-hidden">Change type</label>
+                <select name="changeType" class="form-select">
+                  <option value="feature" <%= change.type === 'feature' ? 'selected' : '' %>>Feature</option>
+                  <option value="improve" <%= change.type === 'improve' ? 'selected' : '' %>>Improvement</option>
+                  <option value="fix" <%= change.type === 'fix' ? 'selected' : '' %>>Fix</option>
+                </select>
+              </div>
+              <div class="col">
+                <label class="visually-hidden">Change description</label>
+                <input name="description" class="form-control" maxlength="500"
+                  value="<%= change.description || '' %>" placeholder="Describe this change">
+              </div>
+              <div class="col-auto">
+                <button type="button" class="btn btn-outline-danger remove-change" aria-label="Remove change">
+                  <i class="bi bi-x-lg"></i>
+                </button>
+              </div>
+            </div>
+          <% }); %>
+        </div>
+
+        <div class="d-flex gap-2 mt-4">
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-check-lg"></i> <%= mode === 'new' ? 'Create release' : 'Save release' %>
+          </button>
+          <a href="/releases" class="btn btn-outline-secondary">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  const changeList = document.getElementById('changeList');
+
+  function addChangeRow() {
+    const row = document.createElement('div');
+    row.className = 'row g-2 align-items-start change-row';
+    row.innerHTML = `
+      <div class="col-md-3">
+        <label class="visually-hidden">Change type</label>
+        <select name="changeType" class="form-select">
+          <option value="feature">Feature</option>
+          <option value="improve">Improvement</option>
+          <option value="fix">Fix</option>
+        </select>
+      </div>
+      <div class="col">
+        <label class="visually-hidden">Change description</label>
+        <input name="description" class="form-control" maxlength="500" placeholder="Describe this change">
+      </div>
+      <div class="col-auto">
+        <button type="button" class="btn btn-outline-danger remove-change" aria-label="Remove change">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>`;
+    changeList.appendChild(row);
+  }
+
+  document.getElementById('addChange').addEventListener('click', addChangeRow);
+  changeList.addEventListener('click', (event) => {
+    const removeButton = event.target.closest('.remove-change');
+    if (!removeButton) return;
+    removeButton.closest('.change-row').remove();
+    if (!changeList.children.length) addChangeRow();
+  });
+</script>

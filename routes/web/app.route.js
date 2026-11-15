@@ -4,6 +4,7 @@ const router = express.Router();
 const AppController = require('../../controllers/app.controller');
 const AnalyticsController = require('../../controllers/analytics.controller');
 const ExtInstallationController = require('../../controllers/extInstallationController');
+const ReleaseController = require('../../controllers/release.controller');
 const { authenticate } = require('../../middlewares/authenticate');
 const { authorize } = require('../../middlewares/authorize');
 const multer = require('multer');
@@ -104,5 +105,13 @@ router.get('/ext-installations', authenticate, authorize('admin'), ExtInstallati
 
 // ── Analytics (Google Analytics 4 dashboard) ───────────────────────
 router.get('/analytics', authenticate, authorize('admin'), AnalyticsController.analyticsPage);
+
+// ── Release changelog CRUD ────────────────────────────────────────
+router.get('/releases', authenticate, authorize('admin'), ReleaseController.adminList);
+router.get('/releases/new', authenticate, authorize('admin'), ReleaseController.adminNew);
+router.post('/releases', authenticate, authorize('admin'), ReleaseController.adminCreate);
+router.get('/releases/:id/edit', authenticate, authorize('admin'), ReleaseController.adminEdit);
+router.post('/releases/:id', authenticate, authorize('admin'), ReleaseController.adminUpdate);
+router.post('/releases/:id/delete', authenticate, authorize('admin'), ReleaseController.adminDelete);
 
 module.exports = router;

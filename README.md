@@ -36,3 +36,20 @@ Gemini AI Integration: Smart chatbot for academic assistance
 
 Contextual Responses: Answers all types of academic queries
 Apllication Live at: [https://vuempire.online/]
+
+## Extension release API
+
+The public release endpoints are available without authentication:
+
+- `GET /api/releases` returns the complete changelog, newest release first.
+- `GET /api/releases/latest` returns the latest release (or `null` if there are no releases).
+
+Both endpoints return `{ "success": true, "data": ... }`. Each release has a
+`version`, an ISO `releasedAt` date (`YYYY-MM-DD`), and an ordered `changes`
+array. Each change contains a `type` (`feature`, `improve`, or `fix`) and a
+`description`.
+
+Apply database changes with `npm run db:migrate`.
+
+Administrators can create, edit, and delete releases and their changelog entries
+from **Release Changelog** in the CMS sidebar at `/releases`.

@@ -15,6 +15,7 @@ const gdbSolutionRoutes = require('../routes/api/gdbSolution.route');
 const analyticsRoutes = require('../routes/api/analytics.route');
 const agentsRoutes = require('../routes/api/agents.route');
 const extInstallationRoutes = require('../routes/api/extInstallation.route');
+const releaseRoutes = require('../routes/api/release.route');
 
 //web routes
 const webAppRoutes = require('../routes/web/app.route');
@@ -71,6 +72,7 @@ app.use('/api/gdb-solutions', gdbSolutionRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/ext-installations', extInstallationRoutes);
+app.use('/api/releases', releaseRoutes);
 
 // Global variables for views
 app.use((req, res, next) => {
